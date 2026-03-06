@@ -372,6 +372,47 @@ function formatMemberWithLocation(row: any) {
   };
 }
 
+// PATCH /groups/:id/members/:riderId/role — Assign sweep or member role (leader only)
+router.patch('/:id/members/:riderId/role', requireRider, async (req: Request, res: Response) => {
+  const leaderId = (req as any).riderId;
+  const { id, riderId } = req.params;
+  const { role } = req.body as { role: string };
+
+  const VALID_ROLES = ['member', 'sweep'];
+  if (!VALID_ROLES.includes(role)) {
+    res.status(400).json({ error: `role must be one of: ${VALID_ROLES.join(', ')}` });
+    return;
+  }
+
+  const groupResult = await query('SELECT * FROM groups WHERE id = $1', [id]);
+  if (groupResult.rows.length === 0) {
+    res.status(404).json({ error: 'Group not found' });
+    return;
+  }
+  const group = groupResult.rows[0];
+  if (group.leader_id !== leaderId) {
+    res.status(403).json({ error: 'Only the leader can assign roles' });
+    return;
+  }
+
+  // Update the member's role in group_members
+  await query(`UPDATE group_members SET role = $1 WHERE group_id = $2 AND rider_id = $3`, [role, id, riderId]);
+
+  // If assigning sweep, set sweep_id on the group; if removing sweep, clear it
+  if (role === 'sweep') {
+    // Clear previous sweep's role first
+    if (group.sweep_id && group.sweep_id !== riderId) {
+      await query(`UPDATE group_members SET role = 'member' WHERE group_id = $1 AND rider_id = $2`, [id, group.sweep_id]);
+    }
+    await query('UPDATE groups SET sweep_id = $1 WHERE id = $2', [riderId, id]);
+  } else if (role === 'member' && group.sweep_id === riderId) {
+    await query('UPDATE groups SET sweep_id = NULL WHERE id = $1', [id]);
+  }
+
+  broadcastToGroup(id, { type: 'role_changed', riderId, role });
+  res.json({ success: true, riderId, role });
+});
+
 async function getGroupMembers(groupId: string) {
   const result = await query(`
     SELECT r.id, r.name, r.avatar_url, gm.role, gm.joined_at

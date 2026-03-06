@@ -17,6 +17,9 @@ import { MemberListPanel } from '../components/MemberListPanel';
 import { getAvalancheGeoJSON, type AvalancheGeoJSON, cacheAge } from '../services/avalanche';
 import { fetchPOIs, type POI, POI_COLORS } from '../services/poi';
 import { autoDownloadAroundLocation } from '../services/offlineMaps';
+import { fetchNearbyConditions, type TrailConditionReport } from '../api/trailConditions';
+import { TrailConditionModal } from '../components/TrailConditionModal';
+import { RecentConditionsPanel } from '../components/RecentConditionsPanel';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -40,31 +43,16 @@ function getBatteryColor(battery: number): string {
 }
 
 // ---------------------------------------------------------------------------
-// Trail condition severity -> color (crowdsourced dots)
+// Trail condition colors (from API types)
 // ---------------------------------------------------------------------------
-type ConditionSeverity = 'excellent' | 'good' | 'fair' | 'poor' | 'closed';
-const CONDITION_COLORS: Record<ConditionSeverity, string> = {
-  excellent: '#00ff88',
-  good: '#88ff00',
-  fair: '#ffdd00',
-  poor: '#ff8800',
+const CONDITION_DOT_COLORS: Record<string, string> = {
+  groomed: '#00ff88',
+  powder: '#00aaff',
+  icy: '#ff4466',
   closed: '#ff2200',
+  tracked_out: '#ffaa00',
+  wet_snow: '#aa88ff',
 };
-
-interface ConditionReport {
-  id: string;
-  lat: number;
-  lng: number;
-  severity: ConditionSeverity;
-  note?: string;
-}
-
-const STUB_REPORTS: ConditionReport[] = [
-  { id: '1', lat: 46.41, lng: -84.85, severity: 'excellent', note: 'Perfect powder' },
-  { id: '2', lat: 46.52, lng: -84.70, severity: 'good', note: 'Some ice patches' },
-  { id: '3', lat: 46.30, lng: -85.10, severity: 'fair', note: 'Groomed last night' },
-  { id: '4', lat: 46.60, lng: -84.60, severity: 'poor', note: 'Wet snow, be careful' },
-];
 
 // ---------------------------------------------------------------------------
 // Map style
@@ -146,14 +134,14 @@ function POILayer({ pois }: { pois: POI[] }) {
 // ---------------------------------------------------------------------------
 // Condition report dots
 // ---------------------------------------------------------------------------
-function ConditionLayer({ reports }: { reports: ConditionReport[] }) {
+function ConditionLayer({ reports }: { reports: TrailConditionReport[] }) {
   if (reports.length === 0) return null;
   const geojson: GeoJSON.FeatureCollection = {
     type: 'FeatureCollection',
     features: reports.map((r) => ({
       type: 'Feature',
       geometry: { type: 'Point', coordinates: [r.lng, r.lat] },
-      properties: { severity: r.severity },
+      properties: { condition: r.condition },
     })),
   };
   return (
@@ -162,7 +150,16 @@ function ConditionLayer({ reports }: { reports: ConditionReport[] }) {
         id="conditions-circles"
         style={{
           circleRadius: ['interpolate', ['linear'], ['zoom'], 8, 5, 14, 10] as any,
-          circleColor: ['match', ['get', 'severity'], 'excellent', CONDITION_COLORS.excellent, 'good', CONDITION_COLORS.good, 'fair', CONDITION_COLORS.fair, 'poor', CONDITION_COLORS.poor, 'closed', CONDITION_COLORS.closed, '#888888'] as any,
+          circleColor: [
+            'match', ['get', 'condition'],
+            'groomed', CONDITION_DOT_COLORS.groomed,
+            'powder', CONDITION_DOT_COLORS.powder,
+            'icy', CONDITION_DOT_COLORS.icy,
+            'closed', CONDITION_DOT_COLORS.closed,
+            'tracked_out', CONDITION_DOT_COLORS.tracked_out,
+            'wet_snow', CONDITION_DOT_COLORS.wet_snow,
+            '#888888',
+          ] as any,
           circleOpacity: 0.9,
           circleStrokeColor: 'rgba(0,0,0,0.5)',
           circleStrokeWidth: 1,
@@ -184,17 +181,61 @@ function ReconnectingBanner() {
 }
 
 // ---------------------------------------------------------------------------
+// Distance helper (Haversine)
+// ---------------------------------------------------------------------------
+function haversineMeters(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371000;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLng / 2) *
+      Math.sin(dLng / 2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function formatDistance(meters: number): string {
+  if (meters < 1000) return `${Math.round(meters)} m`;
+  return `${(meters / 1000).toFixed(1)} km`;
+}
+
+// ---------------------------------------------------------------------------
 // Member detail bottom sheet
 // ---------------------------------------------------------------------------
-function MemberDetailSheet({ member, onClose }: { member: MemberLocation; onClose: () => void }) {
+function MemberDetailSheet({
+  member,
+  userCoords,
+  isFollowing,
+  onClose,
+  onToggleFollow,
+}: {
+  member: MemberLocation;
+  userCoords: [number, number] | null;
+  isFollowing: boolean;
+  onClose: () => void;
+  onToggleFollow: () => void;
+}) {
+  const distance = userCoords
+    ? haversineMeters(userCoords[1], userCoords[0], member.lat, member.lng)
+    : null;
+
   return (
     <View style={styles.detailSheet}>
       <View style={styles.sheetHeader}>
         <Text style={styles.sheetName}>{member.userId}</Text>
         <TouchableOpacity onPress={onClose} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <Text style={styles.sheetClose}>X</Text>
+          <Text style={styles.sheetClose}>✕</Text>
         </TouchableOpacity>
       </View>
+
+      {distance !== null && (
+        <View style={styles.sheetRow}>
+          <Text style={styles.sheetLabel}>Distance</Text>
+          <Text style={styles.sheetValue}>{formatDistance(distance)}</Text>
+        </View>
+      )}
       <View style={styles.sheetRow}>
         <Text style={styles.sheetLabel}>Speed</Text>
         <Text style={styles.sheetValue}>{Math.round(member.speed)} mph</Text>
@@ -204,13 +245,18 @@ function MemberDetailSheet({ member, onClose }: { member: MemberLocation; onClos
         <Text style={[styles.sheetValue, { color: getBatteryColor(member.battery) }]}>{member.battery}%</Text>
       </View>
       <View style={styles.sheetRow}>
-        <Text style={styles.sheetLabel}>Last Seen</Text>
+        <Text style={styles.sheetLabel}>Last Update</Text>
         <Text style={styles.sheetValue}>{getRelativeTime(member.timestamp)}</Text>
       </View>
-      <View style={styles.sheetRow}>
-        <Text style={styles.sheetLabel}>Location</Text>
-        <Text style={styles.sheetValue}>{member.lat.toFixed(5)}, {member.lng.toFixed(5)}</Text>
-      </View>
+
+      <TouchableOpacity
+        style={[styles.followBtn, isFollowing && styles.followBtnActive]}
+        onPress={onToggleFollow}
+      >
+        <Text style={[styles.followBtnText, isFollowing && styles.followBtnTextActive]}>
+          {isFollowing ? '🔴 Stop Following' : '📍 Follow on Map'}
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -265,13 +311,20 @@ export default function MapScreen() {
   // Layer data
   const [avalancheData, setAvalancheData] = useState<AvalancheGeoJSON | null>(null);
   const [pois, setPois] = useState<POI[]>([]);
-  const [conditionReports] = useState<ConditionReport[]>(STUB_REPORTS);
+  const [conditionReports, setConditionReports] = useState<TrailConditionReport[]>([]);
 
   // Layer visibility
   const [showTrails, setShowTrails] = useState(true);
   const [showAvalanche, setShowAvalanche] = useState(true);
   const [showPOI, setShowPOI] = useState(true);
   const [showConditions, setShowConditions] = useState(true);
+
+  // Trail conditions panel + report modal
+  const [conditionsPanelVisible, setConditionsPanelVisible] = useState(false);
+  const [conditionReportModalVisible, setConditionReportModalVisible] = useState(false);
+
+  // Follow mode — camera tracks a specific member
+  const [followUserId, setFollowUserId] = useState<string | null>(null);
 
   const cameraRef = useRef<MapboxGL.Camera>(null);
   const autoDownloadDone = useRef(false);
@@ -283,12 +336,13 @@ export default function MapScreen() {
     getAvalancheGeoJSON().then((data) => { if (data) setAvalancheData(data); });
   }, []);
 
-  // Load POIs when we have a user location
+  // Load POIs and conditions when we have a user location
   useEffect(() => {
     if (!userCoords) return;
     const [lng, lat] = userCoords;
     const delta = 0.5;
     fetchPOIs([[lng - delta, lat - delta], [lng + delta, lat + delta]]).then(setPois);
+    fetchNearbyConditions(lat, lng).then(setConditionReports).catch(() => {});
   }, [userCoords]);
 
   // Auto-download region around user location on WiFi
@@ -298,6 +352,18 @@ export default function MapScreen() {
     const [lng, lat] = userCoords;
     autoDownloadAroundLocation(lat, lng, 'auto-current-location').catch(() => {});
   }, [userCoords]);
+
+  // Follow mode — pan camera to tracked member whenever their location updates
+  useEffect(() => {
+    if (!followUserId || !cameraRef.current) return;
+    const target = members.get(followUserId);
+    if (!target) return;
+    cameraRef.current.setCamera({
+      centerCoordinate: [target.lng, target.lat],
+      zoomLevel: 15,
+      animationDuration: 400,
+    });
+  }, [followUserId, members]);
 
   // Vibrate on sweep gap alert
   useEffect(() => {
@@ -324,12 +390,14 @@ export default function MapScreen() {
 
   const handleMemberPress = useCallback((member: MemberLocation) => {
     setPanelVisible(false);
+    setConditionsPanelVisible(false);
     setSelectedMember(member);
   }, []);
 
   const handleMapPress = useCallback(() => {
     setSelectedMember(null);
     setLayerPanelVisible(false);
+    setConditionsPanelVisible(false);
   }, []);
 
   const handleCenterOnMe = useCallback(() => {
@@ -390,18 +458,36 @@ export default function MapScreen() {
       )}
 
       <TouchableOpacity style={styles.centerBtn} onPress={handleCenterOnMe}>
-        <Text style={styles.centerBtnText}>O</Text>
+        <Text style={styles.centerBtnText}>◎</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         style={[styles.groupBtn, panelVisible && styles.groupBtnActive]}
-        onPress={() => { setSelectedMember(null); setLayerPanelVisible(false); setPanelVisible((v) => !v); }}
+        onPress={() => { setSelectedMember(null); setLayerPanelVisible(false); setConditionsPanelVisible(false); setPanelVisible((v) => !v); }}
       >
         <Text style={styles.groupBtnText}>Group</Text>
       </TouchableOpacity>
 
+      {/* Conditions shortcut */}
+      <TouchableOpacity
+        style={[styles.conditionsBtn, conditionsPanelVisible && styles.conditionsBtnActive]}
+        onPress={() => { setSelectedMember(null); setPanelVisible(false); setLayerPanelVisible(false); setConditionsPanelVisible((v) => !v); }}
+      >
+        <Text style={styles.conditionsBtnText}>❄️</Text>
+      </TouchableOpacity>
+
       {selectedMember && !panelVisible && (
-        <MemberDetailSheet member={selectedMember} onClose={() => setSelectedMember(null)} />
+        <MemberDetailSheet
+          member={selectedMember}
+          userCoords={userCoords}
+          isFollowing={followUserId === selectedMember.userId}
+          onClose={() => { setSelectedMember(null); setFollowUserId(null); }}
+          onToggleFollow={() => {
+            setFollowUserId((prev) =>
+              prev === selectedMember.userId ? null : selectedMember.userId,
+            );
+          }}
+        />
       )}
 
       <MemberListPanel
@@ -409,6 +495,31 @@ export default function MapScreen() {
         members={memberList}
         onClose={() => setPanelVisible(false)}
         onMemberPress={(member) => { setPanelVisible(false); setSelectedMember(member); }}
+      />
+
+      {/* Trail Conditions Panel */}
+      <RecentConditionsPanel
+        visible={conditionsPanelVisible}
+        reports={conditionReports}
+        onClose={() => setConditionsPanelVisible(false)}
+        onReportCondition={() => {
+          setConditionsPanelVisible(false);
+          setConditionReportModalVisible(true);
+        }}
+      />
+
+      {/* Trail Condition Report Modal */}
+      <TrailConditionModal
+        visible={conditionReportModalVisible}
+        userLat={userCoords ? userCoords[1] : null}
+        userLng={userCoords ? userCoords[0] : null}
+        onClose={() => setConditionReportModalVisible(false)}
+        onSubmitted={() => {
+          if (userCoords) {
+            const [lng, lat] = userCoords;
+            fetchNearbyConditions(lat, lng).then(setConditionReports).catch(() => {});
+          }
+        }}
       />
     </View>
   );
@@ -444,4 +555,11 @@ const styles = StyleSheet.create({
   sheetRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(255,255,255,0.08)' },
   sheetLabel: { color: colors.textDim, fontSize: 14 },
   sheetValue: { color: colors.text, fontSize: 14, fontWeight: '600' },
+  followBtn: { marginTop: 16, borderWidth: 1.5, borderColor: colors.accent, borderRadius: 12, paddingVertical: 12, alignItems: 'center' },
+  followBtnActive: { backgroundColor: colors.accent + '22' },
+  followBtnText: { color: colors.accent, fontSize: 15, fontWeight: '700' },
+  followBtnTextActive: { color: colors.accent },
+  conditionsBtn: { position: 'absolute', bottom: 220, right: 16, width: 48, height: 48, borderRadius: 24, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.4, shadowRadius: 4 },
+  conditionsBtnActive: { backgroundColor: colors.accent + '33', borderColor: colors.accent },
+  conditionsBtnText: { fontSize: 22 },
 });

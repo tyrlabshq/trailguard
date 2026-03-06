@@ -15,7 +15,7 @@ export interface GroupJoinResponse {
 export interface GroupMember {
   riderId: string;
   name: string;
-  role: 'leader' | 'member';
+  role: 'leader' | 'member' | 'sweep';
   online: boolean;
 }
 
@@ -53,4 +53,17 @@ export async function leaveGroup(groupId: string): Promise<void> {
 export async function disbandGroup(groupId: string): Promise<void> {
   const res = await fetch(`${API_URL}/groups/${groupId}`, { method: 'DELETE' });
   if (!res.ok) throw new Error(`Failed to disband group: ${res.status}`);
+}
+
+export async function assignMemberRole(
+  groupId: string,
+  riderId: string,
+  role: 'member' | 'sweep',
+): Promise<void> {
+  const res = await fetch(`${API_URL}/groups/${groupId}/members/${riderId}/role`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ role }),
+  });
+  if (!res.ok) throw new Error(`Failed to assign role: ${res.status}`);
 }

@@ -11,22 +11,47 @@ services:
       - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U powderlink -d powderlink']
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   redis:
     image: redis:7-alpine
     ports:
       - '6379:6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
   api:
     build: ./backend
     ports:
       - '8420:8420'
     environment:
+      PORT: 8420
+      NODE_ENV: development
       DATABASE_URL: postgresql://powderlink:devpassword@postgres:5432/powderlink
       REDIS_URL: redis://redis:6379
+      # JWT — override in production with a real secret
+      JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret-change-in-production}
+      # Stripe — set in .env file or CI secrets
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_PRO_PRICE_ID: ${STRIPE_PRO_PRICE_ID:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      APP_URL: ${APP_URL:-https://powderlink.app}
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      # Mount backend source for hot reload in dev (remove in prod)
+      - ./backend:/app
+      - /app/node_modules
 
 volumes:
   postgres_data:

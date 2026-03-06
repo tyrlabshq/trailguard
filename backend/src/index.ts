@@ -12,9 +12,11 @@ import countMeOutRoutes from './routes/countMeOut';
 import trailRoutes from './routes/trails';
 import emergencyRoutes from './routes/emergency';
 import rideRoutes from './routes/rides';
+import garminRoutes from './routes/garmin';
 import { addClient, removeClient, broadcastToGroup, WsClient } from './ws';
 import { checkDMS } from './services/dms';
 import { checkCountMeOut } from './services/countMeOut';
+import { pollDueGarminFeeds } from './services/garmin';
 
 const app = express();
 const PORT = parseInt(process.env.PORT || '8420', 10);
@@ -36,6 +38,7 @@ app.use('/alerts/count-me-out', countMeOutRoutes);
 app.use('/trails', trailRoutes);
 app.use('/emergency', emergencyRoutes);
 app.use('/rides', rideRoutes);
+app.use('/garmin', garminRoutes);
 
 // HTTP + WebSocket server
 const server = http.createServer(app);
@@ -140,6 +143,15 @@ const cmoInterval = setInterval(async () => {
   }
 }, 30_000);
 
+// Garmin inReach poller — check every 60 seconds (pro riders only)
+const garminInterval = setInterval(async () => {
+  try {
+    await pollDueGarminFeeds();
+  } catch (err) {
+    console.error('Garmin poll error:', err);
+  }
+}, 60_000);
+
 server.listen(PORT, () => {
   console.log(`PowderLink API listening on :${PORT}`);
 });
@@ -148,6 +160,7 @@ server.listen(PORT, () => {
 process.on('SIGTERM', () => {
   clearInterval(dmsInterval);
   clearInterval(cmoInterval);
+  clearInterval(garminInterval);
   clearInterval(heartbeat);
   wss.close();
   server.close();

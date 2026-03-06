@@ -6,7 +6,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
-import { fetchMembers, leaveGroup, disbandGroup } from '../api/groups';
+import { fetchMembers, leaveGroup, disbandGroup, assignMemberRole } from '../api/groups';
 import type { GroupMember } from '../api/groups';
 import { startRide, endRide, getActiveRide } from '../api/rides';
 import { startCountMeOut, cancelCountMeOut, getCountMeOutStatus } from '../api/countMeOut';
@@ -204,6 +204,16 @@ export default function GroupDashboardScreen() {
     );
   }
 
+  async function handleAssignRole(member: GroupMember, role: 'sweep' | 'member') {
+    if (!group) return;
+    try {
+      await assignMemberRole(group.groupId, member.riderId, role);
+      await loadMembers();
+    } catch (e: unknown) {
+      Alert.alert('Error', e instanceof Error ? e.message : 'Failed to assign role');
+    }
+  }
+
   async function handleLeave() {
     if (!group) return;
     Alert.alert('Leave Group', 'Are you sure you want to leave?', [
@@ -352,7 +362,14 @@ export default function GroupDashboardScreen() {
           data={members}
           keyExtractor={(m) => m.riderId}
           contentContainerStyle={styles.list}
-          renderItem={({ item }) => <MemberRow member={item} />}
+          renderItem={({ item }) => (
+            <MemberRow
+              member={item}
+              isLeader={group?.role === 'leader'}
+              onAssignSweep={(m) => handleAssignRole(m, 'sweep')}
+              onRemoveSweep={(m) => handleAssignRole(m, 'member')}
+            />
+          )}
           ListEmptyComponent={<Text style={styles.empty}>No members yet</Text>}
         />
       )}
@@ -442,15 +459,55 @@ export default function GroupDashboardScreen() {
   );
 }
 
-function MemberRow({ member }: { member: GroupMember }) {
+const ROLE_LABELS: Record<string, string> = {
+  leader: 'Leader',
+  sweep: 'Sweep',
+  member: 'Member',
+};
+
+function MemberRow({
+  member,
+  isLeader,
+  onAssignSweep,
+  onRemoveSweep,
+}: {
+  member: GroupMember;
+  isLeader: boolean;
+  onAssignSweep?: (member: GroupMember) => void;
+  onRemoveSweep?: (member: GroupMember) => void;
+}) {
+  const isSweep = member.role === 'sweep';
+  const showSweepAction = isLeader && member.role !== 'leader';
+
   return (
     <View style={rowStyles.row}>
       <View style={[rowStyles.dot, { backgroundColor: member.online ? colors.success : colors.textDim }]} />
       <Text style={rowStyles.name}>{member.name}</Text>
-      <View style={[rowStyles.badge, member.role === 'leader' && rowStyles.badgeLeader]}>
-        <Text style={[rowStyles.badgeText, member.role === 'leader' && rowStyles.badgeLeaderText]}>
-          {member.role === 'leader' ? 'Leader' : 'Member'}
-        </Text>
+      <View style={rowStyles.rowRight}>
+        <View style={[
+          rowStyles.badge,
+          member.role === 'leader' && rowStyles.badgeLeader,
+          isSweep && rowStyles.badgeSweep,
+        ]}>
+          <Text style={[
+            rowStyles.badgeText,
+            member.role === 'leader' && rowStyles.badgeLeaderText,
+            isSweep && rowStyles.badgeSweepText,
+          ]}>
+            {ROLE_LABELS[member.role] ?? member.role}
+          </Text>
+        </View>
+        {showSweepAction && (
+          <TouchableOpacity
+            style={[rowStyles.sweepBtn, isSweep && rowStyles.sweepBtnActive]}
+            onPress={() => isSweep ? onRemoveSweep?.(member) : onAssignSweep?.(member)}
+            hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+          >
+            <Text style={[rowStyles.sweepBtnText, isSweep && rowStyles.sweepBtnTextActive]}>
+              {isSweep ? 'Unsweep' : 'Make Sweep'}
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -656,6 +713,7 @@ const rowStyles = StyleSheet.create({
   },
   dot: { width: 10, height: 10, borderRadius: 5, marginRight: 12 },
   name: { color: colors.text, fontSize: 16, flex: 1 },
+  rowRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   badge: {
     backgroundColor: colors.textDim,
     borderRadius: 6,
@@ -663,6 +721,18 @@ const rowStyles = StyleSheet.create({
     paddingVertical: 3,
   },
   badgeLeader: { backgroundColor: colors.accent + '33' },
+  badgeSweep: { backgroundColor: '#aa88ff33' },
   badgeText: { color: colors.text, fontSize: 12 },
   badgeLeaderText: { color: colors.accent },
+  badgeSweepText: { color: '#aa88ff' },
+  sweepBtn: {
+    borderWidth: 1,
+    borderColor: colors.textDim,
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  sweepBtnActive: { borderColor: '#aa88ff', backgroundColor: '#aa88ff22' },
+  sweepBtnText: { color: colors.textDim, fontSize: 11, fontWeight: '600' },
+  sweepBtnTextActive: { color: '#aa88ff' },
 });
