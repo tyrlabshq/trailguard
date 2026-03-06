@@ -1,24 +1,57 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { colors } from '../theme/colors';
 
 export default function ProfileScreen() {
+  const navigation = useNavigation<any>();
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>Profile</Text>
-    </View>
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <Text style={styles.header}>Profile</Text>
+
+      <TouchableOpacity
+        style={styles.menuItem}
+        onPress={() => navigation.navigate('EmergencyInfo')}
+      >
+        <Text style={styles.menuIcon}>🆘</Text>
+        <View style={styles.menuText}>
+          <Text style={styles.menuTitle}>Emergency Info</Text>
+          <Text style={styles.menuSubtitle}>Medical info, contacts & QR code for first responders</Text>
+        </View>
+        <Text style={styles.menuArrow}>›</Text>
+      </TouchableOpacity>
+
+      {/* Placeholder for future profile items */}
+      <View style={styles.placeholderSection}>
+        <Text style={styles.placeholderText}>More profile features coming soon</Text>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
+  container: { flex: 1, backgroundColor: colors.background },
+  content: { padding: 16, paddingTop: 60 },
+  header: { color: colors.text, fontSize: 24, fontWeight: '700', marginBottom: 24 },
+  menuItem: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: colors.textDim,
   },
-  text: {
-    color: colors.text,
-    fontSize: 18,
+  menuIcon: { fontSize: 28, marginRight: 14 },
+  menuText: { flex: 1 },
+  menuTitle: { color: colors.text, fontSize: 16, fontWeight: '600' },
+  menuSubtitle: { color: colors.textDim, fontSize: 13, marginTop: 2 },
+  menuArrow: { color: colors.textDim, fontSize: 24, fontWeight: '300' },
+  placeholderSection: {
+    padding: 20,
+    alignItems: 'center',
   },
+  placeholderText: { color: colors.textDim, fontSize: 14 },
 });
