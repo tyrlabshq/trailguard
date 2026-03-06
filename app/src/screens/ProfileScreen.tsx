@@ -24,6 +24,18 @@ export default function ProfileScreen() {
 
       <TouchableOpacity
         style={styles.menuItem}
+        onPress={() => navigation.navigate('OfflineMaps')}
+      >
+        <Text style={styles.menuIcon}>🗺️</Text>
+        <View style={styles.menuText}>
+          <Text style={styles.menuTitle}>Offline Maps</Text>
+          <Text style={styles.menuSubtitle}>Download trail maps for zero-signal riding</Text>
+        </View>
+        <Text style={styles.menuArrow}>›</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.menuItem}
         onPress={() => navigation.navigate('EmergencyInfo')}
       >
         <Text style={styles.menuIcon}>🆘</Text>

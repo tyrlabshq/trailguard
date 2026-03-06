@@ -8,11 +8,13 @@ import authRoutes from './routes/auth';
 import groupRoutes from './routes/groups';
 import locationRoutes from './routes/locations';
 import alertRoutes from './routes/alerts';
+import countMeOutRoutes from './routes/countMeOut';
 import trailRoutes from './routes/trails';
 import emergencyRoutes from './routes/emergency';
 import rideRoutes from './routes/rides';
 import { addClient, removeClient, broadcastToGroup, WsClient } from './ws';
 import { checkDMS } from './services/dms';
+import { checkCountMeOut } from './services/countMeOut';
 
 const app = express();
 const PORT = parseInt(process.env.PORT || '8420', 10);
@@ -30,6 +32,7 @@ app.use('/auth', authRoutes);
 app.use('/groups', groupRoutes);
 app.use('/locations', locationRoutes);
 app.use('/alerts', alertRoutes);
+app.use('/alerts/count-me-out', countMeOutRoutes);
 app.use('/trails', trailRoutes);
 app.use('/emergency', emergencyRoutes);
 app.use('/rides', rideRoutes);
@@ -128,6 +131,15 @@ const dmsInterval = setInterval(async () => {
   }
 }, 30_000);
 
+// Count-Me-Out watchdog — check every 30 seconds alongside DMS
+const cmoInterval = setInterval(async () => {
+  try {
+    await checkCountMeOut();
+  } catch (err) {
+    console.error('Count-me-out check error:', err);
+  }
+}, 30_000);
+
 server.listen(PORT, () => {
   console.log(`PowderLink API listening on :${PORT}`);
 });
@@ -135,6 +147,7 @@ server.listen(PORT, () => {
 // Graceful shutdown
 process.on('SIGTERM', () => {
   clearInterval(dmsInterval);
+  clearInterval(cmoInterval);
   clearInterval(heartbeat);
   wss.close();
   server.close();

@@ -9,6 +9,21 @@ export interface MemberLocation {
   timestamp: string; // ISO string
 }
 
+/** Count-me-out timer state for a specific rider (received via WS broadcast). */
+export interface CMOState {
+  riderId: string;
+  etaAt: string;          // ISO
+  durationMinutes: number;
+  note: string | null;
+}
+
+/** Sweep gap data — only relevant if current user is the sweep or leader. */
+export interface SweepGap {
+  lastRiderId: string;
+  distanceMiles: number;
+  alert: boolean;
+}
+
 const BASE_RECONNECT_MS = 1000;
 const MAX_RECONNECT_MS = 30000;
 
@@ -19,17 +34,34 @@ const WS_URL =
 interface UseGroupWebSocketResult {
   members: Map<string, MemberLocation>;
   connected: boolean;
+  /** Map of riderId -> active CMO state for riders in the group. */
+  cmoStates: Map<string, CMOState>;
+  /** Current sweep gap — populated if the current user is sweep or leader. */
+  sweepGap: SweepGap | null;
+  /** True if rider received a count-me-out 2-minute warning. */
+  cmoWarning: boolean;
+  /** Dismiss the CMO warning after the rider has seen it. */
+  dismissCmoWarning: () => void;
+  /** Leader alert: sweep has fallen >2mi behind. */
+  sweepLeaderAlert: string | null;
+  dismissSweepLeaderAlert: () => void;
 }
 
 export function useGroupWebSocket(): UseGroupWebSocketResult {
-  const [members, setMembers] = useState<Map<string, MemberLocation>>(
-    new Map(),
-  );
+  const [members, setMembers] = useState<Map<string, MemberLocation>>(new Map());
   const [connected, setConnected] = useState(false);
+  const [cmoStates, setCmoStates] = useState<Map<string, CMOState>>(new Map());
+  const [sweepGap, setSweepGap] = useState<SweepGap | null>(null);
+  const [cmoWarning, setCmoWarning] = useState(false);
+  const [sweepLeaderAlert, setSweepLeaderAlert] = useState<string | null>(null);
+
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectDelay = useRef(BASE_RECONNECT_MS);
   const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const unmounted = useRef(false);
+
+  const dismissCmoWarning = useCallback(() => setCmoWarning(false), []);
+  const dismissSweepLeaderAlert = useCallback(() => setSweepLeaderAlert(null), []);
 
   const connect = useCallback(() => {
     if (unmounted.current) return;
@@ -50,29 +82,72 @@ export function useGroupWebSocket(): UseGroupWebSocketResult {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ws.onmessage = (event: any) => {
         try {
-          const msg = JSON.parse(event.data) as {
-            type: string;
-            userId: string;
-            lat: number;
-            lng: number;
-            speed: number;
-            battery: number;
-            timestamp: string;
-          };
-          if (msg.type === 'location_update') {
-            const loc: MemberLocation = {
-              userId: msg.userId,
-              lat: msg.lat,
-              lng: msg.lng,
-              speed: msg.speed,
-              battery: msg.battery,
-              timestamp: msg.timestamp,
-            };
-            setMembers((prev) => {
-              const next = new Map(prev);
-              next.set(loc.userId, loc);
-              return next;
-            });
+          const msg = JSON.parse(event.data) as Record<string, any>;
+
+          switch (msg.type) {
+            case 'location_update': {
+              const loc: MemberLocation = {
+                userId: msg.riderId ?? msg.userId,
+                lat: msg.location?.lat ?? msg.lat,
+                lng: msg.location?.lng ?? msg.lng,
+                speed: msg.speedMph ?? msg.speed ?? 0,
+                battery: msg.battery ?? 100,
+                timestamp: msg.timestamp ? new Date(msg.timestamp).toISOString() : new Date().toISOString(),
+              };
+              setMembers((prev) => {
+                const next = new Map(prev);
+                next.set(loc.userId, loc);
+                return next;
+              });
+              break;
+            }
+
+            case 'count_me_out_started': {
+              const state: CMOState = {
+                riderId: msg.riderId,
+                etaAt: msg.etaAt,
+                durationMinutes: msg.durationMinutes,
+                note: msg.note ?? null,
+              };
+              setCmoStates((prev) => {
+                const next = new Map(prev);
+                next.set(msg.riderId, state);
+                return next;
+              });
+              break;
+            }
+
+            case 'count_me_out_cancelled': {
+              setCmoStates((prev) => {
+                const next = new Map(prev);
+                next.delete(msg.riderId);
+                return next;
+              });
+              break;
+            }
+
+            case 'count_me_out_warning': {
+              // Personal warning — the current rider is the one counting out
+              setCmoWarning(true);
+              break;
+            }
+
+            case 'sweep_gap_update': {
+              setSweepGap({
+                lastRiderId: msg.lastRiderId,
+                distanceMiles: msg.distanceMiles,
+                alert: msg.alert,
+              });
+              break;
+            }
+
+            case 'sweep_gap_leader_alert': {
+              setSweepLeaderAlert(msg.message ?? `Sweep is ${msg.distanceMiles?.toFixed(1)}mi behind`);
+              break;
+            }
+
+            default:
+              break;
           }
         } catch {
           // Ignore malformed messages
@@ -86,7 +161,7 @@ export function useGroupWebSocket(): UseGroupWebSocketResult {
       };
 
       ws.onerror = () => {
-        // onclose fires after onerror — no need to setConnected here
+        // onclose fires after onerror
         ws.close();
       };
     } catch {
@@ -111,5 +186,14 @@ export function useGroupWebSocket(): UseGroupWebSocketResult {
     };
   }, [connect]);
 
-  return { members, connected };
+  return {
+    members,
+    connected,
+    cmoStates,
+    sweepGap,
+    cmoWarning,
+    dismissCmoWarning,
+    sweepLeaderAlert,
+    dismissSweepLeaderAlert,
+  };
 }

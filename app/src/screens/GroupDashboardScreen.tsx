@@ -2,12 +2,15 @@ import React, { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, FlatList,
   Alert, ActivityIndicator, Share, Clipboard,
+  Modal, TextInput, ScrollView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { fetchMembers, leaveGroup, disbandGroup } from '../api/groups';
 import type { GroupMember } from '../api/groups';
 import { startRide, endRide, getActiveRide } from '../api/rides';
+import { startCountMeOut, cancelCountMeOut, getCountMeOutStatus } from '../api/countMeOut';
+import type { CMODuration } from '../api/countMeOut';
 import { useGroup } from '../context/GroupContext';
 import { colors } from '../theme/colors';
 import type { GroupStackParamList } from '../navigation/AppNavigator';
@@ -24,6 +27,14 @@ export default function GroupDashboardScreen() {
   const [rideStartedAt, setRideStartedAt] = useState<string | null>(null);
   const [rideLoading, setRideLoading] = useState(false);
   const [elapsed, setElapsed] = useState(0);
+
+  // Count-me-out state
+  const [cmoActive, setCmoActive] = useState(false);
+  const [cmoEta, setCmoEta] = useState<string | null>(null);
+  const [cmoModalVisible, setCmoModalVisible] = useState(false);
+  const [cmoSelectedDuration, setCmoSelectedDuration] = useState<CMODuration>(30);
+  const [cmoNote, setCmoNote] = useState('');
+  const [cmoLoading, setCmoLoading] = useState(false);
 
   const loadMembers = useCallback(async () => {
     if (!group) return;
@@ -53,15 +64,32 @@ export default function GroupDashboardScreen() {
     }
   }, [group]);
 
+  const checkCMOStatus = useCallback(async () => {
+    try {
+      const status = await getCountMeOutStatus();
+      if (status.active) {
+        setCmoActive(true);
+        setCmoEta(status.etaAt);
+      } else {
+        setCmoActive(false);
+        setCmoEta(null);
+      }
+    } catch {
+      // Non-fatal
+    }
+  }, []);
+
   useEffect(() => {
     loadMembers();
     checkActiveRide();
+    checkCMOStatus();
     const interval = setInterval(() => {
       loadMembers();
       checkActiveRide();
+      checkCMOStatus();
     }, 15000);
     return () => clearInterval(interval);
-  }, [loadMembers, checkActiveRide]);
+  }, [loadMembers, checkActiveRide, checkCMOStatus]);
 
   // Elapsed timer for active rides
   useEffect(() => {
@@ -74,6 +102,46 @@ export default function GroupDashboardScreen() {
     const timer = setInterval(update, 1000);
     return () => clearInterval(timer);
   }, [rideStartedAt]);
+
+  async function handleStartCMO() {
+    if (!group) return;
+    setCmoLoading(true);
+    try {
+      const result = await startCountMeOut(group.groupId, cmoSelectedDuration, cmoNote.trim() || undefined);
+      setCmoActive(true);
+      setCmoEta(result.etaAt);
+      setCmoModalVisible(false);
+      setCmoNote('');
+    } catch (e: unknown) {
+      Alert.alert('Error', e instanceof Error ? e.message : 'Failed to start timer');
+    } finally {
+      setCmoLoading(false);
+    }
+  }
+
+  async function handleCancelCMO() {
+    Alert.alert(
+      "I'm Back!",
+      'Cancel your count-me-out timer and rejoin the group?',
+      [
+        { text: 'Not yet', style: 'cancel' },
+        {
+          text: "I'm Back", onPress: async () => {
+            setCmoLoading(true);
+            try {
+              await cancelCountMeOut();
+              setCmoActive(false);
+              setCmoEta(null);
+            } catch (e: unknown) {
+              Alert.alert('Error', e instanceof Error ? e.message : 'Failed to cancel timer');
+            } finally {
+              setCmoLoading(false);
+            }
+          },
+        },
+      ],
+    );
+  }
 
   function copyCode() {
     if (!group) return;
@@ -186,6 +254,8 @@ export default function GroupDashboardScreen() {
     return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   }
 
+  const CMO_DURATIONS: CMODuration[] = [15, 30, 45, 60, 90];
+
   if (!group) {
     navigation.replace('GroupHome');
     return null;
@@ -193,6 +263,67 @@ export default function GroupDashboardScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Count Me Out modal */}
+      <Modal
+        visible={cmoModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setCmoModalVisible(false)}
+      >
+        <View style={modalStyles.overlay}>
+          <View style={modalStyles.sheet}>
+            <Text style={modalStyles.title}>⏱ Count Me Out</Text>
+            <Text style={modalStyles.subtitle}>
+              Taking a detour? Set a timer. Your group will see your pin with a countdown,
+              and get an alert if you don't rejoin by ETA.
+            </Text>
+
+            <Text style={modalStyles.sectionLabel}>DETOUR DURATION</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={modalStyles.durationRow}>
+              {CMO_DURATIONS.map((d) => (
+                <TouchableOpacity
+                  key={d}
+                  style={[modalStyles.durationBtn, cmoSelectedDuration === d && modalStyles.durationBtnActive]}
+                  onPress={() => setCmoSelectedDuration(d)}
+                >
+                  <Text style={[modalStyles.durationBtnText, cmoSelectedDuration === d && modalStyles.durationBtnTextActive]}>
+                    {d}m
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            <Text style={modalStyles.sectionLabel}>NOTE (optional)</Text>
+            <TextInput
+              style={modalStyles.noteInput}
+              value={cmoNote}
+              onChangeText={setCmoNote}
+              placeholder="e.g. taking the ice road"
+              placeholderTextColor={colors.textDim}
+              maxLength={120}
+              autoCapitalize="sentences"
+            />
+
+            <View style={modalStyles.actions}>
+              <TouchableOpacity
+                style={modalStyles.cancelBtn}
+                onPress={() => { setCmoModalVisible(false); setCmoNote(''); }}
+              >
+                <Text style={modalStyles.cancelBtnText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[modalStyles.confirmBtn, cmoLoading && styles.btnDisabled]}
+                onPress={handleStartCMO}
+                disabled={cmoLoading}
+              >
+                {cmoLoading
+                  ? <ActivityIndicator color="#000" />
+                  : <Text style={modalStyles.confirmBtnText}>Start {cmoSelectedDuration}m Timer</Text>}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.groupName}>{group.name}</Text>
@@ -254,6 +385,36 @@ export default function GroupDashboardScreen() {
         <TouchableOpacity style={styles.shareBtn} onPress={shareCode}>
           <Text style={styles.shareBtnText}>Share Code</Text>
         </TouchableOpacity>
+
+        {/* Count Me Out */}
+        {cmoActive ? (
+          <TouchableOpacity
+            style={[styles.cmoActiveBtn, cmoLoading && styles.btnDisabled]}
+            onPress={handleCancelCMO}
+            disabled={cmoLoading}
+          >
+            {cmoLoading
+              ? <ActivityIndicator color="#fff" />
+              : (
+                <View>
+                  <Text style={styles.cmoActiveBtnTitle}>⏳ Counting Out…</Text>
+                  {cmoEta && (
+                    <Text style={styles.cmoActiveBtnSub}>
+                      Back by {new Date(cmoEta).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </Text>
+                  )}
+                  <Text style={styles.cmoActiveBtnHint}>Tap to cancel — I'm Back!</Text>
+                </View>
+              )}
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={styles.cmoBtn}
+            onPress={() => setCmoModalVisible(true)}
+          >
+            <Text style={styles.cmoBtnText}>⏱ Count Me Out</Text>
+          </TouchableOpacity>
+        )}
 
         {group.role === 'leader' ? (
           <TouchableOpacity
@@ -360,6 +521,128 @@ const styles = StyleSheet.create({
   },
   dangerBtnText: { color: colors.danger, fontSize: 16, fontWeight: '600' },
   btnDisabled: { opacity: 0.5 },
+
+  // Count Me Out button (inactive)
+  cmoBtn: {
+    borderColor: '#ffaa00',
+    borderWidth: 1.5,
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  cmoBtnText: { color: '#ffaa00', fontSize: 16, fontWeight: '700' },
+
+  // Count Me Out button (active — shows current timer)
+  cmoActiveBtn: {
+    backgroundColor: 'rgba(255,170,0,0.15)',
+    borderColor: '#ffaa00',
+    borderWidth: 1.5,
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+  },
+  cmoActiveBtnTitle: { color: '#ffaa00', fontSize: 16, fontWeight: '700', textAlign: 'center' },
+  cmoActiveBtnSub: { color: '#ffaa00', fontSize: 13, textAlign: 'center', marginTop: 2 },
+  cmoActiveBtnHint: { color: colors.textDim, fontSize: 11, textAlign: 'center', marginTop: 4 },
+});
+
+const modalStyles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'flex-end',
+  },
+  sheet: {
+    backgroundColor: colors.surface,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 24,
+    paddingBottom: 40,
+  },
+  title: {
+    color: colors.text,
+    fontSize: 22,
+    fontWeight: '700',
+    marginBottom: 8,
+  },
+  subtitle: {
+    color: colors.textDim,
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 20,
+  },
+  sectionLabel: {
+    color: colors.textDim,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1,
+    marginBottom: 10,
+  },
+  durationRow: {
+    flexDirection: 'row',
+    marginBottom: 20,
+  },
+  durationBtn: {
+    borderWidth: 1.5,
+    borderColor: colors.textDim,
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    marginRight: 10,
+    alignItems: 'center',
+  },
+  durationBtnActive: {
+    borderColor: '#ffaa00',
+    backgroundColor: 'rgba(255,170,0,0.15)',
+  },
+  durationBtnText: {
+    color: colors.textDim,
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  durationBtnTextActive: {
+    color: '#ffaa00',
+  },
+  noteInput: {
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.textDim,
+    borderRadius: 10,
+    color: colors.text,
+    fontSize: 15,
+    padding: 12,
+    marginBottom: 24,
+  },
+  actions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  cancelBtn: {
+    flex: 1,
+    borderWidth: 1.5,
+    borderColor: colors.textDim,
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  cancelBtnText: {
+    color: colors.textDim,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  confirmBtn: {
+    flex: 2,
+    backgroundColor: '#ffaa00',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  confirmBtnText: {
+    color: '#000',
+    fontSize: 16,
+    fontWeight: '700',
+  },
 });
 
 const rowStyles = StyleSheet.create({

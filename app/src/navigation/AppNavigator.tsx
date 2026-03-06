@@ -6,6 +6,7 @@ import MapScreen from '../screens/MapScreen';
 import SafetyScreen from '../screens/SafetyScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import EmergencyInfoScreen from '../screens/EmergencyInfoScreen';
+import OfflineMapsScreen from '../screens/OfflineMapsScreen';
 import GroupHomeScreen from '../screens/GroupHomeScreen';
 import CreateGroupScreen from '../screens/CreateGroupScreen';
 import JoinGroupScreen from '../screens/JoinGroupScreen';
@@ -54,6 +55,7 @@ export type ProfileStackParamList = {
   ProfileHome: undefined;
   EmergencyInfo: undefined;
   RideHistory: undefined;
+  OfflineMaps: undefined;
   RideSummaryFromHistory: { ride: Ride };
 };
 
@@ -72,6 +74,7 @@ function ProfileNavigator() {
     >
       <ProfileStack.Screen name="ProfileHome" component={ProfileScreen} options={{ headerShown: false }} />
       <ProfileStack.Screen name="EmergencyInfo" component={EmergencyInfoScreen} options={{ title: 'Emergency Info' }} />
+      <ProfileStack.Screen name="OfflineMaps" component={OfflineMapsScreen} options={{ title: 'Offline Maps' }} />
       <ProfileStack.Screen name="RideHistory" component={RideHistoryScreen} options={{ title: 'Ride History' }} />
       <ProfileStack.Screen
         name="RideSummaryFromHistory"

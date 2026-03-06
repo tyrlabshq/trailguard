@@ -69,3 +69,31 @@ export interface Alert {
 }
 
 export type SignalSource = 'cellular' | 'satellite' | 'offline';
+
+/** Count-me-out timer state — broadcast to the group when a rider takes a detour */
+export interface CountMeOutState {
+  riderId: string;
+  durationMinutes: number;
+  note?: string;
+  etaAt: string;   // ISO timestamp
+  active: boolean;
+}
+
+/** Sweep gap state — broadcast to sweep rider (and group) after each location update */
+export interface SweepGapState {
+  lastRiderId: string;   // the nearest rider ahead of the sweep
+  distanceMiles: number;
+  alert: boolean;        // true if gap >= SWEEP_ALERT_MILES
+}
+
+/** WebSocket message union — extend as new types are added */
+export type WsMessage =
+  | { type: 'location_update'; riderId: string; location: LatLng; heading?: number; speedMph?: number; source: SignalSource; timestamp: number }
+  | { type: 'rider_joined'; riderId: string }
+  | { type: 'rider_left'; riderId: string }
+  | { type: 'alert'; alert: Omit<Alert, 'acknowledged'> }
+  | { type: 'count_me_out_started'; riderId: string; durationMinutes: number; note: string | null; etaAt: string }
+  | { type: 'count_me_out_cancelled'; riderId: string }
+  | { type: 'count_me_out_warning'; riderId: string; minutesRemaining: number; etaAt: string }
+  | { type: 'sweep_gap_update'; lastRiderId: string; distanceMiles: number; alert: boolean }
+  | { type: 'sweep_gap_leader_alert'; sweepId: string; distanceMiles: number; message: string };
