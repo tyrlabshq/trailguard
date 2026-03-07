@@ -18,6 +18,9 @@ import { MemberListPanel } from '../components/MemberListPanel';
 import { getAvalancheGeoJSON, type AvalancheGeoJSON, cacheAge } from '../services/avalanche';
 import { fetchPOIs, type POI, POI_COLORS } from '../services/poi';
 import { autoDownloadAroundLocation } from '../services/offlineMaps';
+import { useTrailSnapping } from '../hooks/useTrailSnapping';
+import { getTrailsGeoJSON } from '../services/TrailSnapping';
+import { suggestRoutes, formatDistanceM, type RouteSuggestion } from '../services/TrailRouting';
 import { fetchNearbyConditions, type TrailConditionReport } from '../api/trailConditions';
 import { TrailConditionModal } from '../components/TrailConditionModal';
 import { RecentConditionsPanel } from '../components/RecentConditionsPanel';
@@ -79,6 +82,161 @@ function TrailLayer() {
         }}
       />
     </MapboxGL.VectorSource>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Difficulty colors for OSM trail overlay
+// ---------------------------------------------------------------------------
+const DIFFICULTY_COLORS: Record<string, string> = {
+  easy: '#00dd66',
+  moderate: '#ffaa00',
+  hard: '#ff3355',
+  unknown: '#6699cc',
+};
+
+// ---------------------------------------------------------------------------
+// Trail difficulty overlay — rendered from live OSM Overpass data
+// ---------------------------------------------------------------------------
+function TrailDifficultyLayer({ geojson }: { geojson: GeoJSON.FeatureCollection }) {
+  if (geojson.features.length === 0) return null;
+  return (
+    <MapboxGL.ShapeSource id="trail-difficulty-source" shape={geojson}>
+      {/* Halo for contrast */}
+      <MapboxGL.LineLayer
+        id="trail-difficulty-halo"
+        style={{
+          lineColor: 'rgba(0,0,0,0.4)',
+          lineWidth: ['interpolate', ['linear'], ['zoom'], 8, 3, 14, 6] as any,
+          lineCap: 'round',
+          lineJoin: 'round',
+          lineOpacity: 0.5,
+        }}
+      />
+      {/* Coloured difficulty line */}
+      <MapboxGL.LineLayer
+        id="trail-difficulty-line"
+        style={{
+          lineColor: [
+            'match', ['get', 'difficulty'],
+            'easy', DIFFICULTY_COLORS.easy,
+            'moderate', DIFFICULTY_COLORS.moderate,
+            'hard', DIFFICULTY_COLORS.hard,
+            DIFFICULTY_COLORS.unknown,
+          ] as any,
+          lineWidth: ['interpolate', ['linear'], ['zoom'], 8, 1.5, 12, 2.5, 15, 4] as any,
+          lineCap: 'round',
+          lineJoin: 'round',
+          lineOpacity: 0.9,
+        }}
+      />
+    </MapboxGL.ShapeSource>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Snapped position indicator — blue pulse dot on trail
+// ---------------------------------------------------------------------------
+function SnappedPositionLayer({ coord }: { coord: [number, number] }) {
+  const geojson: GeoJSON.FeatureCollection = {
+    type: 'FeatureCollection',
+    features: [{
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: coord },
+      properties: {},
+    }],
+  };
+  return (
+    <MapboxGL.ShapeSource id="snapped-position-source" shape={geojson}>
+      <MapboxGL.CircleLayer
+        id="snapped-position-outer"
+        style={{
+          circleRadius: 14,
+          circleColor: 'rgba(0,170,255,0.2)',
+          circleStrokeColor: 'rgba(0,170,255,0.6)',
+          circleStrokeWidth: 1.5,
+        }}
+      />
+      <MapboxGL.CircleLayer
+        id="snapped-position-inner"
+        style={{
+          circleRadius: 6,
+          circleColor: colors.accent,
+          circleStrokeColor: '#fff',
+          circleStrokeWidth: 2,
+        }}
+      />
+    </MapboxGL.ShapeSource>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Suggested route overlay
+// ---------------------------------------------------------------------------
+function SuggestedRouteLayer({ route }: { route: RouteSuggestion }) {
+  const color = DIFFICULTY_COLORS[route.difficulty] ?? DIFFICULTY_COLORS.unknown;
+  return (
+    <MapboxGL.ShapeSource id="suggested-route-source" shape={route.path}>
+      <MapboxGL.LineLayer
+        id="suggested-route-line"
+        style={{
+          lineColor: color,
+          lineWidth: 4,
+          lineDasharray: [4, 3],
+          lineOpacity: 0.85,
+          lineCap: 'round',
+          lineJoin: 'round',
+        }}
+      />
+    </MapboxGL.ShapeSource>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Route suggestions panel
+// ---------------------------------------------------------------------------
+function RouteSuggestionsPanel({
+  visible,
+  suggestions,
+  selectedIndex,
+  onSelectRoute,
+  onClose,
+}: {
+  visible: boolean;
+  suggestions: RouteSuggestion[];
+  selectedIndex: number | null;
+  onSelectRoute: (index: number) => void;
+  onClose: () => void;
+}) {
+  if (!visible) return null;
+  return (
+    <View style={styles.routePanel}>
+      <View style={styles.routePanelHeader}>
+        <Text style={styles.routePanelTitle}>Nearby Routes</Text>
+        <TouchableOpacity onPress={onClose} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <Text style={styles.routePanelClose}>✕</Text>
+        </TouchableOpacity>
+      </View>
+      {suggestions.length === 0 ? (
+        <Text style={styles.routeEmpty}>No connected trails found nearby.</Text>
+      ) : (
+        suggestions.map((route, i) => (
+          <TouchableOpacity
+            key={i}
+            style={[styles.routeItem, selectedIndex === i && styles.routeItemSelected]}
+            onPress={() => onSelectRoute(i)}
+          >
+            <View style={[styles.routeDot, { backgroundColor: DIFFICULTY_COLORS[route.difficulty] ?? '#6699cc' }]} />
+            <View style={styles.routeInfo}>
+              <Text style={styles.routeName} numberOfLines={1}>{route.name}</Text>
+              <Text style={styles.routeMeta}>
+                {formatDistanceM(route.totalDistanceM)} · {route.difficulty}
+              </Text>
+            </View>
+          </TouchableOpacity>
+        ))
+      )}
+    </View>
   );
 }
 
@@ -275,13 +433,21 @@ function LayerRow({ label, value, onChange }: { label: string; value: boolean; o
   );
 }
 
-function LayerToggles({ showTrails, showAvalanche, showPOI, showConditions, onTrails, onAvalanche, onPOI, onConditions }: {
+function LayerToggles({
+  showTrails, showAvalanche, showPOI, showConditions, showDifficulty, snapToTrailEnabled,
+  onTrails, onAvalanche, onPOI, onConditions, onDifficulty, onSnapToTrail,
+}: {
   showTrails: boolean; showAvalanche: boolean; showPOI: boolean; showConditions: boolean;
-  onTrails: (v: boolean) => void; onAvalanche: (v: boolean) => void; onPOI: (v: boolean) => void; onConditions: (v: boolean) => void;
+  showDifficulty: boolean; snapToTrailEnabled: boolean;
+  onTrails: (v: boolean) => void; onAvalanche: (v: boolean) => void;
+  onPOI: (v: boolean) => void; onConditions: (v: boolean) => void;
+  onDifficulty: (v: boolean) => void; onSnapToTrail: (v: boolean) => void;
 }) {
   return (
     <View style={styles.layerPanel}>
       <LayerRow label="Trails" value={showTrails} onChange={onTrails} />
+      <LayerRow label="Trail Difficulty" value={showDifficulty} onChange={onDifficulty} />
+      <LayerRow label="Snap to Trail" value={snapToTrailEnabled} onChange={onSnapToTrail} />
       <LayerRow label="Avalanche" value={showAvalanche} onChange={onAvalanche} />
       <LayerRow label="POI" value={showPOI} onChange={onPOI} />
       <LayerRow label="Conditions" value={showConditions} onChange={onConditions} />
@@ -322,6 +488,18 @@ export default function MapScreen() {
   const [showAvalanche, setShowAvalanche] = useState(true);
   const [showPOI, setShowPOI] = useState(true);
   const [showConditions, setShowConditions] = useState(true);
+  const [showDifficulty, setShowDifficulty] = useState(true);
+
+  // Snap-to-trail state
+  const { snappedCoord, activeTrail, snapEnabled, setSnapEnabled, isLoading: snapLoading } =
+    useTrailSnapping(userCoords);
+  const [trailsGeoJSON, setTrailsGeoJSON] = useState<GeoJSON.FeatureCollection>({
+    type: 'FeatureCollection',
+    features: [],
+  });
+  const [routeSuggestions, setRouteSuggestions] = useState<RouteSuggestion[]>([]);
+  const [routePanelVisible, setRoutePanelVisible] = useState(false);
+  const [selectedRouteIndex, setSelectedRouteIndex] = useState<number | null>(null);
 
   // Trail conditions panel + report modal
   const [conditionsPanelVisible, setConditionsPanelVisible] = useState(false);
@@ -356,6 +534,24 @@ export default function MapScreen() {
     const [lng, lat] = userCoords;
     autoDownloadAroundLocation(lat, lng, 'auto-current-location').catch(() => {});
   }, [userCoords]);
+
+  // Refresh trail GeoJSON after snapping updates (snap service loads new data)
+  useEffect(() => {
+    if (!snappedCoord) return;
+    // Slight delay to let TrailSnapping finish loading Overpass data
+    const timer = setTimeout(() => {
+      setTrailsGeoJSON(getTrailsGeoJSON());
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [snappedCoord, snapLoading]);
+
+  // Refresh route suggestions when snapped position changes
+  useEffect(() => {
+    if (!snappedCoord) return;
+    const [lng, lat] = snappedCoord;
+    const suggestions = suggestRoutes(lat, lng);
+    setRouteSuggestions(suggestions);
+  }, [snappedCoord]);
 
   // Follow mode — pan camera to tracked member whenever their location updates
   useEffect(() => {
@@ -422,9 +618,14 @@ export default function MapScreen() {
         <MapboxGL.UserLocation visible onUpdate={handleUserLocationUpdate} />
 
         {showTrails && <TrailLayer />}
+        {showDifficulty && <TrailDifficultyLayer geojson={trailsGeoJSON} />}
         {showAvalanche && avalancheData && <AvalancheLayer data={avalancheData} />}
         {showPOI && <POILayer pois={pois} />}
         {showConditions && <ConditionLayer reports={conditionReports} />}
+        {selectedRouteIndex !== null && routeSuggestions[selectedRouteIndex] && (
+          <SuggestedRouteLayer route={routeSuggestions[selectedRouteIndex]} />
+        )}
+        {snapEnabled && snappedCoord && <SnappedPositionLayer coord={snappedCoord} />}
 
         {memberList.map((member) => (
           <MapboxGL.MarkerView key={member.userId} coordinate={[member.lng, member.lat]}>
@@ -447,6 +648,15 @@ export default function MapScreen() {
             Sweep Gap {sweepGap.distanceMiles.toFixed(1)}mi
           </Text>
         )}
+        {snapEnabled && activeTrail && (
+          <Text style={[styles.hudTextSm, { color: DIFFICULTY_COLORS[activeTrail.difficulty] ?? colors.accent }]}>
+            📍 {activeTrail.name || 'Trail'}
+          </Text>
+        )}
+        {snapEnabled && !activeTrail && snappedCoord && !snapLoading && (
+          <Text style={[styles.hudTextSm, { color: colors.textDim }]}>Off trail</Text>
+        )}
+        {snapLoading && <Text style={[styles.hudTextSm, { color: colors.textDim }]}>Loading trails…</Text>}
       </View>
 
       {/* Layer toggle button */}
@@ -456,8 +666,12 @@ export default function MapScreen() {
 
       {layerPanelVisible && (
         <LayerToggles
-          showTrails={showTrails} showAvalanche={showAvalanche} showPOI={showPOI} showConditions={showConditions}
-          onTrails={setShowTrails} onAvalanche={setShowAvalanche} onPOI={setShowPOI} onConditions={setShowConditions}
+          showTrails={showTrails} showAvalanche={showAvalanche} showPOI={showPOI}
+          showConditions={showConditions} showDifficulty={showDifficulty}
+          snapToTrailEnabled={snapEnabled}
+          onTrails={setShowTrails} onAvalanche={setShowAvalanche} onPOI={setShowPOI}
+          onConditions={setShowConditions} onDifficulty={setShowDifficulty}
+          onSnapToTrail={setSnapEnabled}
         />
       )}
 
@@ -475,10 +689,34 @@ export default function MapScreen() {
       {/* Conditions shortcut */}
       <TouchableOpacity
         style={[styles.conditionsBtn, conditionsPanelVisible && styles.conditionsBtnActive]}
-        onPress={() => { setSelectedMember(null); setPanelVisible(false); setLayerPanelVisible(false); setConditionsPanelVisible((v) => !v); }}
+        onPress={() => { setSelectedMember(null); setPanelVisible(false); setLayerPanelVisible(false); setConditionsPanelVisible((v) => !v); setRoutePanelVisible(false); }}
       >
         <Text style={styles.conditionsBtnText}>❄️</Text>
       </TouchableOpacity>
+
+      {/* Routes shortcut */}
+      <TouchableOpacity
+        style={[styles.routesBtn, routePanelVisible && styles.routesBtnActive]}
+        onPress={() => {
+          setSelectedMember(null);
+          setPanelVisible(false);
+          setLayerPanelVisible(false);
+          setConditionsPanelVisible(false);
+          setRoutePanelVisible((v) => !v);
+        }}
+      >
+        <Text style={styles.routesBtnText}>🗺</Text>
+      </TouchableOpacity>
+
+      <RouteSuggestionsPanel
+        visible={routePanelVisible}
+        suggestions={routeSuggestions}
+        selectedIndex={selectedRouteIndex}
+        onSelectRoute={(idx) => {
+          setSelectedRouteIndex((prev) => (prev === idx ? null : idx));
+        }}
+        onClose={() => { setRoutePanelVisible(false); setSelectedRouteIndex(null); }}
+      />
 
       {selectedMember && !panelVisible && (
         <MemberDetailSheet
@@ -566,4 +804,18 @@ const styles = StyleSheet.create({
   conditionsBtn: { position: 'absolute', bottom: 220, right: 16, width: 48, height: 48, borderRadius: 24, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.4, shadowRadius: 4 },
   conditionsBtnActive: { backgroundColor: colors.accent + '33', borderColor: colors.accent },
   conditionsBtnText: { fontSize: 22 },
+  routesBtn: { position: 'absolute', bottom: 280, right: 16, width: 48, height: 48, borderRadius: 24, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.4, shadowRadius: 4 },
+  routesBtnActive: { backgroundColor: colors.accent + '33', borderColor: colors.accent },
+  routesBtnText: { fontSize: 20 },
+  routePanel: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: colors.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 16, paddingBottom: 36, maxHeight: 320, shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.4, shadowRadius: 12, elevation: 20 },
+  routePanelHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  routePanelTitle: { color: colors.text, fontSize: 17, fontWeight: '700' },
+  routePanelClose: { color: colors.textDim, fontSize: 20, padding: 4 },
+  routeEmpty: { color: colors.textDim, fontSize: 14, textAlign: 'center', marginTop: 8 },
+  routeItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(255,255,255,0.08)' },
+  routeItemSelected: { backgroundColor: 'rgba(0,170,255,0.12)', borderRadius: 8, paddingHorizontal: 8 },
+  routeDot: { width: 12, height: 12, borderRadius: 6, marginRight: 12 },
+  routeInfo: { flex: 1 },
+  routeName: { color: colors.text, fontSize: 14, fontWeight: '600' },
+  routeMeta: { color: colors.textDim, fontSize: 12, marginTop: 2 },
 });
