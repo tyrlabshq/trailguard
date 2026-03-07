@@ -1,6 +1,15 @@
-import { getAuthHeader } from './authHeader';
+/**
+ * alerts.ts — TG-03 (Supabase backend)
+ *
+ * Dead Man's Switch alert operations backed by Supabase.
+ * Replaces the old Express/Redis implementation.
+ *
+ * - setDMS / snoozeDMS / disableDMS → write to `dead_man_switch` table
+ * - fireDMSAlert → insert row into `alerts` table
+ * - getAlerts   → read from `alerts` table for a group
+ */
 
-const API_BASE = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8420';
+import { supabase } from '../lib/supabase';
 
 export interface Alert {
   id: string;
@@ -11,61 +20,133 @@ export interface Alert {
   firedAt: string;
 }
 
-/** Activate dead man's switch for the rider's current session. */
-export async function setDMS(groupId: string, intervalMinutes: number): Promise<void> {
-  const headers = await getAuthHeader();
-  const res = await fetch(`${API_BASE}/alerts/dms/set`, {
-    method: 'POST',
-    headers: { ...headers, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ groupId, intervalMinutes }),
-  });
-  if (!res.ok) throw new Error(`Failed to set DMS: ${res.status}`);
+// ── Helper: get the current Supabase user ID ─────────────────────────────
+
+async function getCurrentUserId(): Promise<string | null> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  return session?.user?.id ?? null;
 }
 
-/** Snooze the dead man's switch for the given number of minutes. */
-export async function snoozeDMS(minutes: number): Promise<void> {
-  const headers = await getAuthHeader();
-  const res = await fetch(`${API_BASE}/alerts/dms/snooze`, {
-    method: 'POST',
-    headers: { ...headers, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ minutes }),
-  });
-  if (!res.ok) throw new Error(`Failed to snooze DMS: ${res.status}`);
-}
+// ── Dead Man's Switch table operations ────────────────────────────────────
 
-/** Disable and remove the dead man's switch. */
-export async function disableDMS(): Promise<void> {
-  const headers = await getAuthHeader();
-  const res = await fetch(`${API_BASE}/alerts/dms/disable`, {
-    method: 'POST',
-    headers: { ...headers, 'Content-Type': 'application/json' },
-    body: JSON.stringify({}),
-  });
-  if (!res.ok) throw new Error(`Failed to disable DMS: ${res.status}`);
+/**
+ * Activate (or refresh) the dead man's switch for the current rider.
+ * Upserts a row with expires_at = now + intervalMinutes.
+ */
+export async function setDMS(
+  groupId: string,
+  intervalMinutes: number,
+): Promise<void> {
+  const riderId = await getCurrentUserId();
+  if (!riderId) return; // Guest — skip server-side DMS; client still monitors
+
+  const expiresAt = new Date(
+    Date.now() + intervalMinutes * 60 * 1_000,
+  ).toISOString();
+
+  const { error } = await supabase.from('dead_man_switch').upsert(
+    {
+      rider_id: riderId,
+      group_id: groupId,
+      expires_at: expiresAt,
+      triggered: false,
+    },
+    { onConflict: 'rider_id' },
+  );
+
+  if (error) throw new Error(`setDMS failed: ${error.message}`);
 }
 
 /**
- * Fire a DMS alert from the app side (used when countdown expires with no response).
- * The server-side watchdog will catch it independently, but this fires it immediately.
+ * Snooze the dead man's switch by pushing expires_at forward by `minutes`.
+ */
+export async function snoozeDMS(minutes: number): Promise<void> {
+  const riderId = await getCurrentUserId();
+  if (!riderId) return;
+
+  const { data: existing } = await supabase
+    .from('dead_man_switch')
+    .select('expires_at')
+    .eq('rider_id', riderId)
+    .single();
+
+  if (!existing) return;
+
+  const base = new Date(existing.expires_at as string);
+  const newExpiry = new Date(
+    base.getTime() + minutes * 60 * 1_000,
+  ).toISOString();
+
+  const { error } = await supabase
+    .from('dead_man_switch')
+    .update({ expires_at: newExpiry })
+    .eq('rider_id', riderId);
+
+  if (error) throw new Error(`snoozeDMS failed: ${error.message}`);
+}
+
+/** Remove the active dead man's switch row for the current rider. */
+export async function disableDMS(): Promise<void> {
+  const riderId = await getCurrentUserId();
+  if (!riderId) return;
+
+  const { error } = await supabase
+    .from('dead_man_switch')
+    .delete()
+    .eq('rider_id', riderId);
+
+  if (error) throw new Error(`disableDMS failed: ${error.message}`);
+}
+
+/**
+ * Fire a DMS alert: insert a row into `alerts` with type 'dms_expired'.
+ * Called when the 2-min countdown expires with no check-in response.
  */
 export async function fireDMSAlert(params: {
   groupId?: string;
   lat?: number;
   lng?: number;
 }): Promise<void> {
-  const headers = await getAuthHeader();
-  const res = await fetch(`${API_BASE}/alerts/fire`, {
-    method: 'POST',
-    headers: { ...headers, 'Content-Type': 'application/json' },
-    body: JSON.stringify(params),
+  const riderId = await getCurrentUserId();
+  if (!riderId) return;
+
+  const { error } = await supabase.from('alerts').insert({
+    rider_id: riderId,
+    group_id: params.groupId ?? null,
+    type: 'dms_expired',
+    lat: params.lat ?? null,
+    lng: params.lng ?? null,
+    message:
+      params.lat !== undefined && params.lng !== undefined
+        ? `⚠️ Dead Man's Switch expired. Last GPS: ${params.lat.toFixed(5)}, ${params.lng.toFixed(5)}`
+        : "⚠️ Dead Man's Switch expired. Location unavailable.",
   });
-  if (!res.ok) throw new Error(`Failed to fire DMS alert: ${res.status}`);
+
+  if (error) throw new Error(`fireDMSAlert failed: ${error.message}`);
 }
 
 /** Fetch active (unacknowledged) alerts for a group. */
 export async function getAlerts(groupId: string): Promise<Alert[]> {
-  const headers = await getAuthHeader();
-  const res = await fetch(`${API_BASE}/alerts/${groupId}`, { headers });
-  if (!res.ok) throw new Error(`Failed to fetch alerts: ${res.status}`);
-  return res.json() as Promise<Alert[]>;
+  const { data, error } = await supabase
+    .from('alerts')
+    .select('*')
+    .eq('group_id', groupId)
+    .is('resolved_at', null)
+    .order('created_at', { ascending: false });
+
+  if (error) throw new Error(`getAlerts failed: ${error.message}`);
+
+  return (data ?? []).map(row => ({
+    id: row.id as string,
+    type: row.type as string,
+    riderId: row.rider_id as string,
+    groupId: row.group_id as string,
+    location:
+      row.lat !== null && row.lng !== null
+        ? { lat: row.lat as number, lng: row.lng as number }
+        : null,
+    firedAt: row.created_at as string,
+  }));
 }

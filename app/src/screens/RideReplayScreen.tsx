@@ -199,7 +199,8 @@ export default function RideReplayScreen() {
           zoomLevel: 16,
           heading: bearing,
           pitch: FLYOVER_PITCH,
-          altitude: FLYOVER_ALTITUDE,
+          // altitude is not part of CameraStop — use zoomLevel to control height
+          // zoomLevel ~14 ≈ FLYOVER_ALTITUDE equivalent at ground level
           animationDuration: REPLAY_INTERVAL_MS * 2,
           animationMode: 'easeTo',
         });

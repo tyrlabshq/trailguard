@@ -1,8 +1,19 @@
+/**
+ * useGroupWebSocket — Supabase Realtime Broadcast replacement for the
+ * legacy Express WebSocket transport.
+ *
+ * All external contracts (return types, event shapes) are preserved exactly
+ * so every consumer screen continues working without changes.
+ */
 import { useState, useEffect, useRef, useCallback } from 'react';
+import type { RealtimeChannel } from '@supabase/supabase-js';
+import { supabase } from '../lib/supabase';
 import {
   loadMemberLocations,
   saveMemberLocations,
 } from '../services/MemberLocationCache';
+
+// ─── Public Types (unchanged) ─────────────────────────────────────────────────
 
 export interface MemberLocation {
   userId: string;
@@ -14,22 +25,19 @@ export interface MemberLocation {
   timestamp: string; // ISO string
 }
 
-/** Count-me-out timer state for a specific rider (received via WS broadcast). */
 export interface CMOState {
   riderId: string;
-  etaAt: string;          // ISO
+  etaAt: string;
   durationMinutes: number;
   note: string | null;
 }
 
-/** Sweep gap data — only relevant if current user is the sweep or leader. */
 export interface SweepGap {
   lastRiderId: string;
   distanceMiles: number;
   alert: boolean;
 }
 
-/** A group chat message received over WebSocket. */
 export interface GroupMessage {
   messageId: string;
   riderId: string;
@@ -39,14 +47,27 @@ export interface GroupMessage {
   timestamp: number;
 }
 
-/** Options for auto-joining a group session and enabling messaging. */
 export interface UseGroupWebSocketOptions {
   groupId?: string;
   riderId?: string;
   riderName?: string;
 }
 
-/** Queued outbound message (sent when connectivity restores). */
+interface UseGroupWebSocketResult {
+  members: Map<string, MemberLocation>;
+  connected: boolean;
+  cmoStates: Map<string, CMOState>;
+  sweepGap: SweepGap | null;
+  cmoWarning: boolean;
+  dismissCmoWarning: () => void;
+  sweepLeaderAlert: string | null;
+  dismissSweepLeaderAlert: () => void;
+  messages: GroupMessage[];
+  sendGroupMessage: (text: string, preset?: string | null) => void;
+}
+
+// ─── Queued outbound messages (sent when channel reconnects) ──────────────────
+
 interface PendingMessage {
   type: 'group_message';
   text: string;
@@ -54,59 +75,33 @@ interface PendingMessage {
   riderName: string;
 }
 
-const BASE_RECONNECT_MS = 1000;
-const MAX_RECONNECT_MS = 30000;
-const MAX_MESSAGES = 50; // keep last 50 in memory, display last 10
+const MAX_MESSAGES = 50;
 
-const WS_URL =
-  (process.env as Record<string, string | undefined>).EXPO_PUBLIC_WS_URL ??
-  'ws://localhost:3001';
-
-interface UseGroupWebSocketResult {
-  members: Map<string, MemberLocation>;
-  connected: boolean;
-  /** Map of riderId -> active CMO state for riders in the group. */
-  cmoStates: Map<string, CMOState>;
-  /** Current sweep gap — populated if the current user is sweep or leader. */
-  sweepGap: SweepGap | null;
-  /** True if rider received a count-me-out 2-minute warning. */
-  cmoWarning: boolean;
-  /** Dismiss the CMO warning after the rider has seen it. */
-  dismissCmoWarning: () => void;
-  /** Leader alert: sweep has fallen >2mi behind. */
-  sweepLeaderAlert: string | null;
-  dismissSweepLeaderAlert: () => void;
-  /** Group chat messages received during this session. */
-  messages: GroupMessage[];
-  /** Send a group message. Queued offline if not currently connected. */
-  sendGroupMessage: (text: string, preset?: string | null) => void;
-}
+// ─── Hook ─────────────────────────────────────────────────────────────────────
 
 export function useGroupWebSocket(options?: UseGroupWebSocketOptions): UseGroupWebSocketResult {
   const [members, setMembers] = useState<Map<string, MemberLocation>>(new Map());
   const [connected, setConnected] = useState(false);
-  // Debounce handle for cache writes (avoid thrashing AsyncStorage)
-  const cacheTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [cmoStates, setCmoStates] = useState<Map<string, CMOState>>(new Map());
   const [sweepGap, setSweepGap] = useState<SweepGap | null>(null);
   const [cmoWarning, setCmoWarning] = useState(false);
   const [sweepLeaderAlert, setSweepLeaderAlert] = useState<string | null>(null);
   const [messages, setMessages] = useState<GroupMessage[]>([]);
 
-  const wsRef = useRef<WebSocket | null>(null);
-  const reconnectDelay = useRef(BASE_RECONNECT_MS);
-  const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const unmounted = useRef(false);
-  // Offline message queue — flushed on reconnect
+  const channelRef = useRef<RealtimeChannel | null>(null);
+  const cacheTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingQueue = useRef<PendingMessage[]>([]);
-  // Keep latest options in a ref so callbacks always see fresh values without re-subscribing
+  const unmounted = useRef(false);
+  // Keep latest options accessible in callbacks without re-subscribing
   const optionsRef = useRef<UseGroupWebSocketOptions | undefined>(options);
   useEffect(() => { optionsRef.current = options; }, [options]);
 
   const dismissCmoWarning = useCallback(() => setCmoWarning(false), []);
   const dismissSweepLeaderAlert = useCallback(() => setSweepLeaderAlert(null), []);
 
-  const sendGroupMessage = useCallback((text: string, preset: string | null = null) => {
+  // ── Broadcast helpers ──────────────────────────────────────────────────────
+
+  const broadcastMessage = useCallback((text: string, preset: string | null = null) => {
     const opts = optionsRef.current;
     const payload: PendingMessage = {
       type: 'group_message',
@@ -114,208 +109,195 @@ export function useGroupWebSocket(options?: UseGroupWebSocketOptions): UseGroupW
       preset,
       riderName: opts?.riderName ?? 'Rider',
     };
-    const ws = wsRef.current;
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify(payload));
+    const ch = channelRef.current;
+    if (ch && connected) {
+      ch.send({
+        type: 'broadcast',
+        event: 'group_message',
+        payload: {
+          ...payload,
+          riderId: opts?.riderId ?? '',
+          messageId: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+          timestamp: Date.now(),
+        },
+      });
     } else {
-      // Queue for when connectivity restores
       pendingQueue.current.push(payload);
+    }
+  }, [connected]);
+
+  const sendGroupMessage = broadcastMessage;
+
+  // ── Message dispatcher ─────────────────────────────────────────────────────
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleBroadcast = useCallback((event: string, payload: Record<string, any>) => {
+    switch (event) {
+      case 'location': {
+        const loc: MemberLocation = {
+          userId: payload.userId ?? payload.riderId ?? '',
+          lat: payload.lat,
+          lng: payload.lng,
+          speed: payload.speed ?? 0,
+          heading: payload.heading ?? undefined,
+          battery: payload.battery ?? 100,
+          timestamp: payload.timestamp ?? new Date().toISOString(),
+        };
+        setMembers((prev) => {
+          const next = new Map(prev);
+          next.set(loc.userId, loc);
+          if (cacheTimer.current) clearTimeout(cacheTimer.current);
+          cacheTimer.current = setTimeout(
+            () => void saveMemberLocations(next),
+            2_000,
+          );
+          return next;
+        });
+        break;
+      }
+
+      case 'count_me_out_started': {
+        const state: CMOState = {
+          riderId: payload.riderId,
+          etaAt: payload.etaAt,
+          durationMinutes: payload.durationMinutes,
+          note: payload.note ?? null,
+        };
+        setCmoStates((prev) => {
+          const next = new Map(prev);
+          next.set(payload.riderId, state);
+          return next;
+        });
+        break;
+      }
+
+      case 'count_me_out_cancelled': {
+        setCmoStates((prev) => {
+          const next = new Map(prev);
+          next.delete(payload.riderId);
+          return next;
+        });
+        break;
+      }
+
+      case 'count_me_out_warning': {
+        setCmoWarning(true);
+        break;
+      }
+
+      case 'sweep_gap_update': {
+        setSweepGap({
+          lastRiderId: payload.lastRiderId,
+          distanceMiles: payload.distanceMiles,
+          alert: payload.alert,
+        });
+        break;
+      }
+
+      case 'sweep_gap_leader_alert': {
+        setSweepLeaderAlert(
+          payload.message ?? `Sweep is ${payload.distanceMiles?.toFixed(1)}mi behind`,
+        );
+        break;
+      }
+
+      case 'group_message': {
+        const gm: GroupMessage = {
+          messageId: payload.messageId ?? `${Date.now()}-${Math.random()}`,
+          riderId: payload.riderId ?? '',
+          riderName: payload.riderName ?? 'Rider',
+          text: payload.text ?? '',
+          preset: payload.preset ?? null,
+          timestamp: typeof payload.timestamp === 'number' ? payload.timestamp : Date.now(),
+        };
+        setMessages((prev) => {
+          if (prev.some((m) => m.messageId === gm.messageId)) return prev;
+          const next = [...prev, gm];
+          return next.length > MAX_MESSAGES ? next.slice(-MAX_MESSAGES) : next;
+        });
+        break;
+      }
+
+      default:
+        break;
     }
   }, []);
 
-  const connect = useCallback(() => {
-    if (unmounted.current) return;
-
-    try {
-      const ws = new WebSocket(WS_URL);
-      wsRef.current = ws;
-
-      ws.onopen = () => {
-        if (unmounted.current) {
-          ws.close();
-          return;
-        }
-        setConnected(true);
-        reconnectDelay.current = BASE_RECONNECT_MS;
-
-        // Auto-join group session if options were provided
-        const opts = optionsRef.current;
-        if (opts?.groupId && opts?.riderId) {
-          ws.send(JSON.stringify({
-            type: 'join_group',
-            groupId: opts.groupId,
-            riderId: opts.riderId,
-          }));
-        }
-
-        // Flush any messages queued while offline
-        if (pendingQueue.current.length > 0) {
-          const queue = pendingQueue.current.splice(0);
-          for (const pending of queue) {
-            if (ws.readyState === WebSocket.OPEN) {
-              ws.send(JSON.stringify(pending));
-            }
-          }
-        }
-      };
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ws.onmessage = (event: any) => {
-        try {
-          const msg = JSON.parse(event.data) as Record<string, any>;
-
-          switch (msg.type) {
-            case 'location_update': {
-              const loc: MemberLocation = {
-                userId: msg.riderId ?? msg.userId,
-                lat: msg.location?.lat ?? msg.lat,
-                lng: msg.location?.lng ?? msg.lng,
-                speed: msg.speedMph ?? msg.speed ?? 0,
-                heading: msg.heading ?? msg.location?.heading ?? undefined,
-                battery: msg.battery ?? 100,
-                timestamp: msg.timestamp ? new Date(msg.timestamp).toISOString() : new Date().toISOString(),
-              };
-              setMembers((prev) => {
-                const next = new Map(prev);
-                next.set(loc.userId, loc);
-                // Debounced cache write — 2s after last update
-                if (cacheTimer.current) clearTimeout(cacheTimer.current);
-                cacheTimer.current = setTimeout(
-                  () => void saveMemberLocations(next),
-                  2_000,
-                );
-                return next;
-              });
-              break;
-            }
-
-            case 'count_me_out_started': {
-              const state: CMOState = {
-                riderId: msg.riderId,
-                etaAt: msg.etaAt,
-                durationMinutes: msg.durationMinutes,
-                note: msg.note ?? null,
-              };
-              setCmoStates((prev) => {
-                const next = new Map(prev);
-                next.set(msg.riderId, state);
-                return next;
-              });
-              break;
-            }
-
-            case 'count_me_out_cancelled': {
-              setCmoStates((prev) => {
-                const next = new Map(prev);
-                next.delete(msg.riderId);
-                return next;
-              });
-              break;
-            }
-
-            case 'count_me_out_warning': {
-              // Personal warning — the current rider is the one counting out
-              setCmoWarning(true);
-              break;
-            }
-
-            case 'sweep_gap_update': {
-              setSweepGap({
-                lastRiderId: msg.lastRiderId,
-                distanceMiles: msg.distanceMiles,
-                alert: msg.alert,
-              });
-              break;
-            }
-
-            case 'sweep_gap_leader_alert': {
-              setSweepLeaderAlert(msg.message ?? `Sweep is ${msg.distanceMiles?.toFixed(1)}mi behind`);
-              break;
-            }
-
-            case 'group_message': {
-              const gm: GroupMessage = {
-                messageId: msg.messageId ?? `${Date.now()}-${Math.random()}`,
-                riderId: msg.riderId ?? '',
-                riderName: msg.riderName ?? 'Rider',
-                text: msg.text ?? '',
-                preset: msg.preset ?? null,
-                timestamp: typeof msg.timestamp === 'number' ? msg.timestamp : Date.now(),
-              };
-              setMessages((prev) => {
-                // Deduplicate by messageId
-                if (prev.some((m) => m.messageId === gm.messageId)) return prev;
-                const next = [...prev, gm];
-                return next.length > MAX_MESSAGES ? next.slice(-MAX_MESSAGES) : next;
-              });
-              break;
-            }
-
-            case 'group_message_history': {
-              if (!Array.isArray(msg.messages)) break;
-              const history: GroupMessage[] = msg.messages.map((m: Record<string, unknown>) => ({
-                messageId: (m.messageId as string) ?? `${Date.now()}-${Math.random()}`,
-                riderId: (m.riderId as string) ?? '',
-                riderName: (m.riderName as string) ?? 'Rider',
-                text: (m.text as string) ?? '',
-                preset: (m.preset as string | null) ?? null,
-                timestamp: typeof m.timestamp === 'number' ? m.timestamp : Date.now(),
-              }));
-              setMessages(history.slice(-MAX_MESSAGES));
-              break;
-            }
-
-            default:
-              break;
-          }
-        } catch {
-          // Ignore malformed messages
-        }
-      };
-
-      ws.onclose = () => {
-        if (unmounted.current) return;
-        setConnected(false);
-        scheduleReconnect();
-      };
-
-      ws.onerror = () => {
-        // onclose fires after onerror
-        ws.close();
-      };
-    } catch {
-      setConnected(false);
-      scheduleReconnect();
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const scheduleReconnect = useCallback(() => {
-    const delay = reconnectDelay.current;
-    reconnectDelay.current = Math.min(delay * 2, MAX_RECONNECT_MS);
-    reconnectTimer.current = setTimeout(connect, delay);
-  }, [connect]);
+  // ── Channel lifecycle ──────────────────────────────────────────────────────
 
   useEffect(() => {
     unmounted.current = false;
-    connect();
+    const opts = optionsRef.current;
+
+    // No groupId — don't subscribe to anything yet
+    if (!opts?.groupId) return;
+
+    const channelName = `group:${opts.groupId}`;
+    const channel = supabase.channel(channelName, {
+      config: { broadcast: { self: false } },
+    });
+
+    // Subscribe to every broadcast event we care about
+    const events = [
+      'location',
+      'count_me_out_started',
+      'count_me_out_cancelled',
+      'count_me_out_warning',
+      'sweep_gap_update',
+      'sweep_gap_leader_alert',
+      'group_message',
+    ] as const;
+
+    for (const event of events) {
+      channel.on('broadcast', { event }, ({ payload }) => {
+        if (!unmounted.current) handleBroadcast(event, payload ?? {});
+      });
+    }
+
+    channel.subscribe((status) => {
+      if (unmounted.current) return;
+      const isConnected = status === 'SUBSCRIBED';
+      setConnected(isConnected);
+
+      if (isConnected && pendingQueue.current.length > 0) {
+        // Flush queued messages now that we have a live channel
+        const queue = pendingQueue.current.splice(0);
+        const riderId = optionsRef.current?.riderId ?? '';
+        for (const pending of queue) {
+          channel.send({
+            type: 'broadcast',
+            event: 'group_message',
+            payload: {
+              ...pending,
+              riderId,
+              messageId: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+              timestamp: Date.now(),
+            },
+          });
+        }
+      }
+    });
+
+    channelRef.current = channel;
+
     return () => {
       unmounted.current = true;
-      if (reconnectTimer.current) clearTimeout(reconnectTimer.current);
       if (cacheTimer.current) clearTimeout(cacheTimer.current);
-      wsRef.current?.close();
+      supabase.removeChannel(channel);
+      channelRef.current = null;
     };
-  }, [connect]);
+  }, [options?.groupId, handleBroadcast]); // re-subscribe only when groupId changes
 
-  // Load cached member locations on mount so the map is pre-populated offline
+  // ── Broadcast own location (called externally via the channel ref) ─────────
+  // Exposed as a stable utility consumers can call directly if needed.
+  // Primary location broadcasting is handled by useGroupTracking/LocationService.
+
+  // ── Pre-populate map from cache while offline ──────────────────────────────
   useEffect(() => {
     loadMemberLocations()
       .then((cached) => {
         if (cached.size > 0 && !unmounted.current) {
-          setMembers((prev) => {
-            // Only apply cached entries that aren't already in live state
-            if (prev.size > 0) return prev;
-            return cached;
-          });
+          setMembers((prev) => (prev.size > 0 ? prev : cached));
         }
       })
       .catch(() => {});

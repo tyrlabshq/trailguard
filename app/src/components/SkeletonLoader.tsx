@@ -4,7 +4,7 @@ import { colors } from '../theme/colors';
 
 interface SkeletonBlockProps {
   width?: number | string;
-  height?: number;
+  height?: number | string;
   borderRadius?: number;
   style?: ViewStyle;
 }
@@ -29,7 +29,7 @@ export function SkeletonBlock({ width = '100%', height = 16, borderRadius = 6, s
   return (
     <Animated.View
       style={[
-        { width: width as any, height, borderRadius, backgroundColor: colors.surface, opacity },
+        { width: width as any, height: height as any, borderRadius, backgroundColor: colors.surface, opacity },
         style,
       ]}
     />

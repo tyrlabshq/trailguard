@@ -10,10 +10,8 @@ import {
   Platform,
   Alert,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { supabase } from '../lib/supabase';
 import { colors } from '../theme/colors';
-
-const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8420';
 
 interface Props {
   onAuthenticated: () => void;
@@ -32,22 +30,21 @@ export default function OnboardingScreen({ onAuthenticated }: Props) {
 
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/auth/guest`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: trimmed }),
-      });
+      // Sign in anonymously — Supabase creates a real auth session with no credentials required
+      const { data, error } = await supabase.auth.signInAnonymously();
+      if (error) throw error;
+      if (!data.user) throw new Error('No user returned from auth');
 
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error((err as any).error ?? `Auth failed: ${res.status}`);
-      }
+      // Persist the rider's display name in the riders table
+      const { error: upsertError } = await supabase
+        .from('riders')
+        .upsert({ id: data.user.id, display_name: trimmed });
+      if (upsertError) throw upsertError;
 
-      const { accessToken } = await res.json();
-      await AsyncStorage.setItem('auth_token', accessToken);
       onAuthenticated();
-    } catch (err: any) {
-      Alert.alert('Error', err.message ?? 'Could not connect to server. Check your connection.');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Could not sign in. Check your connection.';
+      Alert.alert('Error', message);
     } finally {
       setLoading(false);
     }
