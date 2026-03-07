@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { View, ActivityIndicator } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -16,6 +18,7 @@ import RideSummaryScreen from '../screens/RideSummaryScreen';
 import RideHistoryScreen from '../screens/RideHistoryScreen';
 import RideReplayScreen from '../screens/RideReplayScreen';
 import CompassNavScreen from '../screens/CompassNavScreen';
+import OnboardingScreen from '../screens/OnboardingScreen';
 import { GroupProvider } from '../context/GroupContext';
 import { colors } from '../theme/colors';
 import type { Ride } from '../api/rides';
@@ -101,6 +104,30 @@ function ProfileNavigator() {
 
 // ─── Root Tab Navigator ───────────────────────────────────────────────────────
 export default function AppNavigator() {
+  const [authChecked, setAuthChecked] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    AsyncStorage.getItem('auth_token').then((token) => {
+      setIsAuthenticated(!!token);
+      setAuthChecked(true);
+    });
+  }, []);
+
+  // Splash while checking storage
+  if (!authChecked) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
+        <ActivityIndicator color={colors.accent} />
+      </View>
+    );
+  }
+
+  // Show onboarding if no token
+  if (!isAuthenticated) {
+    return <OnboardingScreen onAuthenticated={() => setIsAuthenticated(true)} />;
+  }
+
   return (
     <GroupProvider>
       <NavigationContainer>

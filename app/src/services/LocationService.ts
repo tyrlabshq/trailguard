@@ -19,8 +19,14 @@ import type { SignalSource } from '../../../shared/types';
 
 // ─── Constants ────────────────────────────────────────────────────────────
 
-const QUEUE_KEY = '@powderlink/location_queue';
-const MAX_QUEUE_SIZE = 500;
+export const QUEUE_KEY = '@powderlink/location_queue';
+const MAX_QUEUE_SIZE = 1000;
+
+// ─── Offline sync constants ──────────────────────────────────────────────────
+/** Number of queued pings to POST per REST batch. */
+const BATCH_SIZE = 20;
+/** Max retry attempts per batch before giving up. */
+const MAX_RETRIES = 3;
 
 /** Battery % below which we drop to the battery-saver interval. */
 const BATTERY_SAVER_THRESHOLD = 0.2;
@@ -221,24 +227,66 @@ async function flushQueueViaWebSocket(): Promise<void> {
   }
 }
 
+/**
+ * Flush the offline queue to the REST API in batches of BATCH_SIZE.
+ * Each batch is attempted up to MAX_RETRIES times with exponential backoff
+ * (1s → 2s → 4s). Successfully sent entries are removed from storage
+ * immediately, so a mid-flush crash won't cause duplicate sends on the
+ * next attempt (idempotency is guaranteed by the backend deduplicating on
+ * riderId + timestamp).
+ */
 async function flushQueueViaRest(apiUrl: string): Promise<void> {
   const state = await NetInfo.fetch();
   if (!state.isConnected) return;
+
   const raw = await AsyncStorage.getItem(QUEUE_KEY);
   if (!raw) return;
-  const queue: QueuedLocation[] = JSON.parse(raw) as QueuedLocation[];
-  if (queue.length === 0) return;
-  try {
-    const res = await fetch(`${apiUrl}/locations/batch`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ locations: queue }),
-    });
-    if (res.ok) {
-      await AsyncStorage.removeItem(QUEUE_KEY);
+
+  const fullQueue: QueuedLocation[] = JSON.parse(raw) as QueuedLocation[];
+  if (fullQueue.length === 0) return;
+
+  let sentCount = 0;
+
+  while (sentCount < fullQueue.length) {
+    const batch = fullQueue.slice(sentCount, sentCount + BATCH_SIZE);
+    let success = false;
+
+    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+      // Exponential backoff: 0ms, 1000ms, 2000ms, 4000ms …
+      if (attempt > 0) {
+        await new Promise<void>((resolve) =>
+          setTimeout(resolve, 1_000 * Math.pow(2, attempt - 1)),
+        );
+      }
+
+      try {
+        const res = await fetch(`${apiUrl}/locations/batch`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ locations: batch }),
+        });
+        if (res.ok) {
+          success = true;
+          break;
+        }
+      } catch {
+        /* retry */
+      }
     }
-  } catch {
-    /* Will retry on next flush tick */
+
+    if (success) {
+      sentCount += batch.length;
+      // Persist the remaining (unsent) portion of the queue
+      const remaining = fullQueue.slice(sentCount);
+      if (remaining.length === 0) {
+        await AsyncStorage.removeItem(QUEUE_KEY);
+      } else {
+        await AsyncStorage.setItem(QUEUE_KEY, JSON.stringify(remaining));
+      }
+    } else {
+      // Batch failed after all retries — leave the rest in queue, try next flush
+      break;
+    }
   }
 }
 
@@ -425,4 +473,19 @@ export const LocationService = {
     currentConfig
       ? flushQueueViaRest(currentConfig.apiUrl)
       : Promise.resolve(),
+
+  /**
+   * Return the number of location pings currently sitting in the offline queue.
+   * Safe to call from any component/hook without starting the service.
+   */
+  getQueueSize: async (): Promise<number> => {
+    try {
+      const raw = await AsyncStorage.getItem(QUEUE_KEY);
+      if (!raw) return 0;
+      const queue: QueuedLocation[] = JSON.parse(raw) as QueuedLocation[];
+      return queue.length;
+    } catch {
+      return 0;
+    }
+  },
 };

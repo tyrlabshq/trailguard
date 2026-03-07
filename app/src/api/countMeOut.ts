@@ -1,4 +1,6 @@
-const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3001';
+import { getAuthHeader } from './authHeader';
+
+const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8420';
 
 export type CMODuration = 15 | 30 | 45 | 60 | 90;
 
@@ -22,9 +24,10 @@ export async function startCountMeOut(
   durationMinutes: CMODuration,
   note?: string,
 ): Promise<{ etaAt: string; durationMinutes: number }> {
+  const auth = await getAuthHeader();
   const res = await fetch(`${API_URL}/alerts/count-me-out/start`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { ...auth, 'Content-Type': 'application/json' },
     body: JSON.stringify({ groupId, durationMinutes, note: note?.trim() || undefined }),
   });
   if (!res.ok) {
@@ -36,9 +39,10 @@ export async function startCountMeOut(
 
 /** Cancel the rider's count-me-out timer ("I'm back"). */
 export async function cancelCountMeOut(): Promise<void> {
+  const auth = await getAuthHeader();
   const res = await fetch(`${API_URL}/alerts/count-me-out/cancel`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { ...auth, 'Content-Type': 'application/json' },
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
@@ -48,7 +52,8 @@ export async function cancelCountMeOut(): Promise<void> {
 
 /** Fetch the rider's current count-me-out status from the server. */
 export async function getCountMeOutStatus(): Promise<CMOResponse> {
-  const res = await fetch(`${API_URL}/alerts/count-me-out/status`);
+  const auth = await getAuthHeader();
+  const res = await fetch(`${API_URL}/alerts/count-me-out/status`, { headers: auth });
   if (!res.ok) throw new Error(`Failed to fetch count-me-out status: ${res.status}`);
   return res.json();
 }

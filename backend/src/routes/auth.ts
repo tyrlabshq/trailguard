@@ -14,6 +14,49 @@ import { requireRider } from '../middleware/auth';
 
 const router = Router();
 
+// ─── POST /auth/guest ────────────────────────────────────────────────────────
+
+/**
+ * Guest/username login — no password, no email.
+ * Finds or creates a rider by display name, returns a JWT access token.
+ * Intended for dev/testing and lightweight onboarding.
+ */
+router.post('/guest', async (req: Request, res: Response): Promise<void> => {
+  const { username } = req.body;
+
+  if (!username || typeof username !== 'string' || username.trim().length < 2) {
+    res.status(400).json({ error: 'username must be at least 2 characters' });
+    return;
+  }
+
+  const name = username.trim();
+
+  // Find or create guest rider by display name
+  const existing = await query(
+    'SELECT id, name, tier FROM riders WHERE name = $1 LIMIT 1',
+    [name],
+  );
+
+  let rider;
+  if (existing.rows.length > 0) {
+    rider = existing.rows[0];
+  } else {
+    const result = await query(
+      `INSERT INTO riders (name, tier) VALUES ($1, 'free') RETURNING id, name, tier`,
+      [name],
+    );
+    rider = result.rows[0];
+  }
+
+  const tier = rider.tier as 'free' | 'pro';
+  const accessToken = signAccessToken({ sub: rider.id, tier });
+
+  res.json({
+    rider: { id: rider.id, name: rider.name, tier },
+    accessToken,
+  });
+});
+
 // ─── POST /auth/register ──────────────────────────────────────────────────────
 
 /**

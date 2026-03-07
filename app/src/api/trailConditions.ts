@@ -1,4 +1,6 @@
-const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3001';
+import { getAuthHeader } from './authHeader';
+
+const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8420';
 
 // ─── Condition Types ──────────────────────────────────────────────────────────
 
@@ -166,7 +168,8 @@ export async function fetchNearbyConditions(
 ): Promise<TrailConditionReport[]> {
   const url = `${API_URL}/trails/conditions?lat=${lat}&lng=${lng}&radius=${radiusM}`;
   try {
-    const res = await fetch(url);
+    const auth = await getAuthHeader();
+    const res = await fetch(url, { headers: auth });
     if (!res.ok) throw new Error(`Failed to fetch conditions: ${res.status}`);
     const data: TrailConditionReport[] = await res.json();
     return data;
@@ -184,9 +187,10 @@ export async function reportCondition(
   notes?: string,
 ): Promise<TrailConditionReport> {
   try {
+    const auth = await getAuthHeader();
     const res = await fetch(`${API_URL}/trails/conditions`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...auth, 'Content-Type': 'application/json' },
       body: JSON.stringify({ lat, lng, condition, notes, reportType: 'condition' }),
     });
     if (!res.ok) throw new Error(`Failed to submit condition: ${res.status}`);
@@ -216,11 +220,12 @@ export async function reportHazard(
   photoUri?: string,
 ): Promise<TrailConditionReport> {
   try {
+    const auth = await getAuthHeader();
     const body: Record<string, unknown> = { lat, lng, hazard, notes, reportType: 'hazard' };
     if (photoUri) body.photoUri = photoUri;
     const res = await fetch(`${API_URL}/trails/conditions`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...auth, 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     });
     if (!res.ok) throw new Error(`Failed to submit hazard: ${res.status}`);
@@ -249,9 +254,10 @@ export async function reportSnowDepth(
   notes?: string,
 ): Promise<TrailConditionReport> {
   try {
+    const auth = await getAuthHeader();
     const res = await fetch(`${API_URL}/trails/conditions`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...auth, 'Content-Type': 'application/json' },
       body: JSON.stringify({ lat, lng, snowDepthCm, notes, reportType: 'snow_depth' }),
     });
     if (!res.ok) throw new Error(`Failed to submit snow depth: ${res.status}`);
@@ -274,8 +280,10 @@ export async function reportSnowDepth(
 
 export async function upvoteReport(reportId: string): Promise<{ upvotes: number }> {
   try {
+    const auth = await getAuthHeader();
     const res = await fetch(`${API_URL}/trails/conditions/${reportId}/upvote`, {
       method: 'POST',
+      headers: auth,
     });
     if (!res.ok) throw new Error(`Failed to upvote: ${res.status}`);
     return res.json();

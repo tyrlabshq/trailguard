@@ -10,3 +10,13 @@ android/.gradle/
 android/app/build/
 *.keystore
 .DS_Store
+
+# Environment files
+app/.env.local
+app/.env.*.local
+android/local.properties
+
+# Build outputs
+app/ios/build/
+app/android/build/
+app/android/app/build/

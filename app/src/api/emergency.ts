@@ -1,15 +1,6 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getAuthHeader } from './authHeader';
 
-const API_BASE = 'http://localhost:8420';
-
-async function getRiderId(): Promise<string | null> {
-  return AsyncStorage.getItem('riderId');
-}
-
-async function authHeaders(): Promise<Record<string, string>> {
-  const riderId = await getRiderId();
-  return riderId ? { 'x-rider-id': riderId } : {};
-}
+const API_BASE = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8420';
 
 export interface EmergencyContact {
   name: string;
@@ -26,14 +17,14 @@ export interface EmergencyInfo {
 }
 
 export async function getMyEmergencyInfo(): Promise<EmergencyInfo> {
-  const headers = await authHeaders();
+  const headers = await getAuthHeader();
   const res = await fetch(`${API_BASE}/emergency/me/profile`, { headers });
   if (!res.ok) throw new Error('Failed to fetch emergency info');
   return res.json();
 }
 
 export async function saveMyEmergencyInfo(info: EmergencyInfo): Promise<void> {
-  const headers = await authHeaders();
+  const headers = await getAuthHeader();
   const res = await fetch(`${API_BASE}/emergency/me/profile`, {
     method: 'PUT',
     headers: { ...headers, 'Content-Type': 'application/json' },
@@ -47,7 +38,7 @@ export async function fireSOS(params: {
   lat: number;
   lng: number;
 }): Promise<void> {
-  const headers = await authHeaders();
+  const headers = await getAuthHeader();
   const res = await fetch(`${API_BASE}/emergency/sos`, {
     method: 'POST',
     headers: { ...headers, 'Content-Type': 'application/json' },
