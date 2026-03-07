@@ -1,15 +1,20 @@
 /**
- * SafetyScreen — PL-07 (expanded from PL-04)
+ * SafetyScreen — TG-03 (updated from PL-07)
  *
  * Stack navigator for the Safety tab:
  *   DMSSettings (initial) → Dead Man's Switch config + active monitoring
  *   SOSMain               → Full SOS screen (unchanged)
  *
- * The Dead Man's Switch is PowderLink's signature safety feature:
- * if a rider stops moving unexpectedly, their group gets an automatic alert.
+ * TG-03 changes:
+ *  - Interval options updated to 15 / 30 / 60 min (production-appropriate)
+ *  - Replaced useDMSMonitor hook with DeadMansSwitchService singleton
+ *  - Replaced DMSModal with DeadMansSwitchModal (2-min countdown + disable option)
+ *  - handleTimeout escalates to emergency contacts via DeadMansSwitchService.escalate()
+ *  - Crash detection (accelerometer) started/stopped alongside DMS
+ *  - Interval persisted to AsyncStorage; loaded on mount
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -21,16 +26,19 @@ import {
 import { createStackNavigator } from '@react-navigation/stack';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import SOSScreen from './SOSScreen';
 import { colors } from '../theme/colors';
-import { useDMSMonitor } from '../hooks/useDMSMonitor';
-import DMSModal from '../components/DMSModal';
-import { setDMS, snoozeDMS, disableDMS, fireDMSAlert } from '../api/alerts';
+import DeadMansSwitchModal from '../components/DeadMansSwitchModal';
+import {
+  DeadMansSwitchService,
+  DMS_INTERVALS,
+  type DMSInterval,
+} from '../services/DeadMansSwitchService';
+import { setDMS, snoozeDMS, disableDMS } from '../api/alerts';
 import { useGroup } from '../context/GroupContext';
 
-// ─── Navigator ────────────────────────────────────────────────────────────
+// ─── Navigator ─────────────────────────────────────────────────────────────
 
 export type SafetyStackParamList = {
   DMSSettings: undefined;
@@ -39,36 +47,76 @@ export type SafetyStackParamList = {
 
 const Stack = createStackNavigator<SafetyStackParamList>();
 
-// ─── Constants ────────────────────────────────────────────────────────────
-
-const INTERVAL_OPTIONS = [5, 10, 15, 20, 30] as const;
-type IntervalOption = (typeof INTERVAL_OPTIONS)[number];
-
-// ─── DMSSettings screen ───────────────────────────────────────────────────
+// ─── DMSSettings screen ────────────────────────────────────────────────────
 
 function DMSSettingsScreen() {
   const navigation = useNavigation<StackNavigationProp<SafetyStackParamList>>();
   const { group } = useGroup();
 
   const [dmsEnabled, setDmsEnabled] = useState(false);
-  const [intervalMinutes, setIntervalMinutes] = useState<IntervalOption>(15);
+  const [intervalMinutes, setIntervalMinutes] = useState<DMSInterval>(15);
   const [modalVisible, setModalVisible] = useState(false);
 
-  // Stable callback: won't cause useDMSMonitor to remount on every render
+  // Display: minutes until next alert (refreshed every 30s when DMS is active)
+  const [minutesUntilAlert, setMinutesUntilAlert] = useState<number>(15);
+  const displayTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // ── Load persisted interval on mount ────────────────────────────────────
+  useEffect(() => {
+    void DeadMansSwitchService.loadInterval().then(interval => {
+      setIntervalMinutes(interval);
+      setMinutesUntilAlert(interval);
+    });
+  }, []);
+
+  // ── Update the status-card display every 30s when DMS is running ─────────
+  useEffect(() => {
+    if (!dmsEnabled) {
+      if (displayTimerRef.current) {
+        clearInterval(displayTimerRef.current);
+        displayTimerRef.current = null;
+      }
+      setMinutesUntilAlert(intervalMinutes);
+      return;
+    }
+
+    const tick = () => {
+      const lastMoved = DeadMansSwitchService.getLastMovedAt();
+      if (lastMoved) {
+        const elapsedMs = Date.now() - lastMoved.getTime();
+        const remaining = Math.max(
+          0,
+          intervalMinutes - Math.round(elapsedMs / 60_000),
+        );
+        setMinutesUntilAlert(remaining);
+      }
+    };
+
+    tick(); // Immediate first tick
+    displayTimerRef.current = setInterval(tick, 30_000);
+
+    return () => {
+      if (displayTimerRef.current) {
+        clearInterval(displayTimerRef.current);
+        displayTimerRef.current = null;
+      }
+    };
+  }, [dmsEnabled, intervalMinutes]);
+
+  // ── Alert callback — stable ref so service doesn't receive stale closure ──
   const handleAlertNeeded = useCallback(() => {
     setModalVisible(true);
   }, []);
 
-  const { lastMoved, distanceSinceLast } = useDMSMonitor(
-    dmsEnabled,
-    intervalMinutes,
-    handleAlertNeeded,
-  );
-
-  // ── Toggle DMS on / off ─────────────────────────────────────────────────
+  // ── Toggle DMS on / off ──────────────────────────────────────────────────
   const handleToggle = async (enabled: boolean) => {
     setDmsEnabled(enabled);
+
     if (enabled) {
+      DeadMansSwitchService.start(intervalMinutes, handleAlertNeeded);
+      DeadMansSwitchService.startCrashDetection();
+      setMinutesUntilAlert(intervalMinutes);
+
       if (group) {
         try {
           await setDMS(group.groupId, intervalMinutes);
@@ -77,6 +125,9 @@ function DMSSettingsScreen() {
         }
       }
     } else {
+      DeadMansSwitchService.stop();
+      DeadMansSwitchService.stopCrashDetection();
+
       try {
         await disableDMS();
       } catch (err) {
@@ -85,81 +136,110 @@ function DMSSettingsScreen() {
     }
   };
 
-  // ── Change alert interval ───────────────────────────────────────────────
-  const handleIntervalChange = async (mins: IntervalOption) => {
+  // ── Change alert interval ────────────────────────────────────────────────
+  const handleIntervalChange = async (mins: DMSInterval) => {
     setIntervalMinutes(mins);
-    if (dmsEnabled && group) {
-      try {
-        await setDMS(group.groupId, mins);
-      } catch (err) {
-        console.warn('[DMS] Failed to update interval on server:', err);
+    await DeadMansSwitchService.saveInterval(mins);
+
+    if (dmsEnabled) {
+      // Re-start with the new interval
+      DeadMansSwitchService.start(mins, handleAlertNeeded);
+      setMinutesUntilAlert(mins);
+
+      if (group) {
+        try {
+          await setDMS(group.groupId, mins);
+        } catch (err) {
+          console.warn('[DMS] Failed to update interval on server:', err);
+        }
       }
     }
   };
 
-  // ── Modal actions ───────────────────────────────────────────────────────
-
+  // ── Modal: user is OK → check in and reset server timer ─────────────────
   const handleOK = async () => {
     setModalVisible(false);
-    // Reset: disable then immediately re-enable to restart the server-side timer
+    DeadMansSwitchService.checkIn();
+    setMinutesUntilAlert(intervalMinutes);
+
     if (group) {
       try {
         await disableDMS();
         await setDMS(group.groupId, intervalMinutes);
       } catch (err) {
-        console.warn('[DMS] Failed to reset after OK:', err);
+        console.warn('[DMS] Failed to reset after check-in:', err);
       }
     }
   };
 
+  // ── Modal: snooze 15 min ─────────────────────────────────────────────────
   const handleSnooze = async () => {
     setModalVisible(false);
+    DeadMansSwitchService.snooze(15);
+
     try {
       await snoozeDMS(15);
     } catch (err) {
-      console.warn('[DMS] Snooze failed:', err);
+      console.warn('[DMS] Snooze failed on server:', err);
     }
   };
 
+  // ── Modal: disable DMS entirely ──────────────────────────────────────────
+  const handleDisable = async () => {
+    setModalVisible(false);
+    setDmsEnabled(false);
+    DeadMansSwitchService.stop();
+    DeadMansSwitchService.stopCrashDetection();
+
+    try {
+      await disableDMS();
+    } catch (err) {
+      console.warn('[DMS] Failed to disable on server:', err);
+    }
+  };
+
+  // ── Modal: SOS shortcut ──────────────────────────────────────────────────
   const handleSOS = () => {
     setModalVisible(false);
     navigation.navigate('SOSMain');
   };
 
+  // ── Modal: 2-min countdown expired → escalate to emergency contacts ───────
   const handleTimeout = async () => {
     setModalVisible(false);
-    // Fire app-side alert immediately; server watchdog will fire independently too
-    if (group) {
-      try {
-        const lastLocRaw = await AsyncStorage.getItem('lastLocation');
-        let lat: number | undefined;
-        let lng: number | undefined;
-        if (lastLocRaw) {
-          const loc = JSON.parse(lastLocRaw) as { lat: number; lng: number };
-          lat = loc.lat;
-          lng = loc.lng;
-        }
-        await fireDMSAlert({ groupId: group.groupId, lat, lng });
-      } catch (err) {
-        // Non-fatal: the server-side watchdog (checkDMS cron) is the backstop
-        console.warn('[DMS] App-side fire failed — server watchdog will catch it:', err);
-      }
+
+    // Stop DMS after escalation (prevents repeat alerts in the same incident)
+    setDmsEnabled(false);
+    DeadMansSwitchService.stop();
+    DeadMansSwitchService.stopCrashDetection();
+
+    // Escalate: server push + SMS to emergency contacts with GPS
+    await DeadMansSwitchService.escalate(group?.groupId ?? null);
+
+    // Sync server state
+    try {
+      await disableDMS();
+    } catch {
+      // Non-fatal — escalation already fired
     }
   };
 
-  // ── Derived display values ──────────────────────────────────────────────
-  const minutesUntilAlert = lastMoved
-    ? Math.max(0, intervalMinutes - Math.round((Date.now() - lastMoved.getTime()) / 60_000))
-    : intervalMinutes;
+  // ── Clean up service on screen unmount ───────────────────────────────────
+  useEffect(() => {
+    return () => {
+      // If navigating away, leave service running (Safety tab stays mounted);
+      // only stop on explicit toggle. The cleanup here is for display timer.
+    };
+  }, []);
 
-  // ── Render ──────────────────────────────────────────────────────────────
+  // ── Render ───────────────────────────────────────────────────────────────
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.heading}>Dead Man's Switch</Text>
       <Text style={styles.description}>
-        If you stop moving for the configured interval, your group receives an
-        automatic alert. Keep riding and we'll stay quiet. Stop unexpectedly
-        and we call for help.
+        If you stop moving for the configured interval, your emergency contacts
+        and group receive an automatic alert with your last GPS location.
+        Keep hiking and we stay quiet.
       </Text>
 
       {/* Enable / disable toggle */}
@@ -178,20 +258,20 @@ function DMSSettingsScreen() {
         />
       </View>
 
-      {/* Interval picker + active status — only when DMS is on */}
+      {/* Interval picker + active status (only shown when DMS is on) */}
       {dmsEnabled && (
         <>
           <Text style={styles.sectionLabel}>ALERT IF NO MOVEMENT FOR</Text>
 
           <View style={styles.intervalRow}>
-            {INTERVAL_OPTIONS.map(mins => (
+            {DMS_INTERVALS.map(mins => (
               <TouchableOpacity
                 key={mins}
                 style={[
                   styles.intervalBtn,
                   intervalMinutes === mins && styles.intervalBtnActive,
                 ]}
-                onPress={() => handleIntervalChange(mins)}
+                onPress={() => void handleIntervalChange(mins)}
                 activeOpacity={0.8}
               >
                 <Text
@@ -200,7 +280,7 @@ function DMSSettingsScreen() {
                     intervalMinutes === mins && styles.intervalBtnTextActive,
                   ]}
                 >
-                  {mins}m
+                  {mins === 60 ? '1hr' : `${mins}m`}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -211,16 +291,14 @@ function DMSSettingsScreen() {
             <Text style={styles.statusText}>
               🟢  Active — alerts in {minutesUntilAlert} min if you stop moving
             </Text>
-            {distanceSinceLast > 0 && (
-              <Text style={styles.statusSub}>
-                {distanceSinceLast}m from last movement checkpoint
-              </Text>
-            )}
+            <Text style={styles.statusSub}>
+              Emergency contacts notified if no response in 2 min
+            </Text>
           </View>
         </>
       )}
 
-      {/* SOS shortcut at the bottom */}
+      {/* SOS shortcut */}
       <TouchableOpacity
         style={styles.sosBtn}
         onPress={() => navigation.navigate('SOSMain')}
@@ -229,13 +307,14 @@ function DMSSettingsScreen() {
         <Text style={styles.sosBtnText}>🆘  SOS</Text>
       </TouchableOpacity>
 
-      {/* DMS modal — shown when movement alert triggers */}
-      <DMSModal
+      {/* DMS alert modal */}
+      <DeadMansSwitchModal
         visible={modalVisible}
-        onOK={handleOK}
-        onSnooze={handleSnooze}
+        onOK={() => void handleOK()}
+        onSnooze={() => void handleSnooze()}
+        onDisable={() => void handleDisable()}
         onSOS={handleSOS}
-        onTimeout={handleTimeout}
+        onTimeout={() => void handleTimeout()}
       />
     </ScrollView>
   );
@@ -245,7 +324,7 @@ function DMSSettingsScreen() {
 
 /**
  * Safety tab root navigator.
- * DMSSettings is the initial screen; SOSMain is one step deeper in the stack.
+ * DMSSettings is the initial screen; SOSMain is one level deeper.
  */
 export default function SafetyScreen() {
   return (
@@ -322,7 +401,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
 
-  // Interval picker
+  // Interval picker (3 options: 15m / 30m / 1hr)
   intervalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -330,8 +409,8 @@ const styles = StyleSheet.create({
   },
   intervalBtn: {
     flex: 1,
-    marginHorizontal: 3,
-    paddingVertical: 13,
+    marginHorizontal: 4,
+    paddingVertical: 14,
     borderRadius: 10,
     borderWidth: 1,
     borderColor: colors.textDim,
@@ -343,7 +422,7 @@ const styles = StyleSheet.create({
   },
   intervalBtnText: {
     color: colors.textDim,
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
   },
   intervalBtnTextActive: {
