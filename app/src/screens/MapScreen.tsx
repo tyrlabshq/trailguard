@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MapboxGL from '@rnmapbox/maps';
+import { SatelliteStatusIndicator } from '../components/SatelliteStatusIndicator';
 import { colors } from '../theme/colors';
 import { useGroupWebSocket, type MemberLocation } from '../hooks/useGroupWebSocket';
 import { useMeshNetwork } from '../hooks/useMeshNetwork';
@@ -63,9 +64,14 @@ const CONDITION_DOT_COLORS: Record<string, string> = {
 };
 
 // ---------------------------------------------------------------------------
-// Map style — outdoors-v12 shows hiking/biking/snow trails natively
+// Map styles
 // ---------------------------------------------------------------------------
-const MAP_STYLE_URL = 'mapbox://styles/mapbox/outdoors-v12';
+const MAP_STYLES = [
+  { id: 'outdoors', label: '🗺', url: 'mapbox://styles/mapbox/outdoors-v12' },
+  { id: 'satellite', label: '🛰', url: 'mapbox://styles/mapbox/satellite-streets-v12' },
+  { id: 'dark', label: '🌑', url: 'mapbox://styles/mapbox/dark-v11' },
+] as const;
+type MapStyleId = typeof MAP_STYLES[number]['id'];
 
 // ---------------------------------------------------------------------------
 // Trail layer — OSM paths/tracks from streets-v8 tileset
@@ -489,6 +495,14 @@ export default function MapScreen() {
   const [panelVisible, setPanelVisible] = useState(false);
   const [layerPanelVisible, setLayerPanelVisible] = useState(false);
   const [userCoords, setUserCoords] = useState<[number, number] | null>(null);
+  const [mapStyleId, setMapStyleId] = useState<MapStyleId>('outdoors');
+  const currentStyle = MAP_STYLES.find((s) => s.id === mapStyleId) ?? MAP_STYLES[0];
+  const cycleMapStyle = useCallback(() => {
+    setMapStyleId((cur) => {
+      const idx = MAP_STYLES.findIndex((s) => s.id === cur);
+      return MAP_STYLES[(idx + 1) % MAP_STYLES.length].id;
+    });
+  }, []);
 
   // Layer data
   const [avalancheData, setAvalancheData] = useState<AvalancheGeoJSON | null>(null);
@@ -649,7 +663,7 @@ export default function MapScreen() {
 
   return (
     <View style={styles.container}>
-      <MapboxGL.MapView style={styles.map} styleURL={MAP_STYLE_URL} onPress={handleMapPress}>
+      <MapboxGL.MapView style={styles.map} styleURL={currentStyle.url} onPress={handleMapPress}>
         <MapboxGL.Camera ref={cameraRef} zoomLevel={12} centerCoordinate={DEFAULT_CENTER} animationMode="flyTo" />
         <MapboxGL.UserLocation visible onUpdate={handleUserLocationUpdate} />
 
@@ -677,9 +691,10 @@ export default function MapScreen() {
         <Text style={[styles.hudText, { color: connected ? colors.success : colors.danger }]}>
           {connected ? 'LIVE' : 'OFFLINE'}
         </Text>
-        {!connected && meshConnected && (
+        <SatelliteStatusIndicator dotOnly style={{ marginTop: 2 }} />
+        {meshConnected && (
           <Text style={[styles.hudTextSm, { color: colors.accent }]}>
-            📡 Mesh {meshPeerCount}p
+            📡 {meshPeerCount}p
           </Text>
         )}
         <Text style={styles.hudText}>Group {memberList.length}</Text>
@@ -718,6 +733,11 @@ export default function MapScreen() {
 
       <TouchableOpacity style={styles.centerBtn} onPress={handleCenterOnMe}>
         <Text style={styles.centerBtnText}>◎</Text>
+      </TouchableOpacity>
+
+      {/* Map style cycler: Outdoors → Satellite → Dark */}
+      <TouchableOpacity style={styles.styleBtn} onPress={cycleMapStyle}>
+        <Text style={styles.styleBtnText}>{currentStyle.label}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -828,6 +848,8 @@ const styles = StyleSheet.create({
   layerLabel: { color: colors.text, fontSize: typography.sm, marginRight: 12 },
   centerBtn: { position: 'absolute', bottom: 100, right: 16, width: 48, height: 48, borderRadius: 24, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.4, shadowRadius: 4 },
   centerBtnText: { fontSize: 22, color: colors.accent },
+  styleBtn: { position: 'absolute', bottom: 156, right: 16, width: 48, height: 48, borderRadius: 24, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.4, shadowRadius: 4 },
+  styleBtnText: { fontSize: 22 },
   groupBtn: { position: 'absolute', bottom: 160, right: 16, backgroundColor: colors.accent, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 24, elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.4, shadowRadius: 4 },
   groupBtnActive: { backgroundColor: colors.textDim },
   groupBtnText: { color: '#fff', fontWeight: '700', fontSize: 13 },

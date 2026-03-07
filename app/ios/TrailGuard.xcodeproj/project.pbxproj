@@ -12,6 +12,8 @@
 		53EBD5545BB1F75143B3BED3 /* SatelliteServiceBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = 0752EEC93A8E441F7B9BC370 /* SatelliteServiceBridge.m */; };
 		A1B2C3D4E5F6789012345601 /* MeshNetworkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6789012345602 /* MeshNetworkManager.swift */; };
 		A1B2C3D4E5F6789012345603 /* MeshNetworkBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6789012345604 /* MeshNetworkBridge.m */; };
+		DE4D5400000000000000AA01 /* DeadMansSwitchManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE4D5400000000000000AA02 /* DeadMansSwitchManager.swift */; };
+		DE4D5400000000000000AA03 /* DeadMansSwitchBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = DE4D5400000000000000AA04 /* DeadMansSwitchBridge.m */; };
 		8640923711A74D99D3E2F3AE /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 75A4AD062194257C96122A1C /* main.m */; };
 		94AC050E3C909A1B19F4F72D /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FB10E17C68AE32CDB61B6352 /* Images.xcassets */; };
 		9548E6BCBC9275922809048B /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 5A34FF1239887214682E2807 /* LaunchScreen.storyboard */; };
@@ -22,6 +24,8 @@
 		0752EEC93A8E441F7B9BC370 /* SatelliteServiceBridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SatelliteServiceBridge.m; sourceTree = "<group>"; };
 		A1B2C3D4E5F6789012345602 /* MeshNetworkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeshNetworkManager.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F6789012345604 /* MeshNetworkBridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MeshNetworkBridge.m; sourceTree = "<group>"; };
+		DE4D5400000000000000AA02 /* DeadMansSwitchManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeadMansSwitchManager.swift; sourceTree = "<group>"; };
+		DE4D5400000000000000AA04 /* DeadMansSwitchBridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DeadMansSwitchBridge.m; sourceTree = "<group>"; };
 		26C7DA2EB2EC7A11EAC1D006 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		5A34FF1239887214682E2807 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		6F4A6020E591321A2CD6F045 /* TrailGuard-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "TrailGuard-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -71,6 +75,8 @@
 				0752EEC93A8E441F7B9BC370 /* SatelliteServiceBridge.m */,
 				A1B2C3D4E5F6789012345602 /* MeshNetworkManager.swift */,
 				A1B2C3D4E5F6789012345604 /* MeshNetworkBridge.m */,
+				DE4D5400000000000000AA02 /* DeadMansSwitchManager.swift */,
+				DE4D5400000000000000AA04 /* DeadMansSwitchBridge.m */,
 				6F4A6020E591321A2CD6F045 /* TrailGuard-Bridging-Header.h */,
 			);
 			path = TrailGuard;
@@ -240,6 +246,8 @@
 				53EBD5545BB1F75143B3BED3 /* SatelliteServiceBridge.m in Sources */,
 				A1B2C3D4E5F6789012345601 /* MeshNetworkManager.swift in Sources */,
 				A1B2C3D4E5F6789012345603 /* MeshNetworkBridge.m in Sources */,
+				DE4D5400000000000000AA01 /* DeadMansSwitchManager.swift in Sources */,
+				DE4D5400000000000000AA03 /* DeadMansSwitchBridge.m in Sources */,
 				8640923711A74D99D3E2F3AE /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
