@@ -1,8 +1,8 @@
-# 🛷 PowderLink
+# 🛡️ TrailGuard
 
-**Brand-agnostic snowmobile buddy system with true satellite coverage and safety-first design.**
+**Universal buddy system for trail riders — snowmobiles, ATVs, dirt bikes, UTVs.**
 
-Competing with Polaris Ride Command — but for *every* rider on *every* sled.
+Works year-round, works everywhere, works for everyone.
 
 ## Core Features
 - 📡 **Satellite Bridge** — Garmin inReach + SPOT integration for off-grid tracking
@@ -10,8 +10,8 @@ Competing with Polaris Ride Command — but for *every* rider on *every* sled.
 - 💥 **Crash Detection** — Accelerometer-based with auto-SOS and emergency info card
 - 🗺️ **Offline-First Maps** — Full trail maps downloadable, work with zero signal
 - 👥 **Group Safety Roles** — Leader / Sweep designation, rally points, count-me-out timer
-- ⚠️ **Avalanche Overlays** — Live danger zones from avalanche.org
-- 🌨️ **Crowdsourced Trail Conditions** — Real-time trail reports from the community
+- ⚠️ **Condition Overlays** — Live trail conditions from the community
+- 🌨️ **Avalanche Zones** — Winter overlay from avalanche.org
 
 ## Stack
 - **App:** React Native (iOS + Android)
@@ -28,3 +28,18 @@ backend/    Node.js API + WebSocket server
 shared/     Shared TypeScript types + utilities
 docs/       Architecture + API docs
 ```
+
+## Getting Started
+
+```bash
+# Backend
+cd backend && npm install && npm run dev
+
+# App (iOS)
+cd app && npm install
+cd ios && pod install
+open TrailGuard.xcworkspace
+```
+
+## Domain
+trailguard.com (to be registered)
