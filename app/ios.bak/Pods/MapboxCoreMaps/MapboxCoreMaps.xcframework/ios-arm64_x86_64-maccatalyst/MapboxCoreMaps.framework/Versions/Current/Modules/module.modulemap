@@ -1,0 +1,10 @@
+framework module MapboxCoreMaps {
+  umbrella header "MapboxCoreMaps.h"
+
+  export *
+  module * { export * }
+}
+module MapboxCoreMaps.Swift {
+  header "MapboxCoreMaps-Swift.h"
+  requires objc
+}

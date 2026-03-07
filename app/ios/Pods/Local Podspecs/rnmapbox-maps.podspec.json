@@ -1,0 +1,42 @@
+{
+  "name": "rnmapbox-maps",
+  "summary": "React Native Component for Mapbox",
+  "version": "10.2.10",
+  "authors": {
+    "Miklós Fazekas": "mfazekas@szemafor.com (https://github.com/mfazekas/)"
+  },
+  "homepage": "https://github.com/rnmapbox/maps#readme",
+  "source": {
+    "git": "https://github.com/rnmapbox/maps.git"
+  },
+  "license": "MIT",
+  "platforms": {
+    "ios": "12.4"
+  },
+  "header_dir": "rnmapbox_maps",
+  "dependencies": {
+    "MapboxMaps": [
+      "~> 11.16.2"
+    ],
+    "Turf": [],
+    "React-Core": [],
+    "React": []
+  },
+  "swift_versions": "5.0",
+  "default_subspecs": [
+    "DynamicLibrary"
+  ],
+  "subspecs": [
+    {
+      "name": "DynamicLibrary",
+      "source_files": "ios/RNMBX/**/*.{h,m,mm,swift}",
+      "private_header_files": [
+        "ios/RNMBX/RNMBXFabricHelpers.h",
+        "ios/RNMBX/RNMBXFabricPropConvert.h",
+        "ios/RNMBX/rnmapbox_maps-Swift.pre.h",
+        "ios/RNMBX/Utils/RNMBXFollyConvert.h"
+      ]
+    }
+  ],
+  "swift_version": "5.0"
+}

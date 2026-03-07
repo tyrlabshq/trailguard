@@ -1,0 +1,4 @@
+// This file is generated and will be overwritten automatically.
+
+#import "MBXTracingBackendType_Internal.h"
+#import "MBXTracing_Internal.h"

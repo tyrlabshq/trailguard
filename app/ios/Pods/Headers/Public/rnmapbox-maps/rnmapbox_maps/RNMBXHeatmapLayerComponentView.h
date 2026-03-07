@@ -1,0 +1,1 @@
+../../../../../../node_modules/@rnmapbox/maps/ios/RNMBX/RNMBXHeatmapLayerComponentView.h

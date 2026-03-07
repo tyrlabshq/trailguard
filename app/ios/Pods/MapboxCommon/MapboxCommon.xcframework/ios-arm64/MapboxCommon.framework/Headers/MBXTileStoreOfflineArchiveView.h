@@ -1,0 +1,29 @@
+// This file is generated and will be overwritten automatically.
+
+#import <Foundation/Foundation.h>
+@class MBXExpected<__covariant Value, __covariant Error>;
+
+@class MBXTileRegion;
+@class MBXTileStoreImportError;
+
+/** Provides a read-only view of the TileStore offline archive. */
+NS_SWIFT_NAME(TileStoreOfflineArchiveView)
+__attribute__((visibility ("default")))
+@interface MBXTileStoreOfflineArchiveView : NSObject
+
+// This class provides custom init which should be called
+- (nonnull instancetype)init NS_UNAVAILABLE;
+
+// This class provides custom init which should be called
++ (nonnull instancetype)new NS_UNAVAILABLE;
+
+/** Returns the resource count of the offline archive. */
+- (uint64_t)getRequiredResourceCount;
+/** Returns the byte count of all resources of the offline archive. */
+- (uint64_t)getRequiredResourceBytes;
+/** Returns the regions in the offline archive. */
+- (nonnull NSDictionary<NSString *, MBXTileRegion *> *)getRegions __attribute((ns_returns_retained));
+/** Returns the style pack URIs in the offline archive. */
+- (nonnull NSArray<NSString *> *)getStylePackURIs __attribute((ns_returns_retained));
+
+@end

@@ -9,6 +9,7 @@ import {
   Vibration,
   Alert,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MapboxGL from '@rnmapbox/maps';
 import { colors } from '../theme/colors';
 import { useGroupWebSocket, type MemberLocation } from '../hooks/useGroupWebSocket';
@@ -55,23 +56,23 @@ const CONDITION_DOT_COLORS: Record<string, string> = {
 };
 
 // ---------------------------------------------------------------------------
-// Map style
+// Map style — outdoors-v12 shows hiking/biking/snow trails natively
 // ---------------------------------------------------------------------------
-const MAP_STYLE_URL = 'mapbox://styles/mapbox/dark-v11';
-const TRAIL_TILESET_ID = 'mapbox.mapbox-terrain-v2';
+const MAP_STYLE_URL = 'mapbox://styles/mapbox/outdoors-v12';
 
 // ---------------------------------------------------------------------------
-// Trail layer
+// Trail layer — OSM paths/tracks from streets-v8 tileset
 // ---------------------------------------------------------------------------
 function TrailLayer() {
   return (
-    <MapboxGL.VectorSource id="trail-source" url={`mapbox://${TRAIL_TILESET_ID}`}>
+    <MapboxGL.VectorSource id="trail-source" url="mapbox://mapbox.mapbox-streets-v8">
       <MapboxGL.LineLayer
-        id="snowmobile-trails"
-        sourceLayerID="contour"
+        id="offroad-trails"
+        sourceLayerID="road"
+        filter={['in', ['get', 'class'], ['literal', ['path', 'track']]]}
         style={{
-          lineColor: '#00aaff',
-          lineWidth: ['interpolate', ['linear'], ['zoom'], 8, 1, 12, 2.5, 15, 4] as any,
+          lineColor: ['match', ['get', 'class'], 'path', '#00ff88', 'track', '#ffcc00', '#00aaff'] as any,
+          lineWidth: ['interpolate', ['linear'], ['zoom'], 8, 1, 12, 2, 15, 3.5] as any,
           lineOpacity: 0.85,
           lineCap: 'round',
           lineJoin: 'round',
@@ -170,12 +171,13 @@ function ConditionLayer({ reports }: { reports: TrailConditionReport[] }) {
 }
 
 // ---------------------------------------------------------------------------
-// Reconnecting banner
+// Reconnecting banner — respects notch/Dynamic Island
 // ---------------------------------------------------------------------------
 function ReconnectingBanner() {
+  const insets = useSafeAreaInsets();
   return (
-    <View style={styles.reconnectBanner}>
-      <Text style={styles.reconnectText}>Warning Reconnecting</Text>
+    <View style={[styles.reconnectBanner, { top: insets.top }]}>
+      <Text style={styles.reconnectText}>⚠️ Reconnecting to server…</Text>
     </View>
   );
 }
@@ -293,6 +295,8 @@ function LayerToggles({ showTrails, showAvalanche, showPOI, showConditions, onTr
 const DEFAULT_CENTER: [number, number] = [-84.9573, 46.3539];
 
 export default function MapScreen() {
+  const insets = useSafeAreaInsets();
+  const hudTop = insets.top + 12;
   const {
     members,
     connected,
@@ -429,10 +433,10 @@ export default function MapScreen() {
         ))}
       </MapboxGL.MapView>
 
-      {!connected && <ReconnectingBanner />}
+      {!connected && memberList.length > 0 && <ReconnectingBanner />}
 
       {/* HUD */}
-      <View style={styles.hud}>
+      <View style={[styles.hud, { top: hudTop }]}>
         <Text style={[styles.hudText, { color: connected ? colors.success : colors.danger }]}>
           {connected ? 'LIVE' : 'OFFLINE'}
         </Text>
@@ -446,7 +450,7 @@ export default function MapScreen() {
       </View>
 
       {/* Layer toggle button */}
-      <TouchableOpacity style={styles.layerBtn} onPress={() => { setLayerPanelVisible((v) => !v); setSelectedMember(null); setPanelVisible(false); }}>
+      <TouchableOpacity style={[styles.layerBtn, { top: hudTop }]} onPress={() => { setLayerPanelVisible((v) => !v); setSelectedMember(null); setPanelVisible(false); }}>
         <Text style={styles.layerBtnText}>Layers</Text>
       </TouchableOpacity>
 

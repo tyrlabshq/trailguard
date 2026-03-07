@@ -1,0 +1,21 @@
+// This file is generated and will be overwritten automatically.
+
+#import <Foundation/Foundation.h>
+
+/** Reason for a tile store import operation failure. */
+// NOLINTNEXTLINE(modernize-use-using)
+typedef NS_ENUM(NSInteger, MBXTileStoreImportErrorType)
+{
+    /** The operation was canceled. */
+    MBXTileStoreImportErrorTypeCanceled,
+    /** The offline data archive does not exist. */
+    MBXTileStoreImportErrorTypeDoesNotExist,
+    /** There is no available space to store the resources. */
+    MBXTileStoreImportErrorTypeDiskFull,
+    /** Other reason. */
+    MBXTileStoreImportErrorTypeOther,
+    /** The offline data archive is corrupt. */
+    MBXTileStoreImportErrorTypeIntegrityCheckError
+} NS_SWIFT_NAME(TileStoreImportErrorType);
+
+NSString* MBXTileStoreImportErrorTypeToString(MBXTileStoreImportErrorType tile_store_import_error_type);

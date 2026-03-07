@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>PowderLink</string>
+	<string>TrailGuard</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -23,11 +23,11 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>PowderLink needs your location to share your position with your riding group and provide safety features like crash detection.</string>
+	<string>TrailGuard needs your location to share your position with your riding group and provide safety features like crash detection.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>PowderLink needs your location to show your position on the map and share it with your riding group.</string>
+	<string>TrailGuard needs your location to show your position on the map and share it with your riding group.</string>
 	<key>NSMotionUsageDescription</key>
-	<string>PowderLink uses motion data to detect crashes and trigger automatic safety alerts.</string>
+	<string>TrailGuard uses motion data to detect crashes and trigger automatic safety alerts.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIRequiredDeviceCapabilities</key>
@@ -38,5 +38,7 @@
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
 	</array>
+	<key>MBXAccessToken</key>
+	<string>pk.eyJ1IjoidHlyOSIsImEiOiJjbW1mdzRwbG8wY24xMnFuZHYwN2poaXdwIn0.7He6Sr04fkb6EjN9Xq35yw</string>
 </dict>
 </plist>

@@ -1,0 +1,52 @@
+// swift-interface-format-version: 1.0
+// swift-compiler-version: Apple Swift version 6.0.3 effective-5.10 (swiftlang-6.0.3.1.10 clang-1600.0.30.1)
+// swift-module-flags: -target arm64-apple-xros1.0-simulator -enable-objc-interop -enable-library-evolution -swift-version 5 -enforce-exclusivity=checked -O -enable-bare-slash-regex -module-name MapboxCoreMaps
+// swift-module-flags-ignorable: -no-verify-emitted-module-interface
+import Foundation
+@_spi(Marshalling) import MapboxCommon
+@_exported import MapboxCoreMaps
+import Swift
+import _Concurrency
+import _StringProcessing
+import _SwiftConcurrencyShims
+@_spi(Experimental) @_documentation(visibility: public) public struct Image : Swift.Hashable {
+  @_spi(Experimental) @_documentation(visibility: public) public var width: Swift.UInt32
+  @_spi(Experimental) @_documentation(visibility: public) public var height: Swift.UInt32
+  @_spi(Experimental) @_documentation(visibility: public) public var data: MapboxCommon.DataRef
+  @_spi(Experimental) public init(width: Swift.UInt32, height: Swift.UInt32, data: MapboxCommon.DataRef)
+  @_spi(Experimental) public func hash(into hasher: inout Swift.Hasher)
+  @_spi(Experimental) public static func == (a: MapboxCoreMaps.Image, b: MapboxCoreMaps.Image) -> Swift.Bool
+  @_spi(Experimental) public var hashValue: Swift.Int {
+    @_spi(Experimental) get
+  }
+}
+@_spi(Experimental) extension MapboxCoreMaps.Image {
+  @_spi(Marshalling) public struct Marshaller {
+    @_spi(Marshalling) public static func toObjc<T>(_ value: MapboxCoreMaps.Image) -> T
+    @_spi(Marshalling) public static func toSwift(_ value: Any) -> MapboxCoreMaps.Image
+  }
+}
+public enum LayerPosition : Swift.Equatable, Swift.Codable, Swift.Sendable {
+  case `default`
+  case above(Swift.String)
+  case below(Swift.String)
+  case at(Swift.Int)
+  public static func == (a: MapboxCoreMaps.LayerPosition, b: MapboxCoreMaps.LayerPosition) -> Swift.Bool
+  public func encode(to encoder: any Swift.Encoder) throws
+  public init(from decoder: any Swift.Decoder) throws
+}
+extension MapboxCoreMaps.LayerPosition {
+  @_spi(Marshalling) public struct Marshaller {
+    @_spi(Marshalling) public static func toObjc<T>(_ value: MapboxCoreMaps.LayerPosition) -> T
+    @_spi(Marshalling) public static func toSwift(_ value: Any) -> MapboxCoreMaps.LayerPosition
+  }
+}
+@_spi(Internal) @_hasMissingDesignatedInitializers final public class Map {
+  @_spi(Internal) @objc deinit
+}
+@_spi(Internal) extension MapboxCoreMaps.Map {
+  @_spi(Marshalling) public struct Marshaller {
+    @_spi(Marshalling) public static func toObjc<T>(_ value: MapboxCoreMaps.Map) -> T
+    @_spi(Marshalling) public static func toSwift(_ value: Any) -> MapboxCoreMaps.Map
+  }
+}

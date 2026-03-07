@@ -1,0 +1,2 @@
+${PODS_ROOT}/Target Support Files/RNBackgroundGeolocation/RNBackgroundGeolocation-xcframeworks.sh
+${PODS_ROOT}/../../node_modules/react-native-background-geolocation/ios/RNBackgroundGeolocation/TSLocationManager.xcframework

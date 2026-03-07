@@ -1,0 +1,6 @@
+module Pods_TrailGuard {
+  umbrella header "Pods-TrailGuard-umbrella.h"
+
+  export *
+  module * { export * }
+}

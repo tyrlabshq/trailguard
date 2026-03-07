@@ -1,0 +1,74 @@
+require Pod::Executable.execute_command('node', ['-e',
+  'process.stdout.write(require("path").dirname(require.resolve("react-native/package.json")))'
+]).strip + '/scripts/react_native_pods'
+
+require_relative '../node_modules/@react-native-community/cli-platform-ios/native_modules'
+
+platform :ios, '17.0'
+prepare_react_native_project!
+
+linkage = ENV['USE_FRAMEWORKS']
+if linkage != nil
+  Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
+  use_frameworks! :linkage => linkage.to_sym
+end
+
+target 'TrailGuard' do
+  config = use_native_modules!
+
+  use_react_native!(
+    :path => config[:reactNativePath],
+    :app_path => "#{Pod::Config.instance.installation_root}/.."
+  )
+
+  pod 'RNPermissions', :path => '../node_modules/react-native-permissions'
+  pod 'RNKeychain', :path => '../node_modules/react-native-keychain'
+
+  # Tests target removed — add back if you add a test target in Xcode
+
+  post_install do |installer|
+    react_native_post_install(
+      installer,
+      config[:reactNativePath],
+      :mac_catalyst_enabled => false
+    )
+    installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |config|
+        current = config.build_settings['IPHONEOS_DEPLOYMENT_TARGET']
+        if current && current.to_f < 14.0
+          config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
+        end
+        # Enable MapboxMaps 11.x code paths in rnmapbox-maps
+        if target.name == 'rnmapbox-maps'
+          config.build_settings['OTHER_SWIFT_FLAGS'] = '$(inherited) -D RNMBX_11'
+          config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] = '$(inherited) RNMBX_11=1'
+        end
+      end
+    end
+
+    # Fix: modulemap files referenced in xcconfigs point to DerivedData paths
+    # that don't exist on first build. Copy them to stable Pods paths and rewrite refs.
+
+    # rnmapbox_maps.modulemap — copy to Headers/Public so we have a stable path
+    rnmapbox_src = "#{installer.sandbox.root}/Target Support Files/rnmapbox-maps/rnmapbox-maps.modulemap"
+    rnmapbox_dst_dir = "#{installer.sandbox.root}/Headers/Public/rnmapbox-maps"
+    rnmapbox_dst = "#{rnmapbox_dst_dir}/rnmapbox_maps.modulemap"
+    FileUtils.mkdir_p(rnmapbox_dst_dir)
+    FileUtils.cp(rnmapbox_src, rnmapbox_dst) if File.exist?(rnmapbox_src)
+
+    xcconfig_files = Dir.glob("#{installer.sandbox.root}/Target Support Files/**/*.xcconfig")
+    xcconfig_files.each do |filepath|
+      content = File.read(filepath)
+      patched = content
+        .gsub(
+          '${PODS_CONFIGURATION_BUILD_DIR}/MapboxMaps/MapboxMaps.modulemap',
+          '${PODS_ROOT}/Headers/Public/MapboxMaps/MapboxMaps.modulemap'
+        )
+        .gsub(
+          '${PODS_CONFIGURATION_BUILD_DIR}/rnmapbox-maps/rnmapbox_maps.modulemap',
+          '${PODS_ROOT}/Headers/Public/rnmapbox-maps/rnmapbox_maps.modulemap'
+        )
+      File.write(filepath, patched) if patched != content
+    end
+  end
+end

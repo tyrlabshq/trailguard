@@ -1,0 +1,8 @@
+// This file is generated and will be overwritten automatically.
+
+#import <Foundation/Foundation.h>
+
+@class MBXTileStoreImportProgress;
+
+NS_SWIFT_NAME(TileStoreImportProgressCallback)
+typedef void (^MBXTileStoreImportProgressCallback)(MBXTileStoreImportProgress * _Nonnull progress); // NOLINT(modernize-use-using)

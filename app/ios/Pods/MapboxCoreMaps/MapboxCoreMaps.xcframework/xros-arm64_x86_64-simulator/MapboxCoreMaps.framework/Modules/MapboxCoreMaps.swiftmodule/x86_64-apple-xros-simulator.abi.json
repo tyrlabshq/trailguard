@@ -1,0 +1,1231 @@
+{
+  "ABIRoot": {
+    "kind": "Root",
+    "name": "MapboxCoreMaps",
+    "printedName": "MapboxCoreMaps",
+    "children": [
+      {
+        "kind": "Import",
+        "name": "MapboxCommon",
+        "printedName": "MapboxCommon",
+        "declKind": "Import",
+        "moduleName": "MapboxCoreMaps",
+        "declAttributes": [
+          "SPIAccessControl"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "MapboxCoreMaps_Private",
+        "printedName": "MapboxCoreMaps_Private",
+        "declKind": "Import",
+        "moduleName": "MapboxCoreMaps",
+        "declAttributes": [
+          "ImplementationOnly",
+          "SPIAccessControl"
+        ]
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "Image",
+        "printedName": "Image",
+        "children": [
+          {
+            "kind": "Var",
+            "name": "width",
+            "printedName": "width",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "UInt32",
+                "printedName": "Swift.UInt32",
+                "usr": "s:s6UInt32V"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:14MapboxCoreMaps5ImageV5widths6UInt32Vvp",
+            "mangledName": "$s14MapboxCoreMaps5ImageV5widths6UInt32Vvp",
+            "moduleName": "MapboxCoreMaps",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl",
+              "Documentation",
+              "RawDocComment"
+            ],
+            "spi_group_names": [
+              "Experimental"
+            ],
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "UInt32",
+                    "printedName": "Swift.UInt32",
+                    "usr": "s:s6UInt32V"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:14MapboxCoreMaps5ImageV5widths6UInt32Vvg",
+                "mangledName": "$s14MapboxCoreMaps5ImageV5widths6UInt32Vvg",
+                "moduleName": "MapboxCoreMaps",
+                "implicit": true,
+                "spi_group_names": [
+                  "Experimental"
+                ],
+                "accessorKind": "get"
+              },
+              {
+                "kind": "Accessor",
+                "name": "Set",
+                "printedName": "Set()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "UInt32",
+                    "printedName": "Swift.UInt32",
+                    "usr": "s:s6UInt32V"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:14MapboxCoreMaps5ImageV5widths6UInt32Vvs",
+                "mangledName": "$s14MapboxCoreMaps5ImageV5widths6UInt32Vvs",
+                "moduleName": "MapboxCoreMaps",
+                "implicit": true,
+                "spi_group_names": [
+                  "Experimental"
+                ],
+                "accessorKind": "set"
+              },
+              {
+                "kind": "Accessor",
+                "name": "Modify",
+                "printedName": "Modify()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:14MapboxCoreMaps5ImageV5widths6UInt32VvM",
+                "mangledName": "$s14MapboxCoreMaps5ImageV5widths6UInt32VvM",
+                "moduleName": "MapboxCoreMaps",
+                "implicit": true,
+                "spi_group_names": [
+                  "Experimental"
+                ],
+                "accessorKind": "_modify"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "height",
+            "printedName": "height",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "UInt32",
+                "printedName": "Swift.UInt32",
+                "usr": "s:s6UInt32V"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:14MapboxCoreMaps5ImageV6heights6UInt32Vvp",
+            "mangledName": "$s14MapboxCoreMaps5ImageV6heights6UInt32Vvp",
+            "moduleName": "MapboxCoreMaps",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl",
+              "Documentation",
+              "RawDocComment"
+            ],
+            "spi_group_names": [
+              "Experimental"
+            ],
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "UInt32",
+                    "printedName": "Swift.UInt32",
+                    "usr": "s:s6UInt32V"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:14MapboxCoreMaps5ImageV6heights6UInt32Vvg",
+                "mangledName": "$s14MapboxCoreMaps5ImageV6heights6UInt32Vvg",
+                "moduleName": "MapboxCoreMaps",
+                "implicit": true,
+                "spi_group_names": [
+                  "Experimental"
+                ],
+                "accessorKind": "get"
+              },
+              {
+                "kind": "Accessor",
+                "name": "Set",
+                "printedName": "Set()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "UInt32",
+                    "printedName": "Swift.UInt32",
+                    "usr": "s:s6UInt32V"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:14MapboxCoreMaps5ImageV6heights6UInt32Vvs",
+                "mangledName": "$s14MapboxCoreMaps5ImageV6heights6UInt32Vvs",
+                "moduleName": "MapboxCoreMaps",
+                "implicit": true,
+                "spi_group_names": [
+                  "Experimental"
+                ],
+                "accessorKind": "set"
+              },
+              {
+                "kind": "Accessor",
+                "name": "Modify",
+                "printedName": "Modify()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:14MapboxCoreMaps5ImageV6heights6UInt32VvM",
+                "mangledName": "$s14MapboxCoreMaps5ImageV6heights6UInt32VvM",
+                "moduleName": "MapboxCoreMaps",
+                "implicit": true,
+                "spi_group_names": [
+                  "Experimental"
+                ],
+                "accessorKind": "_modify"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "data",
+            "printedName": "data",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "DataRef",
+                "printedName": "MapboxCommon.DataRef",
+                "usr": "c:@M@MapboxCommon@objc(cs)MBXDataRef"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:14MapboxCoreMaps5ImageV4data0A6Common7DataRefCvp",
+            "mangledName": "$s14MapboxCoreMaps5ImageV4data0A6Common7DataRefCvp",
+            "moduleName": "MapboxCoreMaps",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl",
+              "Documentation",
+              "RawDocComment"
+            ],
+            "spi_group_names": [
+              "Experimental"
+            ],
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "DataRef",
+                    "printedName": "MapboxCommon.DataRef",
+                    "usr": "c:@M@MapboxCommon@objc(cs)MBXDataRef"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:14MapboxCoreMaps5ImageV4data0A6Common7DataRefCvg",
+                "mangledName": "$s14MapboxCoreMaps5ImageV4data0A6Common7DataRefCvg",
+                "moduleName": "MapboxCoreMaps",
+                "implicit": true,
+                "spi_group_names": [
+                  "Experimental"
+                ],
+                "accessorKind": "get"
+              },
+              {
+                "kind": "Accessor",
+                "name": "Set",
+                "printedName": "Set()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "DataRef",
+                    "printedName": "MapboxCommon.DataRef",
+                    "usr": "c:@M@MapboxCommon@objc(cs)MBXDataRef"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:14MapboxCoreMaps5ImageV4data0A6Common7DataRefCvs",
+                "mangledName": "$s14MapboxCoreMaps5ImageV4data0A6Common7DataRefCvs",
+                "moduleName": "MapboxCoreMaps",
+                "implicit": true,
+                "spi_group_names": [
+                  "Experimental"
+                ],
+                "accessorKind": "set"
+              },
+              {
+                "kind": "Accessor",
+                "name": "Modify",
+                "printedName": "Modify()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:14MapboxCoreMaps5ImageV4data0A6Common7DataRefCvM",
+                "mangledName": "$s14MapboxCoreMaps5ImageV4data0A6Common7DataRefCvM",
+                "moduleName": "MapboxCoreMaps",
+                "implicit": true,
+                "spi_group_names": [
+                  "Experimental"
+                ],
+                "accessorKind": "_modify"
+              }
+            ]
+          },
+          {
+            "kind": "Constructor",
+            "name": "init",
+            "printedName": "init(width:height:data:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Image",
+                "printedName": "MapboxCoreMaps.Image",
+                "usr": "s:14MapboxCoreMaps5ImageV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "UInt32",
+                "printedName": "Swift.UInt32",
+                "usr": "s:s6UInt32V"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "UInt32",
+                "printedName": "Swift.UInt32",
+                "usr": "s:s6UInt32V"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "DataRef",
+                "printedName": "MapboxCommon.DataRef",
+                "usr": "c:@M@MapboxCommon@objc(cs)MBXDataRef"
+              }
+            ],
+            "declKind": "Constructor",
+            "usr": "s:14MapboxCoreMaps5ImageV5width6height4dataACs6UInt32V_AH0A6Common7DataRefCtcfc",
+            "mangledName": "$s14MapboxCoreMaps5ImageV5width6height4dataACs6UInt32V_AH0A6Common7DataRefCtcfc",
+            "moduleName": "MapboxCoreMaps",
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "spi_group_names": [
+              "Experimental"
+            ],
+            "init_kind": "Designated"
+          },
+          {
+            "kind": "Var",
+            "name": "hashValue",
+            "printedName": "hashValue",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Int",
+                "printedName": "Swift.Int",
+                "usr": "s:Si"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:14MapboxCoreMaps5ImageV9hashValueSivp",
+            "mangledName": "$s14MapboxCoreMaps5ImageV9hashValueSivp",
+            "moduleName": "MapboxCoreMaps",
+            "implicit": true,
+            "spi_group_names": [
+              "Experimental"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Int",
+                    "printedName": "Swift.Int",
+                    "usr": "s:Si"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:14MapboxCoreMaps5ImageV9hashValueSivg",
+                "mangledName": "$s14MapboxCoreMaps5ImageV9hashValueSivg",
+                "moduleName": "MapboxCoreMaps",
+                "implicit": true,
+                "spi_group_names": [
+                  "Experimental"
+                ],
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Function",
+            "name": "hash",
+            "printedName": "hash(into:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Hasher",
+                "printedName": "Swift.Hasher",
+                "paramValueOwnership": "InOut",
+                "usr": "s:s6HasherV"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:14MapboxCoreMaps5ImageV4hash4intoys6HasherVz_tF",
+            "mangledName": "$s14MapboxCoreMaps5ImageV4hash4intoys6HasherVz_tF",
+            "moduleName": "MapboxCoreMaps",
+            "implicit": true,
+            "spi_group_names": [
+              "Experimental"
+            ],
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "==",
+            "printedName": "==(_:_:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Bool",
+                "printedName": "Swift.Bool",
+                "usr": "s:Sb"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Image",
+                "printedName": "MapboxCoreMaps.Image",
+                "usr": "s:14MapboxCoreMaps5ImageV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Image",
+                "printedName": "MapboxCoreMaps.Image",
+                "usr": "s:14MapboxCoreMaps5ImageV"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:14MapboxCoreMaps5ImageV2eeoiySbAC_ACtFZ",
+            "mangledName": "$s14MapboxCoreMaps5ImageV2eeoiySbAC_ACtFZ",
+            "moduleName": "MapboxCoreMaps",
+            "static": true,
+            "implicit": true,
+            "spi_group_names": [
+              "Experimental"
+            ],
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "TypeDecl",
+            "name": "Marshaller",
+            "printedName": "Marshaller",
+            "children": [
+              {
+                "kind": "Function",
+                "name": "toObjc",
+                "printedName": "toObjc(_:)",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "GenericTypeParam",
+                    "printedName": "τ_0_0"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Image",
+                    "printedName": "MapboxCoreMaps.Image",
+                    "usr": "s:14MapboxCoreMaps5ImageV"
+                  }
+                ],
+                "declKind": "Func",
+                "usr": "s:14MapboxCoreMaps5ImageV10MarshallerV6toObjcyxAClFZ",
+                "mangledName": "$s14MapboxCoreMaps5ImageV10MarshallerV6toObjcyxAClFZ",
+                "moduleName": "MapboxCoreMaps",
+                "genericSig": "<τ_0_0>",
+                "sugared_genericSig": "<T>",
+                "static": true,
+                "declAttributes": [
+                  "AccessControl"
+                ],
+                "spi_group_names": [
+                  "Marshalling"
+                ],
+                "funcSelfKind": "NonMutating"
+              },
+              {
+                "kind": "Function",
+                "name": "toSwift",
+                "printedName": "toSwift(_:)",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Image",
+                    "printedName": "MapboxCoreMaps.Image",
+                    "usr": "s:14MapboxCoreMaps5ImageV"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "ProtocolComposition",
+                    "printedName": "Any"
+                  }
+                ],
+                "declKind": "Func",
+                "usr": "s:14MapboxCoreMaps5ImageV10MarshallerV7toSwiftyACypFZ",
+                "mangledName": "$s14MapboxCoreMaps5ImageV10MarshallerV7toSwiftyACypFZ",
+                "moduleName": "MapboxCoreMaps",
+                "static": true,
+                "declAttributes": [
+                  "AccessControl"
+                ],
+                "spi_group_names": [
+                  "Marshalling"
+                ],
+                "funcSelfKind": "NonMutating"
+              }
+            ],
+            "declKind": "Struct",
+            "usr": "s:14MapboxCoreMaps5ImageV10MarshallerV",
+            "mangledName": "$s14MapboxCoreMaps5ImageV10MarshallerV",
+            "moduleName": "MapboxCoreMaps",
+            "declAttributes": [
+              "AccessControl",
+              "SPIAccessControl"
+            ],
+            "isFromExtension": true,
+            "spi_group_names": [
+              "Marshalling"
+            ],
+            "conformances": [
+              {
+                "kind": "Conformance",
+                "name": "Copyable",
+                "printedName": "Copyable",
+                "usr": "s:s8CopyableP",
+                "mangledName": "$ss8CopyableP"
+              },
+              {
+                "kind": "Conformance",
+                "name": "Escapable",
+                "printedName": "Escapable",
+                "usr": "s:s9EscapableP",
+                "mangledName": "$ss9EscapableP"
+              }
+            ]
+          }
+        ],
+        "declKind": "Struct",
+        "usr": "s:14MapboxCoreMaps5ImageV",
+        "mangledName": "$s14MapboxCoreMaps5ImageV",
+        "moduleName": "MapboxCoreMaps",
+        "declAttributes": [
+          "AccessControl",
+          "Documentation",
+          "SPIAccessControl",
+          "RawDocComment"
+        ],
+        "spi_group_names": [
+          "Experimental"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Hashable",
+            "printedName": "Hashable",
+            "usr": "s:SH",
+            "mangledName": "$sSH"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Equatable",
+            "printedName": "Equatable",
+            "usr": "s:SQ",
+            "mangledName": "$sSQ"
+          }
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "MapboxCoreMaps"
+      },
+      {
+        "kind": "Import",
+        "name": "MapboxCoreMaps_Private",
+        "printedName": "MapboxCoreMaps_Private",
+        "declKind": "Import",
+        "moduleName": "MapboxCoreMaps",
+        "declAttributes": [
+          "ImplementationOnly"
+        ]
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "LayerPosition",
+        "printedName": "LayerPosition",
+        "children": [
+          {
+            "kind": "Var",
+            "name": "default",
+            "printedName": "default",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(MapboxCoreMaps.LayerPosition.Type) -> MapboxCoreMaps.LayerPosition",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "LayerPosition",
+                    "printedName": "MapboxCoreMaps.LayerPosition",
+                    "usr": "s:14MapboxCoreMaps13LayerPositionO"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "MapboxCoreMaps.LayerPosition.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "LayerPosition",
+                        "printedName": "MapboxCoreMaps.LayerPosition",
+                        "usr": "s:14MapboxCoreMaps13LayerPositionO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:14MapboxCoreMaps13LayerPositionO7defaultyA2CmF",
+            "mangledName": "$s14MapboxCoreMaps13LayerPositionO7defaultyA2CmF",
+            "moduleName": "MapboxCoreMaps",
+            "declAttributes": [
+              "RawDocComment"
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "above",
+            "printedName": "above",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(MapboxCoreMaps.LayerPosition.Type) -> (Swift.String) -> MapboxCoreMaps.LayerPosition",
+                "children": [
+                  {
+                    "kind": "TypeFunc",
+                    "name": "Function",
+                    "printedName": "(Swift.String) -> MapboxCoreMaps.LayerPosition",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "LayerPosition",
+                        "printedName": "MapboxCoreMaps.LayerPosition",
+                        "usr": "s:14MapboxCoreMaps13LayerPositionO"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "MapboxCoreMaps.LayerPosition.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "LayerPosition",
+                        "printedName": "MapboxCoreMaps.LayerPosition",
+                        "usr": "s:14MapboxCoreMaps13LayerPositionO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:14MapboxCoreMaps13LayerPositionO5aboveyACSScACmF",
+            "mangledName": "$s14MapboxCoreMaps13LayerPositionO5aboveyACSScACmF",
+            "moduleName": "MapboxCoreMaps",
+            "declAttributes": [
+              "RawDocComment"
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "below",
+            "printedName": "below",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(MapboxCoreMaps.LayerPosition.Type) -> (Swift.String) -> MapboxCoreMaps.LayerPosition",
+                "children": [
+                  {
+                    "kind": "TypeFunc",
+                    "name": "Function",
+                    "printedName": "(Swift.String) -> MapboxCoreMaps.LayerPosition",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "LayerPosition",
+                        "printedName": "MapboxCoreMaps.LayerPosition",
+                        "usr": "s:14MapboxCoreMaps13LayerPositionO"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "MapboxCoreMaps.LayerPosition.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "LayerPosition",
+                        "printedName": "MapboxCoreMaps.LayerPosition",
+                        "usr": "s:14MapboxCoreMaps13LayerPositionO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:14MapboxCoreMaps13LayerPositionO5belowyACSScACmF",
+            "mangledName": "$s14MapboxCoreMaps13LayerPositionO5belowyACSScACmF",
+            "moduleName": "MapboxCoreMaps",
+            "declAttributes": [
+              "RawDocComment"
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "at",
+            "printedName": "at",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(MapboxCoreMaps.LayerPosition.Type) -> (Swift.Int) -> MapboxCoreMaps.LayerPosition",
+                "children": [
+                  {
+                    "kind": "TypeFunc",
+                    "name": "Function",
+                    "printedName": "(Swift.Int) -> MapboxCoreMaps.LayerPosition",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "LayerPosition",
+                        "printedName": "MapboxCoreMaps.LayerPosition",
+                        "usr": "s:14MapboxCoreMaps13LayerPositionO"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Int",
+                        "printedName": "Swift.Int",
+                        "usr": "s:Si"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "MapboxCoreMaps.LayerPosition.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "LayerPosition",
+                        "printedName": "MapboxCoreMaps.LayerPosition",
+                        "usr": "s:14MapboxCoreMaps13LayerPositionO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:14MapboxCoreMaps13LayerPositionO2atyACSicACmF",
+            "mangledName": "$s14MapboxCoreMaps13LayerPositionO2atyACSicACmF",
+            "moduleName": "MapboxCoreMaps",
+            "declAttributes": [
+              "RawDocComment"
+            ]
+          },
+          {
+            "kind": "Function",
+            "name": "==",
+            "printedName": "==(_:_:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Bool",
+                "printedName": "Swift.Bool",
+                "usr": "s:Sb"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "LayerPosition",
+                "printedName": "MapboxCoreMaps.LayerPosition",
+                "usr": "s:14MapboxCoreMaps13LayerPositionO"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "LayerPosition",
+                "printedName": "MapboxCoreMaps.LayerPosition",
+                "usr": "s:14MapboxCoreMaps13LayerPositionO"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:14MapboxCoreMaps13LayerPositionO2eeoiySbAC_ACtFZ",
+            "mangledName": "$s14MapboxCoreMaps13LayerPositionO2eeoiySbAC_ACtFZ",
+            "moduleName": "MapboxCoreMaps",
+            "static": true,
+            "implicit": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Constructor",
+            "name": "init",
+            "printedName": "init(from:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "LayerPosition",
+                "printedName": "MapboxCoreMaps.LayerPosition",
+                "usr": "s:14MapboxCoreMaps13LayerPositionO"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Decoder",
+                "printedName": "any Swift.Decoder",
+                "usr": "s:s7DecoderP"
+              }
+            ],
+            "declKind": "Constructor",
+            "usr": "s:14MapboxCoreMaps13LayerPositionO4fromACs7Decoder_p_tKcfc",
+            "mangledName": "$s14MapboxCoreMaps13LayerPositionO4fromACs7Decoder_p_tKcfc",
+            "moduleName": "MapboxCoreMaps",
+            "implicit": true,
+            "throwing": true,
+            "init_kind": "Designated"
+          },
+          {
+            "kind": "Function",
+            "name": "encode",
+            "printedName": "encode(to:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Encoder",
+                "printedName": "any Swift.Encoder",
+                "usr": "s:s7EncoderP"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:14MapboxCoreMaps13LayerPositionO6encode2toys7Encoder_p_tKF",
+            "mangledName": "$s14MapboxCoreMaps13LayerPositionO6encode2toys7Encoder_p_tKF",
+            "moduleName": "MapboxCoreMaps",
+            "implicit": true,
+            "throwing": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "TypeDecl",
+            "name": "Marshaller",
+            "printedName": "Marshaller",
+            "children": [
+              {
+                "kind": "Function",
+                "name": "toObjc",
+                "printedName": "toObjc(_:)",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "GenericTypeParam",
+                    "printedName": "τ_0_0"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "LayerPosition",
+                    "printedName": "MapboxCoreMaps.LayerPosition",
+                    "usr": "s:14MapboxCoreMaps13LayerPositionO"
+                  }
+                ],
+                "declKind": "Func",
+                "usr": "s:14MapboxCoreMaps13LayerPositionO10MarshallerV6toObjcyxAClFZ",
+                "mangledName": "$s14MapboxCoreMaps13LayerPositionO10MarshallerV6toObjcyxAClFZ",
+                "moduleName": "MapboxCoreMaps",
+                "genericSig": "<τ_0_0>",
+                "sugared_genericSig": "<T>",
+                "static": true,
+                "declAttributes": [
+                  "AccessControl"
+                ],
+                "spi_group_names": [
+                  "Marshalling"
+                ],
+                "funcSelfKind": "NonMutating"
+              },
+              {
+                "kind": "Function",
+                "name": "toSwift",
+                "printedName": "toSwift(_:)",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "LayerPosition",
+                    "printedName": "MapboxCoreMaps.LayerPosition",
+                    "usr": "s:14MapboxCoreMaps13LayerPositionO"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "ProtocolComposition",
+                    "printedName": "Any"
+                  }
+                ],
+                "declKind": "Func",
+                "usr": "s:14MapboxCoreMaps13LayerPositionO10MarshallerV7toSwiftyACypFZ",
+                "mangledName": "$s14MapboxCoreMaps13LayerPositionO10MarshallerV7toSwiftyACypFZ",
+                "moduleName": "MapboxCoreMaps",
+                "static": true,
+                "declAttributes": [
+                  "AccessControl"
+                ],
+                "spi_group_names": [
+                  "Marshalling"
+                ],
+                "funcSelfKind": "NonMutating"
+              }
+            ],
+            "declKind": "Struct",
+            "usr": "s:14MapboxCoreMaps13LayerPositionO10MarshallerV",
+            "mangledName": "$s14MapboxCoreMaps13LayerPositionO10MarshallerV",
+            "moduleName": "MapboxCoreMaps",
+            "declAttributes": [
+              "AccessControl",
+              "SPIAccessControl"
+            ],
+            "isFromExtension": true,
+            "spi_group_names": [
+              "Marshalling"
+            ],
+            "conformances": [
+              {
+                "kind": "Conformance",
+                "name": "Copyable",
+                "printedName": "Copyable",
+                "usr": "s:s8CopyableP",
+                "mangledName": "$ss8CopyableP"
+              },
+              {
+                "kind": "Conformance",
+                "name": "Escapable",
+                "printedName": "Escapable",
+                "usr": "s:s9EscapableP",
+                "mangledName": "$ss9EscapableP"
+              }
+            ]
+          }
+        ],
+        "declKind": "Enum",
+        "usr": "s:14MapboxCoreMaps13LayerPositionO",
+        "mangledName": "$s14MapboxCoreMaps13LayerPositionO",
+        "moduleName": "MapboxCoreMaps",
+        "declAttributes": [
+          "AccessControl",
+          "RawDocComment"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Equatable",
+            "printedName": "Equatable",
+            "usr": "s:SQ",
+            "mangledName": "$sSQ"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Decodable",
+            "printedName": "Decodable",
+            "usr": "s:Se",
+            "mangledName": "$sSe"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Encodable",
+            "printedName": "Encodable",
+            "usr": "s:SE",
+            "mangledName": "$sSE"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Sendable",
+            "printedName": "Sendable",
+            "usr": "s:s8SendableP",
+            "mangledName": "$ss8SendableP"
+          }
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "MapboxCoreMaps_Private",
+        "printedName": "MapboxCoreMaps_Private",
+        "declKind": "Import",
+        "moduleName": "MapboxCoreMaps",
+        "declAttributes": [
+          "ImplementationOnly"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "MapboxCoreMaps"
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "Map",
+        "printedName": "Map",
+        "children": [
+          {
+            "kind": "TypeDecl",
+            "name": "Marshaller",
+            "printedName": "Marshaller",
+            "children": [
+              {
+                "kind": "Function",
+                "name": "toObjc",
+                "printedName": "toObjc(_:)",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "GenericTypeParam",
+                    "printedName": "τ_0_0"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Map",
+                    "printedName": "MapboxCoreMaps.Map",
+                    "usr": "s:14MapboxCoreMaps3MapC"
+                  }
+                ],
+                "declKind": "Func",
+                "usr": "s:14MapboxCoreMaps3MapC10MarshallerV6toObjcyxAClFZ",
+                "mangledName": "$s14MapboxCoreMaps3MapC10MarshallerV6toObjcyxAClFZ",
+                "moduleName": "MapboxCoreMaps",
+                "genericSig": "<τ_0_0>",
+                "sugared_genericSig": "<T>",
+                "static": true,
+                "declAttributes": [
+                  "AccessControl"
+                ],
+                "spi_group_names": [
+                  "Marshalling"
+                ],
+                "funcSelfKind": "NonMutating"
+              },
+              {
+                "kind": "Function",
+                "name": "toSwift",
+                "printedName": "toSwift(_:)",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Map",
+                    "printedName": "MapboxCoreMaps.Map",
+                    "usr": "s:14MapboxCoreMaps3MapC"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "ProtocolComposition",
+                    "printedName": "Any"
+                  }
+                ],
+                "declKind": "Func",
+                "usr": "s:14MapboxCoreMaps3MapC10MarshallerV7toSwiftyACypFZ",
+                "mangledName": "$s14MapboxCoreMaps3MapC10MarshallerV7toSwiftyACypFZ",
+                "moduleName": "MapboxCoreMaps",
+                "static": true,
+                "declAttributes": [
+                  "AccessControl"
+                ],
+                "spi_group_names": [
+                  "Marshalling"
+                ],
+                "funcSelfKind": "NonMutating"
+              }
+            ],
+            "declKind": "Struct",
+            "usr": "s:14MapboxCoreMaps3MapC10MarshallerV",
+            "mangledName": "$s14MapboxCoreMaps3MapC10MarshallerV",
+            "moduleName": "MapboxCoreMaps",
+            "declAttributes": [
+              "AccessControl",
+              "SPIAccessControl"
+            ],
+            "isFromExtension": true,
+            "spi_group_names": [
+              "Marshalling"
+            ],
+            "conformances": [
+              {
+                "kind": "Conformance",
+                "name": "Copyable",
+                "printedName": "Copyable",
+                "usr": "s:s8CopyableP",
+                "mangledName": "$ss8CopyableP"
+              },
+              {
+                "kind": "Conformance",
+                "name": "Escapable",
+                "printedName": "Escapable",
+                "usr": "s:s9EscapableP",
+                "mangledName": "$ss9EscapableP"
+              }
+            ]
+          }
+        ],
+        "declKind": "Class",
+        "usr": "s:14MapboxCoreMaps3MapC",
+        "mangledName": "$s14MapboxCoreMaps3MapC",
+        "moduleName": "MapboxCoreMaps",
+        "declAttributes": [
+          "Final",
+          "AccessControl",
+          "SPIAccessControl"
+        ],
+        "spi_group_names": [
+          "Internal"
+        ],
+        "hasMissingDesignatedInitializers": true,
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          }
+        ]
+      }
+    ],
+    "json_format_version": 8
+  },
+  "ConstValues": []
+}
