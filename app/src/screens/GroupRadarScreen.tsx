@@ -415,7 +415,7 @@ export default function GroupRadarScreen() {
       {/* Proximity beacon toggle */}
       <View style={styles.beaconRow}>
         <View>
-          <Text style={styles.beaconTitle}>📡 Proximity Beacon</Text>
+          <Text style={styles.beaconTitle}>Proximity Beacon</Text>
           <Text style={styles.beaconSub}>
             Vibrates when a member is within {formatDistance(BEACON_THRESHOLD_M)}
           </Text>
@@ -431,7 +431,7 @@ export default function GroupRadarScreen() {
       {beaconEnabled && nearestM <= BEACON_THRESHOLD_M && (
         <View style={styles.beaconAlert}>
           <Text style={styles.beaconAlertText}>
-            ⚠️ Member nearby — {formatDistance(nearestM)} away
+            WARN: Member nearby — {formatDistance(nearestM)} away
           </Text>
         </View>
       )}
@@ -466,7 +466,7 @@ export default function GroupRadarScreen() {
 
       {/* Offline note */}
       <Text style={styles.offlineNote}>
-        🔌 Radar works offline — uses Bluetooth mesh peer locations and last-known GPS.
+        Radar works offline — uses Bluetooth mesh peer locations and last-known GPS.
       </Text>
     </ScrollView>
   );

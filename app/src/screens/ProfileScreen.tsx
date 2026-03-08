@@ -15,32 +15,44 @@ interface MenuItem {
 
 const MENU_ITEMS: MenuItem[] = [
   {
-    icon: '🛷',
+    icon: 'HIST',
     title: 'Ride History',
     subtitle: 'Your last 30 rides — stats, routes, and summaries',
     screen: 'RideHistory',
   },
   {
-    icon: '🗺️',
+    icon: 'MAP',
     title: 'Offline Maps',
     subtitle: 'Download trail maps for zero-signal riding',
     screen: 'OfflineMaps',
   },
   {
-    icon: '▶️',
+    icon: 'PLAY',
     title: 'Ride Replay',
     subtitle: '3D flyover of your recorded GPS tracks',
     screen: 'RideReplay',
     params: { rideId: '__latest__' },
   },
   {
-    icon: '🧭',
+    icon: 'NAV',
     title: 'Compass Navigation',
     subtitle: 'GPS + compass offline mode — no signal needed',
     screen: 'CompassNav',
   },
   {
-    icon: '🆘',
+    icon: '🛰',
+    title: 'Garmin inReach',
+    subtitle: 'Satellite GPS tracking — works without cell signal',
+    screen: 'GarminSetup',
+  },
+  {
+    icon: '📻',
+    title: 'Meshtastic Radio',
+    subtitle: 'LoRa mesh radio — up to 15 miles per hop, no internet',
+    screen: 'MeshtasticSetup',
+  },
+  {
+    icon: 'SOS',
     title: 'Emergency Info',
     subtitle: 'Medical info, contacts & QR code for first responders',
     screen: 'EmergencyInfo',
@@ -80,7 +92,7 @@ export default function ProfileScreen() {
             <Text style={styles.headerSub}>Settings & Tools</Text>
           </View>
           <View style={styles.avatarCircle}>
-            <Text style={styles.avatarText}>🏔</Text>
+            <Text style={styles.avatarText}>TG</Text>
           </View>
         </View>
 
@@ -133,7 +145,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  avatarText: { fontSize: 22 },
+  avatarText: { fontSize: 13, fontWeight: '800', color: colors.primary, letterSpacing: 1 },
 
   sectionLabel: {
     color: colors.textDim,
@@ -169,7 +181,7 @@ const styles = StyleSheet.create({
   menuIconDanger: {
     backgroundColor: colors.danger + '22',
   },
-  menuIcon: { fontSize: 22 },
+  menuIcon: { fontSize: 11, fontWeight: '700', color: colors.primary, letterSpacing: 0.5 },
   menuText: { flex: 1 },
   menuTitle: {
     color: colors.text,

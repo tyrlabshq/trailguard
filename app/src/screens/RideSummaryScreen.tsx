@@ -13,12 +13,11 @@ import type { GroupStackParamList } from '../navigation/AppNavigator';
 type RideSummaryRoute = RouteProp<GroupStackParamList, 'RideSummary'>;
 type Nav = StackNavigationProp<GroupStackParamList, 'RideSummary'>;
 
-function StatCard({ icon, label, value, sub }: {
-  icon: string; label: string; value: string; sub?: string;
+function StatCard({ label, value, sub }: {
+  label: string; value: string; sub?: string;
 }) {
   return (
     <View style={styles.statCard}>
-      <Text style={styles.statIcon}>{icon}</Text>
       <Text style={styles.statValue}>{value}</Text>
       {sub && <Text style={styles.statSub}>{sub}</Text>}
       <Text style={styles.statLabel}>{label}</Text>
@@ -41,16 +40,16 @@ export default function RideSummaryScreen() {
   async function handleShare() {
     if (!stats) return;
     const text =
-      `🛷 PowderLink Ride Summary\n` +
-      `📅 ${rideDate} — ${groupName}\n\n` +
-      `📏 Distance: ${stats.distanceMiles} mi\n` +
-      `⏱ Duration: ${formatDuration(stats.durationSeconds)}\n` +
-      `⚡ Top Speed: ${stats.topSpeedMph} mph\n` +
-      `📊 Avg Speed: ${stats.avgSpeedMph} mph\n` +
-      `🏔 Max Altitude: ${stats.maxAltitudeFt.toLocaleString()} ft\n` +
-      `↑ Elevation Gain: ${stats.elevationGainFt} ft\n` +
-      `↓ Elevation Loss: ${stats.elevationLossFt} ft\n\n` +
-      `Tracked with PowderLink 🔵`;
+      `PowderLink Ride Summary\n` +
+      `${rideDate} — ${groupName}\n\n` +
+      `Distance: ${stats.distanceMiles} mi\n` +
+      `Duration: ${formatDuration(stats.durationSeconds)}\n` +
+      `Top Speed: ${stats.topSpeedMph} mph\n` +
+      `Avg Speed: ${stats.avgSpeedMph} mph\n` +
+      `Max Altitude: ${stats.maxAltitudeFt.toLocaleString()} ft\n` +
+      `Elevation Gain: +${stats.elevationGainFt} ft\n` +
+      `Elevation Loss: -${stats.elevationLossFt} ft\n\n` +
+      `Tracked with PowderLink`;
 
     try {
       await Share.share({ message: text, title: 'PowderLink Ride' });
@@ -70,7 +69,6 @@ export default function RideSummaryScreen() {
 
       {/* Route Map Placeholder */}
       <View style={styles.mapContainer}>
-        <Text style={styles.mapPlaceholder}>🗺</Text>
         <Text style={styles.mapText}>
           {stats ? `Route: ${stats.pointCount} points tracked` : 'No route data'}
         </Text>
@@ -79,14 +77,14 @@ export default function RideSummaryScreen() {
       {/* Stats Grid */}
       {stats ? (
         <View style={styles.statsGrid}>
-          <StatCard icon="📏" label="Distance" value={`${stats.distanceMiles} mi`} />
-          <StatCard icon="⏱" label="Duration" value={duration} />
-          <StatCard icon="⚡" label="Top Speed" value={`${stats.topSpeedMph}`} sub="mph" />
-          <StatCard icon="📊" label="Avg Speed" value={`${stats.avgSpeedMph}`} sub="mph" />
-          <StatCard icon="🏔" label="Max Altitude" value={stats.maxAltitudeFt.toLocaleString()} sub="ft" />
-          <StatCard icon="↑" label="Elev. Gain" value={`+${stats.elevationGainFt}`} sub="ft" />
-          <StatCard icon="↓" label="Elev. Loss" value={`-${stats.elevationLossFt}`} sub="ft" />
-          <StatCard icon="📍" label="GPS Points" value={`${stats.pointCount}`} />
+          <StatCard label="Distance" value={`${stats.distanceMiles} mi`} />
+          <StatCard label="Duration" value={duration} />
+          <StatCard label="Top Speed" value={`${stats.topSpeedMph}`} sub="mph" />
+          <StatCard label="Avg Speed" value={`${stats.avgSpeedMph}`} sub="mph" />
+          <StatCard label="Max Altitude" value={stats.maxAltitudeFt.toLocaleString()} sub="ft" />
+          <StatCard label="Elev. Gain" value={`+${stats.elevationGainFt}`} sub="ft" />
+          <StatCard label="Elev. Loss" value={`-${stats.elevationLossFt}`} sub="ft" />
+          <StatCard label="GPS Points" value={`${stats.pointCount}`} />
         </View>
       ) : (
         <View style={styles.noStats}>
@@ -96,7 +94,7 @@ export default function RideSummaryScreen() {
 
       {/* Actions */}
       <TouchableOpacity style={styles.shareBtn} onPress={handleShare}>
-        <Text style={styles.shareBtnText}>⬆ Share Ride</Text>
+        <Text style={styles.shareBtnText}>SHARE RIDE</Text>
       </TouchableOpacity>
 
       <TouchableOpacity

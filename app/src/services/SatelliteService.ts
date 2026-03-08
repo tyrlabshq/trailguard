@@ -141,6 +141,30 @@ export const SatelliteService = {
 
     return route;
   },
+
+  /**
+   * Future: transmit location via Apple satellite (iOS 19+).
+   *
+   * When Apple's third-party satellite API becomes available (Bloomberg, Nov 2025),
+   * this method will broadcast GPS coordinates directly via satellite without cell.
+   * The native stub in SatelliteService.swift is already wired — only requires the
+   * iOS 19 entitlement and API adoption.
+   *
+   * @returns { status: 'sent' | 'unavailable'; reason?: string }
+   */
+  async transmitLocation(
+    lat: number,
+    lng: number,
+  ): Promise<{ status: 'sent' | 'unavailable'; reason?: string }> {
+    if (!isSupported) {
+      return { status: 'unavailable', reason: 'iOS only' };
+    }
+    return NativeSatelliteService.transmitLocationViaSatellite(
+      lat,
+      lng,
+      new Date().toISOString(),
+    );
+  },
 };
 
 export default SatelliteService;

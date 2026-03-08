@@ -106,12 +106,12 @@ export default function DMSModal({
       statusBarTranslucent
     >
       <View style={styles.overlay}>
-        {/* Animated warning icon */}
-        <Animated.Text
+        {/* Animated warning indicator */}
+        <Animated.View
           style={[styles.warningIcon, { transform: [{ scale: pulseAnim }] }]}
         >
-          ⚠️
-        </Animated.Text>
+          <Text style={styles.warningIconText}>!</Text>
+        </Animated.View>
 
         <Text style={styles.title}>ARE YOU OK?</Text>
 
@@ -126,7 +126,7 @@ export default function DMSModal({
           onPress={onOK}
           activeOpacity={0.85}
         >
-          <Text style={styles.btnText}>✅  I'M OK</Text>
+          <Text style={styles.btnText}>I'M OK</Text>
         </TouchableOpacity>
 
         {/* TAKING A BREAK — yellow/amber */}
@@ -135,7 +135,7 @@ export default function DMSModal({
           onPress={onSnooze}
           activeOpacity={0.85}
         >
-          <Text style={styles.btnText}>☕  TAKING A BREAK</Text>
+          <Text style={styles.btnText}>TAKING A BREAK</Text>
         </TouchableOpacity>
 
         {/* SOS — red */}
@@ -144,7 +144,7 @@ export default function DMSModal({
           onPress={onSOS}
           activeOpacity={0.85}
         >
-          <Text style={styles.btnText}>🆘  SOS</Text>
+          <Text style={styles.btnText}>SOS</Text>
         </TouchableOpacity>
       </View>
     </Modal>
@@ -160,8 +160,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
   },
   warningIcon: {
-    fontSize: 80,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: colors.danger + '22',
+    borderWidth: 2,
+    borderColor: colors.danger,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 28,
+  },
+  warningIconText: {
+    color: colors.danger,
+    fontSize: 36,
+    fontWeight: '900',
   },
   title: {
     color: '#ffffff',

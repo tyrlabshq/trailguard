@@ -101,9 +101,9 @@ export function TrailConditionModal({
   }
 
   const TAB_LABELS: Record<ReportType, string> = {
-    condition: '❄️ Condition',
-    hazard: '⚠️ Hazard',
-    snow_depth: '📏 Snow',
+    condition: 'Condition',
+    hazard: 'Hazard',
+    snow_depth: 'Snow',
   };
 
   return (
@@ -113,7 +113,7 @@ export function TrailConditionModal({
           <View style={styles.handle} />
           <Text style={styles.title}>Report Trail Conditions</Text>
           <Text style={styles.subtitle}>
-            {userLat !== null ? '📍 Using your current location' : '⚠️ Location not available'}
+            {userLat !== null ? 'Using your current location' : '! Location not available'}
           </Text>
 
           {/* Report Type Tabs */}
@@ -150,7 +150,7 @@ export function TrailConditionModal({
                         onPress={() => setSelectedCondition(type)}
                         activeOpacity={0.7}
                       >
-                        <Text style={styles.conditionIcon}>{CONDITION_ICONS[type]}</Text>
+                        <Text style={styles.conditionIcon}>{CONDITION_LABELS[type].toUpperCase().slice(0, 4)}</Text>
                         <Text style={[styles.conditionLabel, isActive && { color }]}>
                           {CONDITION_LABELS[type]}
                         </Text>
@@ -179,7 +179,7 @@ export function TrailConditionModal({
                         onPress={() => setSelectedHazard(type)}
                         activeOpacity={0.7}
                       >
-                        <Text style={styles.conditionIcon}>{HAZARD_ICONS[type]}</Text>
+                        <Text style={styles.conditionIcon}>{HAZARD_LABELS[type].toUpperCase().slice(0, 4)}</Text>
                         <Text style={[styles.conditionLabel, isActive && { color }]}>
                           {HAZARD_LABELS[type]}
                         </Text>
@@ -190,10 +190,9 @@ export function TrailConditionModal({
                 {/* Photo Placeholder */}
                 <TouchableOpacity
                   style={styles.photoBtn}
-                  onPress={() => Alert.alert('📸 Photo Upload', 'Photo upload coming in next update — attach trail condition photos from your camera roll.')}
+                  onPress={() => Alert.alert('Photo Upload', 'Photo upload coming in next update — attach trail condition photos from your camera roll.')}
                 >
-                  <Text style={styles.photoIcon}>📷</Text>
-                  <Text style={styles.photoBtnText}>Add Photo (Coming Soon)</Text>
+                  <Text style={styles.photoBtnText}>+ Add Photo (Coming Soon)</Text>
                 </TouchableOpacity>
               </>
             )}
@@ -243,7 +242,7 @@ export function TrailConditionModal({
             {/* Open / All riders banner */}
             <View style={styles.banner}>
               <Text style={styles.bannerText}>
-                🌍 Reports are visible to ALL riders — not just one brand
+                Reports are visible to ALL riders — not just one brand
               </Text>
             </View>
 
@@ -359,8 +358,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   conditionIcon: {
-    fontSize: 22,
-    marginBottom: 4,
+    fontSize: 10,
+    fontWeight: '800',
+    color: colors.textDim,
+    letterSpacing: 0.5,
+    marginBottom: 6,
   },
   conditionLabel: {
     color: colors.textDim,
@@ -373,15 +375,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(255,255,255,0.07)',
-    borderRadius: 10,
+    borderRadius: 6,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.12)',
     padding: 12,
     marginBottom: 4,
     gap: 10,
-  },
-  photoIcon: {
-    fontSize: 20,
   },
   photoBtnText: {
     color: colors.textDim,

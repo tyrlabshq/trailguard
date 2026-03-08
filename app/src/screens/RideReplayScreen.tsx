@@ -255,11 +255,11 @@ export default function RideReplayScreen() {
     if (!ride) return;
     const stats = RideRecordingService.computeStats(ride.points);
     const text =
-      `🏔 TrailGuard Ride Replay\n` +
-      `📏 ${stats.distanceMiles} mi  ⏱ ${formatDuration(stats.durationSeconds)}\n` +
-      `⚡ Top Speed: ${stats.topSpeedMph} mph  📊 Avg: ${stats.avgSpeedMph} mph\n` +
-      `↑ Gain: ${stats.elevationGainFt} ft  🏔 Max Alt: ${stats.maxAltitudeFt.toLocaleString()} ft\n\n` +
-      `Tracked with TrailGuard 🛡`;
+      `TrailGuard Ride Replay\n` +
+      `${stats.distanceMiles} mi  ${formatDuration(stats.durationSeconds)}\n` +
+      `Top Speed: ${stats.topSpeedMph} mph  Avg: ${stats.avgSpeedMph} mph\n` +
+      `Gain: +${stats.elevationGainFt} ft  Max Alt: ${stats.maxAltitudeFt.toLocaleString()} ft\n\n` +
+      `Tracked with TrailGuard`;
     try {
       await Share.share({ message: text, title: 'TrailGuard Ride' });
     } catch {
@@ -361,7 +361,7 @@ export default function RideReplayScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity style={[styles.playBtn, playing && styles.playBtnActive]} onPress={togglePlay}>
-          <Text style={styles.playBtnText}>{playing ? '⏸' : '▶'}</Text>
+          <Text style={styles.playBtnText}>{playing ? 'PAUSE' : 'PLAY'}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -460,7 +460,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   playBtnActive: { backgroundColor: '#007fcc' },
-  playBtnText: { color: '#fff', fontSize: 26 },
+  playBtnText: { color: '#fff', fontSize: 13, fontWeight: '700', letterSpacing: 0.5 },
 
   // Map markers
   dot: {

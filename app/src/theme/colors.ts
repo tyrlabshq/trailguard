@@ -1,26 +1,34 @@
-// TrailGuard outdoor color palette — production theme
+// TrailGuard — Cold Precision theme
+// Electric ice blue HUD aesthetic — tactical, winter-tech, safety-first
 export const colors = {
-  // ── Backgrounds ─────────────────────────────────────────────────────────
-  background: '#0D1B2A',   // dark navy — night riding / OLED-friendly
-  surface: '#1B2838',      // elevated surface — cards, panels
+  // ── Backgrounds ────────────────────────────────────────────────────────────
+  background: '#0A0E12',     // near-black with blue tint — night sky, tactical
+  surface: '#141A20',        // elevated surface — cards, panels, modals
+  surfaceAlt: '#1E2830',     // inputs, secondary panels
 
-  // ── Brand / Outdoor palette ──────────────────────────────────────────────
-  primary: '#2D6A4F',       // deep forest green — headers, hero elements
-  primaryLight: '#52B788',  // sage — highlights, success states
-  accent: '#52B788',        // sage green — primary CTAs, active states
-  accentAlt: '#A8DADC',    // mountain sky — secondary accent, map elements
+  // ── Brand / TrailGuard signature ───────────────────────────────────────────
+  primary: '#00C8E8',        // electric ice blue — TrailGuard accent
+  primaryDark: '#0096B0',    // pressed/active states
+  primaryLight: '#40DCFF',   // glows, soft highlights
 
-  // ── Status ──────────────────────────────────────────────────────────────
-  success: '#52B788',       // sage green
-  danger: '#E76F51',        // rust — errors, SOS, danger
-  warning: '#E9C46A',       // amber — caution, warnings
+  // ── Status ─────────────────────────────────────────────────────────────────
+  success: '#00E56A',        // electric green — connected, live, safe
+  danger: '#FF3B3B',         // red — SOS, crash, error
+  warning: '#E8A100',        // amber — DMS countdown, caution
+  info: '#00C8E8',           // same as primary — informational
 
-  // ── Text ────────────────────────────────────────────────────────────────
-  text: '#FFFFFF',          // pure white — primary text
-  textDim: '#A8DADC',       // mountain sky — secondary/caption text
-  textMuted: '#52788A',     // slate — placeholder, disabled
+  // ── Text ───────────────────────────────────────────────────────────────────
+  text: '#FFFFFF',           // primary text
+  textSecondary: '#8A9BAA',  // cool gray — secondary/meta text
+  textMuted: '#4A5A68',      // placeholder, disabled
+  textInverse: '#0A0E12',    // text on light backgrounds
 
-  // ── Borders / Dividers ──────────────────────────────────────────────────
-  border: 'rgba(168,218,220,0.15)',
-  divider: 'rgba(168,218,220,0.08)',
+  // ── Borders / Dividers ─────────────────────────────────────────────────────
+  border: 'rgba(0,200,232,0.15)',   // subtle blue-tinted borders
+  divider: 'rgba(255,255,255,0.06)',
+
+  // ── Backwards-compat aliases ───────────────────────────────────────────────
+  accent: '#00C8E8',         // alias for primary
+  accentAlt: '#E8A100',      // amber — secondary accent (DMS, warnings)
+  textDim: '#8A9BAA',        // alias for textSecondary
 };

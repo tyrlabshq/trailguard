@@ -10,30 +10,30 @@
 		22D6548A77CEE07B6E3E81B5 /* libPods-TrailGuard.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DCE8BD68E66FD5C74A94D1B9 /* libPods-TrailGuard.a */; };
 		2550D606482B83BE6A8D410A /* SatelliteService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8614AFEFD314A88FBADE9C75 /* SatelliteService.swift */; };
 		53EBD5545BB1F75143B3BED3 /* SatelliteServiceBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = 0752EEC93A8E441F7B9BC370 /* SatelliteServiceBridge.m */; };
-		A1B2C3D4E5F6789012345601 /* MeshNetworkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6789012345602 /* MeshNetworkManager.swift */; };
-		A1B2C3D4E5F6789012345603 /* MeshNetworkBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6789012345604 /* MeshNetworkBridge.m */; };
-		DE4D5400000000000000AA01 /* DeadMansSwitchManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE4D5400000000000000AA02 /* DeadMansSwitchManager.swift */; };
-		DE4D5400000000000000AA03 /* DeadMansSwitchBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = DE4D5400000000000000AA04 /* DeadMansSwitchBridge.m */; };
 		8640923711A74D99D3E2F3AE /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 75A4AD062194257C96122A1C /* main.m */; };
 		94AC050E3C909A1B19F4F72D /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FB10E17C68AE32CDB61B6352 /* Images.xcassets */; };
 		9548E6BCBC9275922809048B /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 5A34FF1239887214682E2807 /* LaunchScreen.storyboard */; };
+		A1B2C3D4E5F6789012345601 /* MeshNetworkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6789012345602 /* MeshNetworkManager.swift */; };
+		A1B2C3D4E5F6789012345603 /* MeshNetworkBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6789012345604 /* MeshNetworkBridge.m */; };
 		BBFEAE25FAB28CC1B4696A77 /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = EE1F602AE5B8E5BF08193914 /* AppDelegate.mm */; };
+		DE4D5400000000000000AA01 /* DeadMansSwitchManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE4D5400000000000000AA02 /* DeadMansSwitchManager.swift */; };
+		DE4D5400000000000000AA03 /* DeadMansSwitchBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = DE4D5400000000000000AA04 /* DeadMansSwitchBridge.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		0752EEC93A8E441F7B9BC370 /* SatelliteServiceBridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SatelliteServiceBridge.m; sourceTree = "<group>"; };
-		A1B2C3D4E5F6789012345602 /* MeshNetworkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeshNetworkManager.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F6789012345604 /* MeshNetworkBridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MeshNetworkBridge.m; sourceTree = "<group>"; };
-		DE4D5400000000000000AA02 /* DeadMansSwitchManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeadMansSwitchManager.swift; sourceTree = "<group>"; };
-		DE4D5400000000000000AA04 /* DeadMansSwitchBridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DeadMansSwitchBridge.m; sourceTree = "<group>"; };
 		26C7DA2EB2EC7A11EAC1D006 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		5A34FF1239887214682E2807 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		6F4A6020E591321A2CD6F045 /* TrailGuard-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "TrailGuard-Bridging-Header.h"; sourceTree = "<group>"; };
 		75A4AD062194257C96122A1C /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		8614AFEFD314A88FBADE9C75 /* SatelliteService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SatelliteService.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F6789012345602 /* MeshNetworkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeshNetworkManager.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F6789012345604 /* MeshNetworkBridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MeshNetworkBridge.m; sourceTree = "<group>"; };
 		A3B44446E15CFEE72360BEFB /* TrailGuard.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = TrailGuard.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D3F12DB602DE9E50DFAA61B4 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		DCE8BD68E66FD5C74A94D1B9 /* libPods-TrailGuard.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-TrailGuard.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		DE4D5400000000000000AA02 /* DeadMansSwitchManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeadMansSwitchManager.swift; sourceTree = "<group>"; };
+		DE4D5400000000000000AA04 /* DeadMansSwitchBridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DeadMansSwitchBridge.m; sourceTree = "<group>"; };
 		EE1F602AE5B8E5BF08193914 /* AppDelegate.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = AppDelegate.mm; sourceTree = "<group>"; };
 		EEEF9121F8D4F65FBF147726 /* Pods-TrailGuard.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TrailGuard.release.xcconfig"; path = "Target Support Files/Pods-TrailGuard/Pods-TrailGuard.release.xcconfig"; sourceTree = "<group>"; };
 		F87A4C9935CAD3395A19C91B /* Pods-TrailGuard.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TrailGuard.debug.xcconfig"; path = "Target Support Files/Pods-TrailGuard/Pods-TrailGuard.debug.xcconfig"; sourceTree = "<group>"; };

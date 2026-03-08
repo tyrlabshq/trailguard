@@ -31,9 +31,9 @@ function RideRow({ ride, onPress }: { ride: Ride; onPress: () => void }) {
         <Text style={styles.rideTime}>{time} — {ride.groupName}</Text>
         {stats && (
           <View style={styles.statsRow}>
-            <Text style={styles.statChip}>📏 {stats.distanceMiles} mi</Text>
-            <Text style={styles.statChip}>⏱ {formatDuration(stats.durationSeconds)}</Text>
-            <Text style={styles.statChip}>⚡ {stats.topSpeedMph} mph</Text>
+            <Text style={styles.statChip}>{stats.distanceMiles} mi</Text>
+            <Text style={styles.statChip}>{formatDuration(stats.durationSeconds)}</Text>
+            <Text style={styles.statChip}>{stats.topSpeedMph} mph</Text>
           </View>
         )}
       </View>
@@ -92,7 +92,7 @@ export default function RideHistoryScreen() {
         }
         ListEmptyComponent={
           <EmptyState
-            icon="🏔️"
+            icon=""
             title="No rides yet"
             subtitle={"Your last 30 rides will appear here.\nHead out and start your first trail ride!"}
             ctaLabel="Start a Ride"

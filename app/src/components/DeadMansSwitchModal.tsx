@@ -135,12 +135,12 @@ export default function DeadMansSwitchModal({
       statusBarTranslucent
     >
       <View style={styles.overlay}>
-        {/* Pulsing warning icon */}
-        <Animated.Text
+        {/* Pulsing warning indicator */}
+        <Animated.View
           style={[styles.warningIcon, { transform: [{ scale: pulseAnim }] }]}
         >
-          ⚠️
-        </Animated.Text>
+          <Text style={styles.warningIconText}>!</Text>
+        </Animated.View>
 
         <Text style={styles.title}>ARE YOU OK?</Text>
 
@@ -159,7 +159,7 @@ export default function DeadMansSwitchModal({
           onPress={onOK}
           activeOpacity={0.85}
         >
-          <Text style={styles.btnText}>✅  I'M OK — CHECK IN</Text>
+          <Text style={styles.btnText}>I'M OK — CHECK IN</Text>
         </TouchableOpacity>
 
         {/* SNOOZE — amber */}
@@ -168,7 +168,7 @@ export default function DeadMansSwitchModal({
           onPress={onSnooze}
           activeOpacity={0.85}
         >
-          <Text style={styles.btnText}>☕  TAKING A BREAK (15 min)</Text>
+          <Text style={styles.btnText}>TAKING A BREAK (15 MIN)</Text>
         </TouchableOpacity>
 
         {/* DISABLE DMS — grey */}
@@ -177,7 +177,7 @@ export default function DeadMansSwitchModal({
           onPress={onDisable}
           activeOpacity={0.85}
         >
-          <Text style={styles.btnTextSecondary}>⛔  DISABLE DEAD MAN'S SWITCH</Text>
+          <Text style={styles.btnTextSecondary}>DISABLE DEAD MAN'S SWITCH</Text>
         </TouchableOpacity>
 
         {/* SOS — red, always last */}
@@ -186,7 +186,7 @@ export default function DeadMansSwitchModal({
           onPress={onSOS}
           activeOpacity={0.85}
         >
-          <Text style={styles.btnText}>🆘  SOS EMERGENCY</Text>
+          <Text style={styles.btnText}>SOS EMERGENCY</Text>
         </TouchableOpacity>
       </View>
     </Modal>
@@ -204,8 +204,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 28,
   },
   warningIcon: {
-    fontSize: 88,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: colors.danger + '22',
+    borderWidth: 2,
+    borderColor: colors.danger,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 24,
+  },
+  warningIconText: {
+    color: colors.danger,
+    fontSize: 40,
+    fontWeight: '900',
   },
   title: {
     color: '#ffffff',

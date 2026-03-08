@@ -99,7 +99,7 @@ export default function EmergencyScreen() {
   // ── 911 call ──────────────────────────────────────────────────────────────
   const handle911 = useCallback(() => {
     Alert.alert(
-      '📞 Call 911?',
+      'CALL 911?',
       'This will open your phone dialer to call 911.',
       [
         { text: 'Cancel', style: 'cancel' },
@@ -185,8 +185,7 @@ export default function EmergencyScreen() {
             onPress={handle911}
             activeOpacity={0.85}
           >
-            <Text style={styles.btn911Icon}>📞</Text>
-            <Text style={styles.btn911Text}>Call 911</Text>
+            <Text style={styles.btn911Text}>CALL 911</Text>
             <Text style={styles.btn911Sub}>One tap · Emergency services</Text>
           </TouchableOpacity>
         </Animated.View>
@@ -205,7 +204,7 @@ export default function EmergencyScreen() {
             <ActivityIndicator color={colors.accent} />
           ) : (
             <>
-              <Text style={styles.locationBtnIcon}>📍</Text>
+              <Text style={styles.locationBtnIcon}>LOC</Text>
               <View style={styles.locationBtnTextBlock}>
                 <Text style={styles.locationBtnTitle}>Send My Location via SMS</Text>
                 <Text style={styles.locationBtnSub}>
@@ -240,7 +239,7 @@ export default function EmergencyScreen() {
                   <Text style={styles.contactPhone}>{contact.phone || 'No number'}</Text>
                 </View>
                 <View style={styles.dialBtn}>
-                  <Text style={styles.dialBtnIcon}>📞</Text>
+                  <Text style={styles.dialBtnIcon}>CALL</Text>
                   <Text style={styles.dialBtnText}>Dial</Text>
                 </View>
               </TouchableOpacity>
@@ -252,7 +251,7 @@ export default function EmergencyScreen() {
             activeOpacity={0.8}
           >
             <Text style={styles.noContactsText}>
-              ⚠️ No ICE contacts saved.{'\n'}Tap here to add emergency contacts.
+              ! No ICE contacts saved.{'\n'}Tap here to add emergency contacts.
             </Text>
           </TouchableOpacity>
         )}
@@ -337,7 +336,7 @@ export default function EmergencyScreen() {
           onPress={handleFullSOS}
           activeOpacity={0.85}
         >
-          <Text style={styles.sosBtnText}>🆘  Fire Full SOS Alert</Text>
+          <Text style={styles.sosBtnText}>FIRE FULL SOS ALERT</Text>
           <Text style={styles.sosBtnSub}>Alerts group + texts all emergency contacts</Text>
         </TouchableOpacity>
       </View>
@@ -403,15 +402,11 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 0 },
     elevation: 10,
   },
-  btn911Icon: {
-    fontSize: 36,
-    marginBottom: 6,
-  },
   btn911Text: {
     color: '#fff',
     fontSize: 28,
     fontWeight: '900',
-    letterSpacing: 1,
+    letterSpacing: 3,
   },
   btn911Sub: {
     color: 'rgba(255,255,255,0.75)',
@@ -431,8 +426,13 @@ const styles = StyleSheet.create({
     minHeight: 60,
   },
   locationBtnIcon: {
-    fontSize: 28,
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.primary,
+    letterSpacing: 0.5,
     marginRight: 14,
+    width: 36,
+    textAlign: 'center',
   },
   locationBtnTextBlock: {
     flex: 1,
@@ -486,7 +486,9 @@ const styles = StyleSheet.create({
     minWidth: 64,
   },
   dialBtnIcon: {
-    fontSize: 18,
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
   dialBtnText: {
     color: '#fff',

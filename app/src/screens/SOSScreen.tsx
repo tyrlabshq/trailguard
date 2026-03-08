@@ -41,7 +41,7 @@ export default function SOSScreen() {
 
   const handleSOS = async () => {
     Alert.alert(
-      '🚨 Fire SOS?',
+      'FIRE SOS?',
       'This will:\n• Alert your riding group\n• Text all emergency contacts\n• Record your location\n\nOnly use in a real emergency.',
       [
         { text: 'Cancel', style: 'cancel' },
@@ -84,7 +84,7 @@ export default function SOSScreen() {
         const mapsLink = lat && lng
           ? `https://maps.google.com/?q=${lat},${lng}`
           : 'Location unavailable';
-        const smsBody = `🚨 SOS! I need help. My last known location: ${mapsLink} — Sent via PowderLink`;
+        const smsBody = `SOS! I need help. My last known location: ${mapsLink} — Sent via PowderLink`;
         for (const contact of contacts) {
           const smsUrl = `sms:${contact.phone}?body=${encodeURIComponent(smsBody)}`;
           try {
@@ -96,7 +96,7 @@ export default function SOSScreen() {
       // Offer 911 call
       setTimeout(() => {
         Alert.alert(
-          '🚨 SOS Sent',
+          'SOS SENT',
           'Your group has been alerted and emergency contacts have been notified.\n\nDo you want to call 911?',
           [
             { text: 'Not now', style: 'cancel' },
@@ -119,13 +119,12 @@ export default function SOSScreen() {
     return (
       <View style={styles.container}>
         <View style={styles.firedContainer}>
-          <Text style={styles.firedIcon}>✅</Text>
-          <Text style={styles.firedTitle}>SOS Sent</Text>
+          <Text style={styles.firedTitle}>SOS SENT</Text>
           <Text style={styles.firedSubtitle}>
             Your group and emergency contacts have been alerted.
           </Text>
           <TouchableOpacity style={styles.call911Btn} onPress={() => Linking.openURL('tel:911')}>
-            <Text style={styles.call911Text}>📞 Call 911</Text>
+            <Text style={styles.call911Text}>CALL 911</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.resetBtn} onPress={() => setFired(false)}>
             <Text style={styles.resetText}>Dismiss</Text>
@@ -154,10 +153,7 @@ export default function SOSScreen() {
             {firing ? (
               <ActivityIndicator color="#fff" size="large" />
             ) : (
-              <>
-                <Text style={styles.sosBtnIcon}>🆘</Text>
-                <Text style={styles.sosBtnText}>SOS</Text>
-              </>
+              <Text style={styles.sosBtnText}>SOS</Text>
             )}
           </TouchableOpacity>
         </Animated.View>
@@ -180,14 +176,14 @@ export default function SOSScreen() {
       {contacts.length === 0 && (
         <View style={styles.noContactsWarning}>
           <Text style={styles.noContactsText}>
-            ⚠️ No emergency contacts set.{'\n'}Add them in Profile → Emergency Info.
+            ! No emergency contacts set.{'\n'}Add them in Profile → Emergency Info.
           </Text>
         </View>
       )}
 
       {/* Always-visible 911 button */}
       <TouchableOpacity style={styles.call911Direct} onPress={() => Linking.openURL('tel:911')}>
-        <Text style={styles.call911DirectText}>📞 Call 911 Directly</Text>
+        <Text style={styles.call911DirectText}>CALL 911 DIRECTLY</Text>
       </TouchableOpacity>
     </View>
   );
@@ -205,22 +201,21 @@ const styles = StyleSheet.create({
   subtitle: { color: colors.textDim, fontSize: 14, textAlign: 'center', lineHeight: 20, marginBottom: 40 },
 
   // SOS Button
-  sosWrapper: { alignItems: 'center', marginBottom: 40 },
+  sosWrapper: { alignItems: 'center', marginBottom: 40, width: '100%' },
   sosBtn: {
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    backgroundColor: '#cc0000',
+    width: '100%',
+    paddingVertical: 40,
+    borderRadius: 8,
+    backgroundColor: colors.danger,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#ff0000',
-    shadowOpacity: 0.6,
-    shadowRadius: 24,
+    shadowColor: colors.danger,
+    shadowOpacity: 0.5,
+    shadowRadius: 20,
     shadowOffset: { width: 0, height: 0 },
     elevation: 12,
   },
-  sosBtnIcon: { fontSize: 48 },
-  sosBtnText: { color: '#fff', fontSize: 36, fontWeight: '900', letterSpacing: 4, marginTop: 4 },
+  sosBtnText: { color: '#fff', fontSize: 40, fontWeight: '900', letterSpacing: 8 },
   sosHint: { color: colors.textDim, fontSize: 12, marginTop: 16 },
 
   // Contacts
@@ -251,23 +246,22 @@ const styles = StyleSheet.create({
 
   // 911 button
   call911Direct: {
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: colors.danger,
-    borderRadius: 10,
+    borderRadius: 6,
     paddingVertical: 14,
     paddingHorizontal: 32,
     marginTop: 'auto',
     marginBottom: 20,
   },
-  call911DirectText: { color: colors.danger, fontSize: 16, fontWeight: '700' },
+  call911DirectText: { color: colors.danger, fontSize: 15, fontWeight: '700', letterSpacing: 0.5, textTransform: 'uppercase' },
 
   // Fired state
   firedContainer: { alignItems: 'center', padding: 20 },
-  firedIcon: { fontSize: 64, marginBottom: 16 },
-  firedTitle: { color: '#00ff88', fontSize: 28, fontWeight: '900', marginBottom: 8 },
+  firedTitle: { color: colors.success, fontSize: 28, fontWeight: '900', marginBottom: 8, letterSpacing: 2 },
   firedSubtitle: { color: colors.text, fontSize: 16, textAlign: 'center', lineHeight: 22, marginBottom: 32 },
-  call911Btn: { backgroundColor: '#cc0000', borderRadius: 10, paddingVertical: 16, paddingHorizontal: 40, marginBottom: 16 },
-  call911Text: { color: '#fff', fontSize: 18, fontWeight: '700' },
+  call911Btn: { backgroundColor: colors.danger, borderRadius: 8, paddingVertical: 16, paddingHorizontal: 40, marginBottom: 16 },
+  call911Text: { color: '#fff', fontSize: 15, fontWeight: '700', letterSpacing: 0.5, textTransform: 'uppercase' },
   resetBtn: { padding: 12 },
   resetText: { color: colors.textDim, fontSize: 14 },
 });

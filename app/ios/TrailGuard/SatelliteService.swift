@@ -1,3 +1,11 @@
+// MARK: - Apple Satellite API (Coming iOS 19)
+// Apple is building a third-party satellite API (Bloomberg, Nov 2025).
+// When available, this service should be updated to:
+// 1. Check for satellite API availability (will require entitlement)
+// 2. Use the satellite API to broadcast GPS packets to the TrailGuard backend
+// 3. Route SOS alerts through satellite when cell is unavailable
+// This file is the correct abstraction layer — add satellite data transmission here.
+
 //
 //  SatelliteService.swift
 //  TrailGuard — TG-06
@@ -195,6 +203,19 @@ import CoreTelephony
         case .available:   return "available"
         @unknown default:  return "searching"
         }
+    }
+
+    // Future: when Apple's satellite API is available
+    // Called by RCTSatelliteModule.m to expose this over the JS bridge.
+    // Returns a result dictionary so the ObjC bridge can resolve the JS promise.
+    @objc public func transmitLocationViaSatellite(
+        _ lat: Double,
+        lng: Double,
+        timestamp: String
+    ) -> [String: String] {
+        // TODO: iOS 19+ - use Apple satellite API to broadcast GPS
+        // For now, return unavailable
+        return ["status": "unavailable", "reason": "Satellite API not yet available in this iOS version"]
     }
 }
 

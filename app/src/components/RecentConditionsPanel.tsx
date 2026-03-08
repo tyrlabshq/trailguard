@@ -56,8 +56,8 @@ function getReportIcon(report: TrailConditionReport): string {
   if (report.reportType === 'hazard' && report.hazard) {
     return HAZARD_ICONS[report.hazard];
   }
-  if (report.reportType === 'snow_depth') return '📏';
-  return '❓';
+  if (report.reportType === 'snow_depth') return 'SNOW';
+  return '?';
 }
 
 function getReportColor(report: TrailConditionReport): string {
@@ -72,8 +72,8 @@ function getReportColor(report: TrailConditionReport): string {
 }
 
 function getReportTypeBadge(report: TrailConditionReport): string {
-  if (report.reportType === 'hazard') return '⚠️ HAZARD';
-  if (report.reportType === 'snow_depth') return '📏 SNOW DEPTH';
+  if (report.reportType === 'hazard') return 'HAZARD';
+  if (report.reportType === 'snow_depth') return 'SNOW DEPTH';
   return '';
 }
 
@@ -129,7 +129,7 @@ function ReportRow({ item, onUpvote }: ReportRowProps) {
             hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
           >
             <Text style={[styles.upvoteIcon, hasUpvoted && styles.upvoteIconActive]}>
-              {hasUpvoted ? '✅' : '👍'}
+              {hasUpvoted ? '+1' : '+'}
             </Text>
             <Text style={[styles.upvoteCount, hasUpvoted && styles.upvoteCountActive]}>
               {upvotes}
@@ -161,7 +161,7 @@ export function RecentConditionsPanel({ visible, reports, onClose, onReportCondi
             {reports.filter((r) => r.reportType === 'hazard').length} hazards ·{' '}
             {reports.filter((r) => r.reportType === 'snow_depth').length} snow reports
           </Text>
-          <Text style={styles.allRidersTag}>🌍 All riders</Text>
+          <Text style={styles.allRidersTag}>All riders</Text>
         </View>
       )}
 
@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     gap: 10,
   },
-  reportIcon: { fontSize: 20, marginTop: 1 },
+  reportIcon: { fontSize: 10, fontWeight: '700', color: colors.textDim, marginTop: 2, width: 28, textAlign: 'center' },
   reportBody: { flex: 1 },
   reportTopRow: {
     flexDirection: 'row',

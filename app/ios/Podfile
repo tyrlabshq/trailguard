@@ -70,5 +70,26 @@ target 'TrailGuard' do
         )
       File.write(filepath, patched) if patched != content
     end
+
+    # Fix: RNBleManager Swift/ObjC interop — RCTResponseSenderBlock/CBDelegate not found
+    # RNBleManager 12.x + Xcode 26 / iOS 26 SDK: the Swift-generated header exposes
+    # RCTResponseSenderBlock and CoreBluetooth protocol types. With strict module
+    # isolation the ObjC compiler can't see them. Disable module strictness and
+    # allow textual includes so BleManager.mm's explicit imports take effect.
+    installer.pods_project.targets.each do |target|
+      if target.name == 'RNBleManager'
+        target.build_configurations.each do |cfg|
+          cfg.build_settings['DEFINES_MODULE'] = 'NO'
+          cfg.build_settings['CLANG_WARN_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'NO'
+          # Remove the -Werror=non-modular-include-in-framework-module flag
+          # so textual includes of CoreBluetooth and React headers succeed
+          cfg.build_settings['WARNING_CFLAGS'] = '$(inherited) -Wno-non-modular-include-in-framework-module'
+          cflags = cfg.build_settings['OTHER_CFLAGS'] || '$(inherited)'
+          unless cflags.include?('CoreBluetooth')
+            cfg.build_settings['OTHER_CFLAGS'] = "#{cflags} -Wno-error=non-modular-include-in-framework-module"
+          end
+        end
+      end
+    end
   end
 end

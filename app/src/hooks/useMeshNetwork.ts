@@ -1,8 +1,8 @@
 /**
  * useMeshNetwork.ts — TG-07
  *
- * React hook that manages the Bluetooth/WiFi mesh network lifecycle and
- * surfaces peer locations and messages to UI components.
+ * React hook that manages the Apple MultipeerConnectivity mesh network lifecycle
+ * and surfaces peer locations and messages to UI components.
  *
  * Usage:
  *   const { meshMembers, meshMessages, meshConnected, meshPeerCount,
@@ -13,6 +13,25 @@
  *     so it can be merged into the map pins with zero UI changes.
  *   - `meshMessages` matches `GroupMessage` from useGroupWebSocket.
  *   - When the WebSocket drops, the mesh automatically keeps group tracking alive.
+ *
+ * ─── Mesh Technology Hierarchy ────────────────────────────────────────────────
+ * TrailGuard uses a layered off-grid communication stack:
+ *
+ * 1. Meshtastic LoRa radio (preferred for long range):
+ *    - Up to 15 miles per hop via hardware radio device ($30-100)
+ *    - Managed by `MeshtasticService` + `useMeshtastic` hook
+ *    - Nodes appear on MapScreen with distinct radio markers
+ *    - Setup: Profile → Meshtastic Radio
+ *
+ * 2. Apple MultipeerConnectivity (this hook — short-range fallback):
+ *    - ~300 feet via WiFi Direct / Bluetooth
+ *    - No extra hardware needed — works between iPhones automatically
+ *    - Fills the gap when cell is down but riders are close together
+ *
+ * 3. Garmin inReach satellite (for individual rider visibility):
+ *    - Satellite GPS polling via MapShare API — no range limit
+ *    - Managed by `GarminService` + `useGarminTracking` hook
+ *    - Setup: Profile → Garmin inReach
  */
 
 import { useEffect, useCallback, useRef, useState } from 'react';

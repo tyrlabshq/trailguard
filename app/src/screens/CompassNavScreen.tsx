@@ -274,7 +274,7 @@ export default function CompassNavScreen() {
         {/* ── GPS data card ── */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>📍 GPS Position</Text>
+            <Text style={styles.cardTitle}>GPS Position</Text>
             <TouchableOpacity
               onPress={() =>
                 setCoordFormat((f) => (f === 'decimal' ? 'dms' : 'decimal'))
@@ -288,7 +288,7 @@ export default function CompassNavScreen() {
           </View>
 
           {gpsError ? (
-            <Text style={styles.gpsError}>⚠️ {gpsError}</Text>
+            <Text style={styles.gpsError}>! {gpsError}</Text>
           ) : gpsLat == null ? (
             <Text style={styles.gpsAcquiring}>Acquiring GPS fix…</Text>
           ) : (
@@ -324,7 +324,7 @@ export default function CompassNavScreen() {
 
         {/* ── Compass card ── */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>🧭 Magnetic Heading</Text>
+          <Text style={styles.cardTitle}>Magnetic Heading</Text>
           <DataRow
             label="Heading"
             value={`${Math.round(effectiveHeading)}°`}
@@ -344,7 +344,7 @@ export default function CompassNavScreen() {
 
         {/* ── Tips ── */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>💡 Offline Navigation Tips</Text>
+          <Text style={styles.cardTitle}>Offline Navigation Tips</Text>
           <Text style={styles.tipText}>
             • Hold the phone flat and level for best compass accuracy.{'\n'}
             • GPS works without signal — it uses satellites, not cell towers.{'\n'}

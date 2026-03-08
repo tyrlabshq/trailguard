@@ -51,6 +51,13 @@ interface MemberPinProps {
   onPress: (member: MemberLocation) => void;
   /** Count-me-out state for this rider — shows hourglass + countdown when active. */
   cmoState?: CMOState | null;
+  /**
+   * When true, this member is offline / stale — their last-known position is
+   * shown dimmed with a timestamp label instead of a live indicator.
+   */
+  isStale?: boolean;
+  /** Human-readable age string, e.g. "12 min ago". Only shown when isStale. */
+  staleLabel?: string;
 }
 
 /** Format minutes remaining for the hourglass countdown label. */
@@ -63,7 +70,7 @@ function formatCMORemaining(etaAt: string): string {
   return `${minutes}:${String(seconds).padStart(2, '0')}`;
 }
 
-export function MemberPin({ member, displayName, onPress, cmoState }: MemberPinProps) {
+export function MemberPin({ member, displayName, onPress, cmoState, isStale, staleLabel }: MemberPinProps) {
   const color = hashColor(member.userId);
   const initials = getInitials(displayName, member.userId);
   const label = displayName ?? member.userId;
@@ -72,12 +79,21 @@ export function MemberPin({ member, displayName, onPress, cmoState }: MemberPinP
   return (
     <TouchableOpacity
       onPress={() => onPress(member)}
-      style={styles.container}
+      style={[styles.container, isStale && styles.containerStale]}
       activeOpacity={0.8}
     >
-      <View style={[styles.circle, { backgroundColor: color }, isCMOActive && styles.circleCMO]}>
+      <View
+        style={[
+          styles.circle,
+          { backgroundColor: color },
+          isCMOActive && styles.circleCMO,
+          isStale && styles.circleStale,
+        ]}
+      >
         {isCMOActive ? (
           <Text style={styles.hourglass}>⏳</Text>
+        ) : isStale ? (
+          <Text style={styles.staleIcon}>✕</Text>
         ) : (
           <Text style={styles.initials}>{initials}</Text>
         )}
@@ -87,7 +103,12 @@ export function MemberPin({ member, displayName, onPress, cmoState }: MemberPinP
           <Text style={styles.cmoCountdownText}>{formatCMORemaining(cmoState.etaAt)}</Text>
         </View>
       )}
-      <Text style={styles.name} numberOfLines={1}>
+      {isStale && staleLabel && (
+        <View style={styles.staleLabel}>
+          <Text style={styles.staleLabelText}>{staleLabel}</Text>
+        </View>
+      )}
+      <Text style={[styles.name, isStale && styles.nameStale]} numberOfLines={1}>
         {label}
       </Text>
     </TouchableOpacity>
@@ -149,5 +170,36 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0,0,0,0.9)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 4,
+  },
+
+  // Stale / offline member styles
+  containerStale: {
+    opacity: 0.55,
+  },
+  circleStale: {
+    borderColor: '#8A9BAA', // textMuted — signals offline
+    borderWidth: 2,
+  },
+  staleIcon: {
+    color: '#8A9BAA',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  staleLabel: {
+    backgroundColor: 'rgba(0,0,0,0.72)',
+    borderRadius: 4,
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+    marginTop: 1,
+    marginBottom: 1,
+  },
+  staleLabelText: {
+    color: '#8A9BAA',
+    fontSize: 9,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  nameStale: {
+    color: '#8A9BAA',
   },
 });

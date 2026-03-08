@@ -22,10 +22,10 @@ interface PresetMessage {
 }
 
 const PRESET_MESSAGES: PresetMessage[] = [
-  { label: 'Stopping', emoji: '🛑', text: 'Stopping' },
-  { label: 'Need Help', emoji: '🆘', text: 'Need Help' },
-  { label: 'Go Ahead', emoji: '👍', text: 'Go Ahead' },
-  { label: 'Slow Down', emoji: '⚠️', text: 'Slow Down' },
+  { label: 'Stopping', emoji: 'STOP', text: 'Stopping' },
+  { label: 'Need Help', emoji: 'HELP', text: 'Need Help' },
+  { label: 'Go Ahead', emoji: 'GO', text: 'Go Ahead' },
+  { label: 'Slow Down', emoji: 'SLOW', text: 'Slow Down' },
 ];
 
 /** Show the latest N messages in the feed. */
@@ -99,7 +99,7 @@ export function GroupMessagingPanel({
       >
         <View style={styles.headerLeft}>
           <View style={[styles.statusDot, { backgroundColor: connected ? colors.success : colors.textDim }]} />
-          <Text style={styles.headerTitle}>💬 Group Chat</Text>
+          <Text style={styles.headerTitle}>Group Chat</Text>
           {!expanded && unreadCount > 0 && (
             <View style={styles.badge}>
               <Text style={styles.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
@@ -191,12 +191,12 @@ export function GroupMessagingPanel({
           {/* Connectivity indicator */}
           {!connected && !offlineMode && (
             <Text style={styles.offlineNote}>
-              ⚡ Offline — messages will send when reconnected
+              Offline — messages will send when reconnected
             </Text>
           )}
           {offlineMode && (
             <Text style={[styles.offlineNote, styles.meshNote]}>
-              📡 Mesh mode — {meshPeerCount} peer{meshPeerCount !== 1 ? 's' : ''} nearby · no internet needed
+              Mesh — {meshPeerCount} peer{meshPeerCount !== 1 ? 's' : ''} nearby · no internet needed
             </Text>
           )}
         </View>
@@ -282,16 +282,19 @@ const styles = StyleSheet.create({
   // Message bubbles
   bubble: {
     maxWidth: '80%',
-    borderRadius: 12,
+    borderRadius: 4,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    backgroundColor: colors.background,
+    backgroundColor: colors.surfaceAlt,
     alignSelf: 'flex-start',
     marginBottom: 4,
+    borderLeftWidth: 2,
+    borderLeftColor: colors.border,
   },
   bubbleMe: {
     alignSelf: 'flex-end',
-    backgroundColor: colors.accent + '28',
+    backgroundColor: colors.primary + '18',
+    borderLeftColor: colors.primary,
   },
   bubbleThem: {
     alignSelf: 'flex-start',

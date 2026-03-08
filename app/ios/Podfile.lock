@@ -1074,6 +1074,10 @@ PODS:
   - RNBackgroundGeolocation (4.19.4):
     - CocoaLumberjack (~> 3.8.5)
     - React-Core
+  - RNBleManager (12.4.4):
+    - glog
+    - RCT-Folly (= 2022.05.16.00)
+    - React-Core
   - RNCAsyncStorage (1.24.0):
     - React-Core
   - RNGestureHandler (2.30.0):
@@ -1164,6 +1168,7 @@ DEPENDENCIES:
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - RNBackgroundFetch (from `../node_modules/react-native-background-fetch`)
   - RNBackgroundGeolocation (from `../node_modules/react-native-background-geolocation`)
+  - RNBleManager (from `../node_modules/react-native-ble-manager`)
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNKeychain (from `../node_modules/react-native-keychain`)
@@ -1290,6 +1295,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-background-fetch"
   RNBackgroundGeolocation:
     :path: "../node_modules/react-native-background-geolocation"
+  RNBleManager:
+    :path: "../node_modules/react-native-ble-manager"
   RNCAsyncStorage:
     :path: "../node_modules/@react-native-async-storage/async-storage"
   RNGestureHandler:
@@ -1367,6 +1374,7 @@ SPEC CHECKSUMS:
   ReactCommon: cc18bd33c0fab03c67620da6a602dcc1704e66b4
   RNBackgroundFetch: a5c9975c270d869a666364ade366d92f7435dd74
   RNBackgroundGeolocation: f4d90dd38ecc6a17a7ebdda0bf924d6d29f0d3bd
+  RNBleManager: d37b9331cb50f1d46a454b1749c16a77efb72fc2
   RNCAsyncStorage: b6410dead2732b5c72a7fdb1ecb5651bbcf4674b
   RNGestureHandler: f1c8544c074f74911e713ede852b07c51c0cf8f2
   RNKeychain: bbe2f6d5cc008920324acb49ef86ccc03d3b38e4
@@ -1380,6 +1388,6 @@ SPEC CHECKSUMS:
   Turf: c9eb11a65d96af58cac523460fd40fec5061b081
   Yoga: 1b901a6d6eeba4e8a2e8f308f708691cdb5db312
 
-PODFILE CHECKSUM: e724b10bd2d777205de4db07c26297b36da17730
+PODFILE CHECKSUM: e06258740891f6ed2ebfefc2a29fd9884b1b234f
 
 COCOAPODS: 1.16.2

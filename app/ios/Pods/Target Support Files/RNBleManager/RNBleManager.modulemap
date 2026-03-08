@@ -1,0 +1,6 @@
+module RNBleManager {
+  umbrella header "RNBleManager-umbrella.h"
+
+  export *
+  module * { export * }
+}

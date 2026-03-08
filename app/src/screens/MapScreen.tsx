@@ -9,7 +9,14 @@ import {
   Vibration,
   Alert,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
+import type { MapStackParamList } from '../navigation/AppNavigator';
+import { useGroup } from '../context/GroupContext';
+import HomeOverlay, { type RecentRide } from './HomeOverlay';
+import ActiveRideBar from './ActiveRideBar';
 import MapboxGL from '@rnmapbox/maps';
 import { SatelliteStatusIndicator } from '../components/SatelliteStatusIndicator';
 import { colors } from '../theme/colors';
@@ -28,7 +35,12 @@ import { TrailConditionModal } from '../components/TrailConditionModal';
 import { RecentConditionsPanel } from '../components/RecentConditionsPanel';
 import { applyDeadReckoning } from '../services/DeadReckoning';
 import { MapLoadingSkeleton } from '../components/SkeletonLoader';
+import { useGarminTracking } from '../hooks/useGarminTracking';
+import { useMeshtastic } from '../hooks/useMeshtastic';
 import { typography } from '../theme/typography';
+import { CoverageWarningBanner } from '../components/CoverageWarningBanner';
+import { useOfflineQueue } from '../hooks/useOfflineQueue';
+import { LocationCache } from '../services/LocationCache';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -67,9 +79,9 @@ const CONDITION_DOT_COLORS: Record<string, string> = {
 // Map styles
 // ---------------------------------------------------------------------------
 const MAP_STYLES = [
-  { id: 'outdoors', label: '🗺', url: 'mapbox://styles/mapbox/outdoors-v12' },
-  { id: 'satellite', label: '🛰', url: 'mapbox://styles/mapbox/satellite-streets-v12' },
-  { id: 'dark', label: '🌑', url: 'mapbox://styles/mapbox/dark-v11' },
+  { id: 'outdoors', label: 'MAP', url: 'mapbox://styles/mapbox/outdoors-v12' },
+  { id: 'satellite', label: 'SAT', url: 'mapbox://styles/mapbox/satellite-streets-v12' },
+  { id: 'dark', label: 'DARK', url: 'mapbox://styles/mapbox/dark-v11' },
 ] as const;
 type MapStyleId = typeof MAP_STYLES[number]['id'];
 
@@ -350,7 +362,7 @@ function ReconnectingBanner() {
   const insets = useSafeAreaInsets();
   return (
     <View style={[styles.reconnectBanner, { top: insets.top }]}>
-      <Text style={styles.reconnectText}>⚠️ Reconnecting to server…</Text>
+      <Text style={styles.reconnectText}>! Reconnecting to server…</Text>
     </View>
   );
 }
@@ -429,7 +441,7 @@ function MemberDetailSheet({
         onPress={onToggleFollow}
       >
         <Text style={[styles.followBtnText, isFollowing && styles.followBtnTextActive]}>
-          {isFollowing ? '🔴 Stop Following' : '📍 Follow on Map'}
+          {isFollowing ? 'STOP FOLLOWING' : 'FOLLOW ON MAP'}
         </Text>
       </TouchableOpacity>
     </View>
@@ -474,12 +486,93 @@ function LayerToggles({
 // Main screen
 // ---------------------------------------------------------------------------
 const DEFAULT_CENTER: [number, number] = [-84.9573, 46.3539];
+const RECENT_RIDES_KEY = 'trailguard_recent_rides';
+const ACTIVE_RIDE_BAR_HEIGHT = 88; // px to offset FABs above the bar
 
 export default function MapScreen() {
   const insets = useSafeAreaInsets();
   const hudTop = insets.top + 12;
+  const navigation = useNavigation<StackNavigationProp<MapStackParamList, 'MapHome'>>();
+
+  // Group context — group being set means an active group ride
+  const { group, members: groupMembers, clearGroup } = useGroup();
+
+  // Solo ride state (no group, just personal tracking + DMS)
+  const [soloRideActive, setSoloRideActive] = useState(false);
+  const hasActiveRide = !!group || soloRideActive;
+
+  // Recent rides for HomeOverlay
+  const [recentRides, setRecentRides] = useState<RecentRide[]>([]);
+
+  // Load recent rides from AsyncStorage on mount
+  useEffect(() => {
+    AsyncStorage.getItem(RECENT_RIDES_KEY)
+      .then((raw) => {
+        if (raw) setRecentRides(JSON.parse(raw));
+      })
+      .catch(() => {});
+  }, []);
+
+  // ── Navigation callbacks for HomeOverlay ──────────────────────────────────
+  const handleCreateGroup = useCallback(() => {
+    navigation.navigate('GroupCreate');
+  }, [navigation]);
+
+  const handleJoinGroup = useCallback(() => {
+    navigation.navigate('GroupJoin');
+  }, [navigation]);
+
+  const handleSoloRide = useCallback(() => {
+    setSoloRideActive(true);
+  }, []);
+
+  // ── End ride (group or solo) ──────────────────────────────────────────────
+  const handleEndRide = useCallback(() => {
+    Alert.alert(
+      'End Ride',
+      'Are you sure you want to end this ride?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'End Ride',
+          style: 'destructive',
+          onPress: () => {
+            if (soloRideActive) {
+              setSoloRideActive(false);
+            } else {
+              clearGroup();
+            }
+          },
+        },
+      ],
+    );
+  }, [soloRideActive, clearGroup]);
+
+  // ── SOS ──────────────────────────────────────────────────────────────────
+  const handleSOS = useCallback(() => {
+    Alert.alert(
+      'EMERGENCY SOS',
+      'This will send your location and an emergency alert to your group and emergency contacts.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'SEND SOS',
+          style: 'destructive',
+          onPress: () => {
+            // Navigate to Safety tab for full SOS flow
+            const tabNav = navigation.getParent();
+            if (tabNav) {
+              (tabNav as any).navigate('Safety');
+            }
+          },
+        },
+      ],
+    );
+  }, [navigation]);
+
   const {
     members,
+    staleMembers,
     connected,
     sweepGap,
     cmoWarning,
@@ -488,8 +581,16 @@ export default function MapScreen() {
     dismissSweepLeaderAlert,
   } = useGroupWebSocket();
 
+  const { queueLength } = useOfflineQueue();
+
   // Mesh networking — works offline when WebSocket is unavailable
   const { meshMembers, meshConnected, meshPeerCount } = useMeshNetwork();
+
+  // Garmin inReach satellite GPS — polls MapShare API
+  const { garminLocation } = useGarminTracking();
+
+  // Meshtastic LoRa mesh radio — BLE connection to hardware device
+  const { isConnected: meshtasticConnected, meshNodes: meshtasticNodes } = useMeshtastic();
 
   const [selectedMember, setSelectedMember] = useState<MemberLocation | null>(null);
   const [panelVisible, setPanelVisible] = useState(false);
@@ -677,14 +778,49 @@ export default function MapScreen() {
         )}
         {snapEnabled && snappedCoord && <SnappedPositionLayer coord={snappedCoord} />}
 
-        {memberList.map((member) => (
-          <MapboxGL.MarkerView key={member.userId} coordinate={[member.lng, member.lat]}>
-            <MemberPin member={member} onPress={handleMemberPress} />
+        {memberList.map((member) => {
+          const isStale = staleMembers.has(member.userId);
+          return (
+            <MapboxGL.MarkerView key={member.userId} coordinate={[member.lng, member.lat]}>
+              <MemberPin
+                member={member}
+                onPress={handleMemberPress}
+                isStale={isStale}
+                staleLabel={isStale ? LocationCache.getRelativeAge(member.timestamp) : undefined}
+              />
+            </MapboxGL.MarkerView>
+          );
+        })}
+
+        {/* Garmin inReach satellite location — distinct satellite icon marker */}
+        {garminLocation && (
+          <MapboxGL.MarkerView
+            key="garmin-inreach"
+            coordinate={[garminLocation.lng, garminLocation.lat]}
+          >
+            <View style={styles.garminMarker}>
+              <Text style={styles.garminMarkerIcon}>🛰</Text>
+              {garminLocation.inEmergency && (
+                <View style={styles.garminEmergencyDot} />
+              )}
+            </View>
+          </MapboxGL.MarkerView>
+        )}
+
+        {/* Meshtastic LoRa mesh node locations */}
+        {meshtasticConnected && meshtasticNodes.filter((n) => n.lat !== undefined && n.lng !== undefined).map((node) => (
+          <MapboxGL.MarkerView
+            key={`mesh-${node.nodeId}`}
+            coordinate={[node.lng!, node.lat!]}
+          >
+            <View style={styles.meshNodeMarker}>
+              <Text style={styles.meshNodeShortName}>{node.shortName}</Text>
+            </View>
           </MapboxGL.MarkerView>
         ))}
       </MapboxGL.MapView>
 
-      {!connected && memberList.length > 0 && <ReconnectingBanner />}
+      <CoverageWarningBanner />
 
       {/* HUD */}
       <View style={[styles.hud, { top: hudTop }]}>
@@ -694,7 +830,17 @@ export default function MapScreen() {
         <SatelliteStatusIndicator dotOnly style={{ marginTop: 2 }} />
         {meshConnected && (
           <Text style={[styles.hudTextSm, { color: colors.accent }]}>
-            📡 {meshPeerCount}p
+            Mesh {meshPeerCount}p
+          </Text>
+        )}
+        {garminLocation && (
+          <Text style={[styles.hudTextSm, { color: '#a0e0ff' }]}>
+            🛰 {garminLocation.inEmergency ? 'SOS!' : 'inReach'}
+          </Text>
+        )}
+        {meshtasticConnected && meshtasticNodes.length > 0 && (
+          <Text style={[styles.hudTextSm, { color: colors.accent }]}>
+            📻 {meshtasticNodes.length}n
           </Text>
         )}
         <Text style={styles.hudText}>Group {memberList.length}</Text>
@@ -704,9 +850,14 @@ export default function MapScreen() {
             Sweep Gap {sweepGap.distanceMiles.toFixed(1)}mi
           </Text>
         )}
+        {queueLength > 0 && (
+          <Text style={[styles.hudTextSm, { color: colors.warning }]}>
+            {queueLength} queued
+          </Text>
+        )}
         {snapEnabled && activeTrail && (
           <Text style={[styles.hudTextSm, { color: DIFFICULTY_COLORS[activeTrail.difficulty] ?? colors.accent }]}>
-            📍 {activeTrail.name || 'Trail'}
+            {activeTrail.name || 'Trail'}
           </Text>
         )}
         {snapEnabled && !activeTrail && snappedCoord && !snapLoading && (
@@ -731,33 +882,42 @@ export default function MapScreen() {
         />
       )}
 
-      <TouchableOpacity style={styles.centerBtn} onPress={handleCenterOnMe}>
-        <Text style={styles.centerBtnText}>◎</Text>
+      <TouchableOpacity
+        style={[styles.centerBtn, hasActiveRide && { bottom: 100 + ACTIVE_RIDE_BAR_HEIGHT }]}
+        onPress={handleCenterOnMe}
+      >
+        <Text style={styles.centerBtnText}>⊕</Text>
       </TouchableOpacity>
 
       {/* Map style cycler: Outdoors → Satellite → Dark */}
-      <TouchableOpacity style={styles.styleBtn} onPress={cycleMapStyle}>
+      <TouchableOpacity
+        style={[styles.styleBtn, hasActiveRide && { bottom: 156 + ACTIVE_RIDE_BAR_HEIGHT }]}
+        onPress={cycleMapStyle}
+      >
         <Text style={styles.styleBtnText}>{currentStyle.label}</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity
-        style={[styles.groupBtn, panelVisible && styles.groupBtnActive]}
-        onPress={() => { setSelectedMember(null); setLayerPanelVisible(false); setConditionsPanelVisible(false); setPanelVisible((v) => !v); }}
-      >
-        <Text style={styles.groupBtnText}>Group</Text>
-      </TouchableOpacity>
+      {/* Group member list — only useful during an active ride */}
+      {hasActiveRide && (
+        <TouchableOpacity
+          style={[styles.groupBtn, panelVisible && styles.groupBtnActive, { bottom: 160 + ACTIVE_RIDE_BAR_HEIGHT }]}
+          onPress={() => { setSelectedMember(null); setLayerPanelVisible(false); setConditionsPanelVisible(false); setPanelVisible((v) => !v); }}
+        >
+          <Text style={styles.groupBtnText}>Group</Text>
+        </TouchableOpacity>
+      )}
 
       {/* Conditions shortcut */}
       <TouchableOpacity
-        style={[styles.conditionsBtn, conditionsPanelVisible && styles.conditionsBtnActive]}
+        style={[styles.conditionsBtn, conditionsPanelVisible && styles.conditionsBtnActive, hasActiveRide && { bottom: 220 + ACTIVE_RIDE_BAR_HEIGHT }]}
         onPress={() => { setSelectedMember(null); setPanelVisible(false); setLayerPanelVisible(false); setConditionsPanelVisible((v) => !v); setRoutePanelVisible(false); }}
       >
-        <Text style={styles.conditionsBtnText}>❄️</Text>
+        <Text style={styles.conditionsBtnText}>Cond</Text>
       </TouchableOpacity>
 
       {/* Routes shortcut */}
       <TouchableOpacity
-        style={[styles.routesBtn, routePanelVisible && styles.routesBtnActive]}
+        style={[styles.routesBtn, routePanelVisible && styles.routesBtnActive, hasActiveRide && { bottom: 280 + ACTIVE_RIDE_BAR_HEIGHT }]}
         onPress={() => {
           setSelectedMember(null);
           setPanelVisible(false);
@@ -766,7 +926,7 @@ export default function MapScreen() {
           setRoutePanelVisible((v) => !v);
         }}
       >
-        <Text style={styles.routesBtnText}>🗺</Text>
+        <Text style={styles.routesBtnText}>Routes</Text>
       </TouchableOpacity>
 
       <RouteSuggestionsPanel
@@ -824,6 +984,27 @@ export default function MapScreen() {
           }
         }}
       />
+
+      {/* ── Home Overlay — shown when no active ride ── */}
+      <HomeOverlay
+        visible={!hasActiveRide}
+        onCreateGroup={handleCreateGroup}
+        onJoinGroup={handleJoinGroup}
+        onSoloRide={handleSoloRide}
+        recentRides={recentRides}
+        satelliteStatus={connected ? 'connected' : 'searching'}
+        meshPeers={meshPeerCount}
+      />
+
+      {/* ── Active Ride Bar — shown during group or solo ride ── */}
+      {hasActiveRide && (
+        <ActiveRideBar
+          groupName={group?.name ?? 'SOLO RIDE'}
+          memberCount={group ? groupMembers.length : 1}
+          onEndRide={handleEndRide}
+          onSOS={handleSOS}
+        />
+      )}
     </View>
   );
 }
@@ -846,13 +1027,13 @@ const styles = StyleSheet.create({
   layerPanel: { position: 'absolute', top: 110, left: 12, backgroundColor: 'rgba(13,21,32,0.96)', borderRadius: 12, padding: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', minWidth: 170, zIndex: 10 },
   layerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 6 },
   layerLabel: { color: colors.text, fontSize: typography.sm, marginRight: 12 },
-  centerBtn: { position: 'absolute', bottom: 100, right: 16, width: 48, height: 48, borderRadius: 24, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.4, shadowRadius: 4 },
-  centerBtnText: { fontSize: 22, color: colors.accent },
-  styleBtn: { position: 'absolute', bottom: 156, right: 16, width: 48, height: 48, borderRadius: 24, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.4, shadowRadius: 4 },
-  styleBtnText: { fontSize: 22 },
-  groupBtn: { position: 'absolute', bottom: 160, right: 16, backgroundColor: colors.accent, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 24, elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.4, shadowRadius: 4 },
+  centerBtn: { position: 'absolute', bottom: 100, right: 16, width: 48, height: 48, borderRadius: 6, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.4, shadowRadius: 4 },
+  centerBtnText: { fontSize: 18, color: colors.accent, fontWeight: '700' },
+  styleBtn: { position: 'absolute', bottom: 156, right: 16, width: 48, height: 48, borderRadius: 6, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.4, shadowRadius: 4 },
+  styleBtnText: { fontSize: 11, fontWeight: '700', letterSpacing: 1, color: colors.text },
+  groupBtn: { position: 'absolute', bottom: 160, right: 16, backgroundColor: colors.primary, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 6, elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.4, shadowRadius: 4 },
   groupBtnActive: { backgroundColor: colors.textDim },
-  groupBtnText: { color: '#fff', fontWeight: '700', fontSize: 13 },
+  groupBtnText: { color: '#fff', fontWeight: '700', fontSize: 13, letterSpacing: 0.5, textTransform: 'uppercase' },
   detailSheet: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: colors.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, paddingBottom: 40, shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.4, shadowRadius: 12, elevation: 20 },
   sheetHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
   sheetName: { color: '#fff', fontSize: typography.xl, fontWeight: '700' },
@@ -860,16 +1041,16 @@ const styles = StyleSheet.create({
   sheetRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(255,255,255,0.08)' },
   sheetLabel: { color: colors.textDim, fontSize: typography.sm },
   sheetValue: { color: colors.text, fontSize: typography.sm, fontWeight: '600' },
-  followBtn: { marginTop: 16, borderWidth: 1.5, borderColor: colors.accent, borderRadius: 12, paddingVertical: 12, alignItems: 'center' },
+  followBtn: { marginTop: 16, borderWidth: 1.5, borderColor: colors.accent, borderRadius: 6, paddingVertical: 14, paddingHorizontal: 20, alignItems: 'center' },
   followBtnActive: { backgroundColor: colors.accent + '22' },
-  followBtnText: { color: colors.accent, fontSize: typography.md, fontWeight: '700' },
+  followBtnText: { color: colors.accent, fontSize: typography.md, fontWeight: '700', letterSpacing: 0.5, textTransform: 'uppercase' },
   followBtnTextActive: { color: colors.accent },
-  conditionsBtn: { position: 'absolute', bottom: 220, right: 16, width: 48, height: 48, borderRadius: 24, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.4, shadowRadius: 4 },
-  conditionsBtnActive: { backgroundColor: colors.accent + '33', borderColor: colors.accent },
-  conditionsBtnText: { fontSize: 22 },
-  routesBtn: { position: 'absolute', bottom: 280, right: 16, width: 48, height: 48, borderRadius: 24, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.4, shadowRadius: 4 },
-  routesBtnActive: { backgroundColor: colors.accent + '33', borderColor: colors.accent },
-  routesBtnText: { fontSize: 20 },
+  conditionsBtn: { position: 'absolute', bottom: 220, right: 16, width: 52, height: 48, borderRadius: 6, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.4, shadowRadius: 4 },
+  conditionsBtnActive: { backgroundColor: colors.primary + '33', borderColor: colors.primary },
+  conditionsBtnText: { fontSize: 11, fontWeight: '700', color: colors.text, letterSpacing: 0.5 },
+  routesBtn: { position: 'absolute', bottom: 280, right: 16, width: 52, height: 48, borderRadius: 6, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.4, shadowRadius: 4 },
+  routesBtnActive: { backgroundColor: colors.primary + '33', borderColor: colors.primary },
+  routesBtnText: { fontSize: 11, fontWeight: '700', color: colors.text, letterSpacing: 0.5 },
   routePanel: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: colors.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 16, paddingBottom: 36, maxHeight: 320, shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.4, shadowRadius: 12, elevation: 20 },
   routePanelHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   routePanelTitle: { color: colors.text, fontSize: typography.lg, fontWeight: '700' },
@@ -881,4 +1062,46 @@ const styles = StyleSheet.create({
   routeInfo: { flex: 1 },
   routeName: { color: colors.text, fontSize: typography.sm, fontWeight: '600' },
   routeMeta: { color: colors.textDim, fontSize: typography.xs, marginTop: 2 },
+
+  // Garmin inReach satellite marker
+  garminMarker: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,180,255,0.18)',
+    borderRadius: 18,
+    borderWidth: 2,
+    borderColor: '#00b4ff',
+    width: 36,
+    height: 36,
+  },
+  garminMarkerIcon: { fontSize: 18 },
+  garminEmergencyDot: {
+    position: 'absolute',
+    top: -3,
+    right: -3,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: colors.danger,
+    borderWidth: 1.5,
+    borderColor: '#fff',
+  },
+
+  // Meshtastic LoRa mesh node marker
+  meshNodeMarker: {
+    backgroundColor: 'rgba(0,200,232,0.22)',
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: colors.accent,
+    paddingHorizontal: 5,
+    paddingVertical: 3,
+    minWidth: 28,
+    alignItems: 'center',
+  },
+  meshNodeShortName: {
+    color: colors.accent,
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+  },
 });

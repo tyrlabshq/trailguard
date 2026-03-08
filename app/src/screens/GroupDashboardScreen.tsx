@@ -5,6 +5,7 @@ import {
   Modal, TextInput, ScrollView,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useGarminTracking } from '../hooks/useGarminTracking';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { fetchMembers, leaveGroup, disbandGroup, assignMemberRole } from '../api/groups';
@@ -21,6 +22,7 @@ import type { GroupStackParamList } from '../navigation/AppNavigator';
 import type { Ride } from '../api/rides';
 
 type Nav = StackNavigationProp<GroupStackParamList, 'GroupDashboard'>;
+
 
 export default function GroupDashboardScreen() {
   const navigation = useNavigation<Nav>();
@@ -65,6 +67,9 @@ export default function GroupDashboardScreen() {
     meshPeerCount,
     sendMeshMessage,
   } = useMeshNetwork(riderId ? { riderId, riderName } : undefined);
+
+  // Garmin inReach — satellite GPS status for current user
+  const { garminLocation, mapshareId: garminMapshareId } = useGarminTracking();
 
   // Merge WS + mesh messages and deduplicate by messageId
   const allMessages = React.useMemo(() => {
@@ -335,7 +340,7 @@ export default function GroupDashboardScreen() {
       >
         <View style={modalStyles.overlay}>
           <View style={modalStyles.sheet}>
-            <Text style={modalStyles.title}>⏱ Count Me Out</Text>
+            <Text style={modalStyles.title}>COUNT ME OUT</Text>
             <Text style={modalStyles.subtitle}>
               Taking a detour? Set a timer. Your group will see your pin with a countdown,
               and get an alert if you don't rejoin by ETA.
@@ -389,19 +394,47 @@ export default function GroupDashboardScreen() {
       </Modal>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.groupName}>{group.name}</Text>
-        <TouchableOpacity style={styles.codeRow} onPress={copyCode}>
-          <Text style={styles.code}>{group.code}</Text>
-          <Text style={styles.codeCopy}>  tap to copy</Text>
-        </TouchableOpacity>
+        <View style={styles.headerRow}>
+          <View style={styles.headerLeft}>
+            <Text style={styles.groupName}>{group.name}</Text>
+            <TouchableOpacity style={styles.codeRow} onPress={copyCode}>
+              <Text style={styles.code}>{group.code}</Text>
+              <Text style={styles.codeCopy}>  tap to copy</Text>
+            </TouchableOpacity>
+          </View>
+          <TouchableOpacity
+            style={styles.preRideBtn}
+            onPress={() => navigation.navigate('PreRide')}
+          >
+            <Text style={styles.preRideBtnIcon}>🏔</Text>
+            <Text style={styles.preRideBtnText}>Pre-Ride</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* inReach satellite status badge */}
+        {garminMapshareId && (
+          <View style={[
+            styles.inreachBadge,
+            garminLocation?.inEmergency ? styles.inreachBadgeSOS : undefined,
+          ]}>
+            <Text style={styles.inreachBadgeText}>
+              {garminLocation?.inEmergency
+                ? '🛰 SOS ACTIVE'
+                : garminLocation
+                  ? `🛰 inReach: ${garminLocation.lat.toFixed(3)}, ${garminLocation.lng.toFixed(3)}`
+                  : '🛰 inReach configured'}
+            </Text>
+          </View>
+        )}
       </View>
+    
 
       {/* Active Ride Banner */}
       {activeRideId && (
         <View style={styles.rideBanner}>
           <View style={styles.rideIndicator} />
           <View style={styles.rideBannerText}>
-            <Text style={styles.rideBannerTitle}>🛷 Ride In Progress</Text>
+            <Text style={styles.rideBannerTitle}>RIDE IN PROGRESS</Text>
             <Text style={styles.rideTimer}>{formatElapsed(elapsed)}</Text>
           </View>
         </View>
@@ -450,7 +483,7 @@ export default function GroupDashboardScreen() {
           >
             {rideLoading
               ? <ActivityIndicator color="#fff" />
-              : <Text style={styles.endRideBtnText}>🏁 End Ride</Text>}
+              : <Text style={styles.endRideBtnText}>END RIDE</Text>}
           </TouchableOpacity>
         ) : (
           <TouchableOpacity
@@ -469,7 +502,7 @@ export default function GroupDashboardScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.radarBtn} onPress={() => navigation.navigate('GroupRadar')}>
-          <Text style={styles.radarBtnText}>📡 Find Members (Radar)</Text>
+          <Text style={styles.radarBtnText}>Find Members (Radar)</Text>
         </TouchableOpacity>
 
         {/* Count Me Out */}
@@ -483,7 +516,7 @@ export default function GroupDashboardScreen() {
               ? <ActivityIndicator color="#fff" />
               : (
                 <View>
-                  <Text style={styles.cmoActiveBtnTitle}>⏳ Counting Out…</Text>
+                  <Text style={styles.cmoActiveBtnTitle}>COUNTING OUT…</Text>
                   {cmoEta && (
                     <Text style={styles.cmoActiveBtnSub}>
                       Back by {new Date(cmoEta).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -498,7 +531,7 @@ export default function GroupDashboardScreen() {
             style={styles.cmoBtn}
             onPress={() => setCmoModalVisible(true)}
           >
-            <Text style={styles.cmoBtnText}>⏱ Count Me Out</Text>
+            <Text style={styles.cmoBtnText}>COUNT ME OUT</Text>
           </TouchableOpacity>
         )}
 
@@ -585,10 +618,43 @@ function MemberRow({
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   header: { padding: 24, paddingTop: 60, backgroundColor: colors.surface },
+  headerRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
+  headerLeft: { flex: 1, marginRight: 12 },
+  preRideBtn: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,200,232,0.12)',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    minWidth: 70,
+  },
+  preRideBtnIcon: { fontSize: 18, marginBottom: 2 },
+  preRideBtnText: { color: colors.accent, fontSize: 11, fontWeight: '700', letterSpacing: 0.3 },
   groupName: { color: colors.text, fontSize: 26, fontWeight: '700', marginBottom: 8 },
   codeRow: { flexDirection: 'row', alignItems: 'center' },
   code: { color: colors.accent, fontSize: 22, fontWeight: '700', letterSpacing: 4 },
   codeCopy: { color: colors.textDim, fontSize: 12 },
+  inreachBadge: {
+    marginTop: 10,
+    backgroundColor: 'rgba(0,180,255,0.12)',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(0,180,255,0.35)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    alignSelf: 'flex-start',
+  },
+  inreachBadgeSOS: {
+    backgroundColor: 'rgba(255,59,59,0.15)',
+    borderColor: 'rgba(255,59,59,0.5)',
+  },
+  inreachBadgeText: {
+    color: '#00b4ff',
+    fontSize: 12,
+    fontWeight: '600',
+  },
 
   rideBanner: {
     flexDirection: 'row',
@@ -617,62 +683,68 @@ const styles = StyleSheet.create({
   startRideBtn: {
     borderColor: colors.success,
     borderWidth: 1.5,
-    borderRadius: 12,
+    borderRadius: 6,
     paddingVertical: 14,
+    paddingHorizontal: 20,
     alignItems: 'center',
   },
-  startRideBtnText: { color: colors.success, fontSize: 16, fontWeight: '700' },
+  startRideBtnText: { color: colors.success, fontSize: 15, fontWeight: '700', letterSpacing: 0.5, textTransform: 'uppercase' },
 
   endRideBtn: {
     backgroundColor: colors.danger,
-    borderRadius: 12,
+    borderRadius: 8,
     paddingVertical: 14,
+    paddingHorizontal: 20,
     alignItems: 'center',
   },
-  endRideBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  endRideBtnText: { color: '#fff', fontSize: 15, fontWeight: '700', letterSpacing: 0.5, textTransform: 'uppercase' },
 
   shareBtn: {
-    backgroundColor: colors.accent,
-    borderRadius: 12,
+    backgroundColor: colors.primary,
+    borderRadius: 6,
     paddingVertical: 14,
+    paddingHorizontal: 20,
     alignItems: 'center',
   },
-  shareBtnText: { color: '#000', fontSize: 16, fontWeight: '700' },
+  shareBtnText: { color: '#fff', fontSize: 15, fontWeight: '700', letterSpacing: 0.5, textTransform: 'uppercase' },
   radarBtn: {
-    backgroundColor: 'rgba(0,170,255,0.12)',
-    borderColor: colors.accent,
+    backgroundColor: 'rgba(0,200,232,0.10)',
+    borderColor: colors.primary,
     borderWidth: 1.5,
-    borderRadius: 12,
+    borderRadius: 6,
     paddingVertical: 14,
+    paddingHorizontal: 20,
     alignItems: 'center',
   },
-  radarBtnText: { color: colors.accent, fontSize: 16, fontWeight: '700' },
+  radarBtnText: { color: colors.primary, fontSize: 15, fontWeight: '700', letterSpacing: 0.5, textTransform: 'uppercase' },
   dangerBtn: {
     borderColor: colors.danger,
     borderWidth: 1.5,
-    borderRadius: 12,
+    borderRadius: 6,
     paddingVertical: 14,
+    paddingHorizontal: 20,
     alignItems: 'center',
   },
-  dangerBtnText: { color: colors.danger, fontSize: 16, fontWeight: '600' },
+  dangerBtnText: { color: colors.danger, fontSize: 15, fontWeight: '600', letterSpacing: 0.5, textTransform: 'uppercase' },
   btnDisabled: { opacity: 0.5 },
 
   // Count Me Out button (inactive)
   cmoBtn: {
     borderColor: colors.warning,
     borderWidth: 1.5,
-    borderRadius: 12,
+    borderRadius: 6,
     paddingVertical: 14,
+    paddingHorizontal: 20,
     alignItems: 'center',
   },
-  cmoBtnText: { color: colors.warning, fontSize: 16, fontWeight: '700' },
+  cmoBtnText: { color: colors.warning, fontSize: 15, fontWeight: '700', letterSpacing: 0.5, textTransform: 'uppercase' },
 
   // Count Me Out button (active — shows current timer)
   cmoActiveBtn: {
-    backgroundColor: 'rgba(255,170,0,0.15)',
+    backgroundColor: 'rgba(243,156,18,0.15)',
     borderColor: colors.warning,
     borderWidth: 1.5,
-    borderRadius: 12,
+    borderRadius: 6,
     paddingVertical: 14,
     paddingHorizontal: 20,
     alignItems: 'center',

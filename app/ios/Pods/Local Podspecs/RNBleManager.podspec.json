@@ -1,0 +1,33 @@
+{
+  "name": "RNBleManager",
+  "summary": "A BLE module for react native.",
+  "version": "12.4.4",
+  "authors": {
+    "name": "Innove",
+    "url": "https://github.com/innoveit"
+  },
+  "homepage": "https://innoveit.github.io/react-native-ble-manager/",
+  "license": "Apache-2.0",
+  "platforms": {
+    "ios": "11.0"
+  },
+  "source": {
+    "git": "https://github.com/innoveit/react-native-ble-manager.git"
+  },
+  "source_files": "ios/**/*.{h,mm,swift}",
+  "static_framework": true,
+  "pod_target_xcconfig": {
+    "DEFINES_MODULE": "YES",
+    "SWIFT_COMPILATION_MODE": "wholemodule",
+    "HEADER_SEARCH_PATHS": "\"$(PODS_ROOT)/boost\" \"$(PODS_ROOT)/Headers/Private/Yoga\"",
+    "CLANG_CXX_LANGUAGE_STANDARD": "c++20"
+  },
+  "compiler_flags": "-DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1 -DFOLLY_CFG_NO_COROUTINES=1 -Wno-comma -Wno-shorten-64-to-32",
+  "dependencies": {
+    "React-Core": [],
+    "RCT-Folly": [
+      "2022.05.16.00"
+    ],
+    "glog": []
+  }
+}

@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ActivityIndicator } from 'react-native';
 
-// Simple emoji tab icon that inherits the active/inactive tint via opacity
-function TabIcon({ emoji, color }: { emoji: string; color: string }) {
-  const isActive = color !== '#52788A'; // matches colors.textMuted
+// Tab indicator — a thin colored bar under the label
+function TabIcon({ color }: { color: string }) {
   return (
-    <Text style={{ fontSize: 20, opacity: isActive ? 1 : 0.5 }}>{emoji}</Text>
+    <View style={{ width: 20, height: 2, borderRadius: 1, backgroundColor: color, marginBottom: 2 }} />
   );
 }
 import { supabase } from '../lib/supabase';
@@ -13,6 +12,8 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import MapScreen from '../screens/MapScreen';
+import GroupCreateScreen from '../screens/GroupCreateScreen';
+import GroupJoinScreen from '../screens/GroupJoinScreen';
 import SafetyScreen from '../screens/SafetyScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import EmergencyInfoScreen from '../screens/EmergencyInfoScreen';
@@ -22,10 +23,13 @@ import CreateGroupScreen from '../screens/CreateGroupScreen';
 import JoinGroupScreen from '../screens/JoinGroupScreen';
 import GroupDashboardScreen from '../screens/GroupDashboardScreen';
 import GroupRadarScreen from '../screens/GroupRadarScreen';
+import PreRideScreen from '../screens/PreRideScreen';
 import RideSummaryScreen from '../screens/RideSummaryScreen';
 import RideHistoryScreen from '../screens/RideHistoryScreen';
 import RideReplayScreen from '../screens/RideReplayScreen';
 import CompassNavScreen from '../screens/CompassNavScreen';
+import GarminSetupScreen from '../screens/GarminSetupScreen';
+import MeshtasticSetupScreen from '../screens/MeshtasticSetupScreen';
 import OnboardingScreen from '../screens/OnboardingScreen';
 import { GroupProvider } from '../context/GroupContext';
 import { colors } from '../theme/colors';
@@ -34,6 +38,44 @@ import type { RecordedRide } from '../services/RideRecordingService';
 
 const Tab = createBottomTabNavigator();
 
+// ─── Map Stack ────────────────────────────────────────────────────────────────
+export type MapStackParamList = {
+  MapHome: undefined;
+  GroupCreate: undefined;
+  GroupJoin: undefined;
+};
+
+const MapStack = createStackNavigator<MapStackParamList>();
+
+function MapNavigator() {
+  return (
+    <MapStack.Navigator
+      screenOptions={{
+        headerShown: false,
+        cardStyle: { backgroundColor: colors.background },
+      }}
+    >
+      <MapStack.Screen name="MapHome" component={MapScreen} />
+      <MapStack.Screen
+        name="GroupCreate"
+        component={GroupCreateScreen}
+        options={{
+          presentation: 'modal',
+          cardStyle: { backgroundColor: colors.background },
+        }}
+      />
+      <MapStack.Screen
+        name="GroupJoin"
+        component={GroupJoinScreen}
+        options={{
+          presentation: 'modal',
+          cardStyle: { backgroundColor: colors.background },
+        }}
+      />
+    </MapStack.Navigator>
+  );
+}
+
 // ─── Group Stack ──────────────────────────────────────────────────────────────
 export type GroupStackParamList = {
   GroupHome: undefined;
@@ -41,6 +83,7 @@ export type GroupStackParamList = {
   JoinGroup: undefined;
   GroupDashboard: undefined;
   GroupRadar: undefined;
+  PreRide: undefined;
   RideSummary: { ride: Ride };
 };
 
@@ -62,6 +105,7 @@ function GroupNavigator() {
       <GroupStack.Screen name="JoinGroup" component={JoinGroupScreen} options={{ title: 'Join Group' }} />
       <GroupStack.Screen name="GroupDashboard" component={GroupDashboardScreen} options={{ headerShown: false }} />
       <GroupStack.Screen name="GroupRadar" component={GroupRadarScreen} options={{ title: 'Group Radar' }} />
+      <GroupStack.Screen name="PreRide" component={PreRideScreen} options={{ headerShown: false }} />
       <GroupStack.Screen name="RideSummary" component={RideSummaryScreen} options={{ title: 'Ride Summary', headerShown: false }} />
     </GroupStack.Navigator>
   );
@@ -74,6 +118,8 @@ export type ProfileStackParamList = {
   RideHistory: undefined;
   OfflineMaps: undefined;
   CompassNav: undefined;
+  GarminSetup: undefined;
+  MeshtasticSetup: undefined;
   RideSummaryFromHistory: { ride: Ride };
   RideReplay: { rideId: string; ride?: RecordedRide };
 };
@@ -96,6 +142,8 @@ function ProfileNavigator() {
       <ProfileStack.Screen name="OfflineMaps" component={OfflineMapsScreen} options={{ title: 'Offline Maps' }} />
       <ProfileStack.Screen name="CompassNav" component={CompassNavScreen} options={{ title: 'Compass Navigation' }} />
       <ProfileStack.Screen name="RideHistory" component={RideHistoryScreen} options={{ title: 'Ride History' }} />
+      <ProfileStack.Screen name="GarminSetup" component={GarminSetupScreen} options={{ title: 'Garmin inReach' }} />
+      <ProfileStack.Screen name="MeshtasticSetup" component={MeshtasticSetupScreen} options={{ title: 'Meshtastic Radio' }} />
       <ProfileStack.Screen
         name="RideSummaryFromHistory"
         component={RideSummaryScreen}
@@ -157,7 +205,7 @@ export default function AppNavigator() {
               paddingTop: 4,
               height: 60,
             },
-            tabBarActiveTintColor: colors.accent,
+            tabBarActiveTintColor: colors.primary,
             tabBarInactiveTintColor: colors.textMuted,
             tabBarLabelStyle: {
               fontSize: 11,
@@ -168,23 +216,23 @@ export default function AppNavigator() {
         >
           <Tab.Screen
             name="Map"
-            component={MapScreen}
-            options={{ tabBarLabel: 'Map', tabBarIcon: ({ color }) => <TabIcon emoji="🗺" color={color} /> }}
+            component={MapNavigator}
+            options={{ tabBarLabel: 'Map', tabBarIcon: ({ color }) => <TabIcon color={color} /> }}
           />
           <Tab.Screen
             name="Group"
             component={GroupNavigator}
-            options={{ tabBarLabel: 'Group', tabBarIcon: ({ color }) => <TabIcon emoji="🏕" color={color} /> }}
+            options={{ tabBarLabel: 'Group', tabBarIcon: ({ color }) => <TabIcon color={color} /> }}
           />
           <Tab.Screen
             name="Safety"
             component={SafetyScreen}
-            options={{ tabBarLabel: 'Safety', tabBarIcon: ({ color }) => <TabIcon emoji="🛡" color={color} /> }}
+            options={{ tabBarLabel: 'Safety', tabBarIcon: ({ color }) => <TabIcon color={color} /> }}
           />
           <Tab.Screen
             name="Profile"
             component={ProfileNavigator}
-            options={{ tabBarLabel: 'Profile', tabBarIcon: ({ color }) => <TabIcon emoji="⚙️" color={color} /> }}
+            options={{ tabBarLabel: 'Profile', tabBarIcon: ({ color }) => <TabIcon color={color} /> }}
           />
         </Tab.Navigator>
       </NavigationContainer>

@@ -12,6 +12,7 @@ import {
   loadMemberLocations,
   saveMemberLocations,
 } from '../services/MemberLocationCache';
+import { LocationCache } from '../services/LocationCache';
 
 // ─── Public Types (unchanged) ─────────────────────────────────────────────────
 
@@ -55,6 +56,8 @@ export interface UseGroupWebSocketOptions {
 
 interface UseGroupWebSocketResult {
   members: Map<string, MemberLocation>;
+  /** Set of userIds whose last location update is >5 min old (stale/offline). */
+  staleMembers: Set<string>;
   connected: boolean;
   cmoStates: Map<string, CMOState>;
   sweepGap: SweepGap | null;
@@ -79,8 +82,12 @@ const MAX_MESSAGES = 50;
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
+const STALE_CHECK_INTERVAL = 30_000; // recompute stale set every 30s
+const STALE_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
+
 export function useGroupWebSocket(options?: UseGroupWebSocketOptions): UseGroupWebSocketResult {
   const [members, setMembers] = useState<Map<string, MemberLocation>>(new Map());
+  const [staleMembers, setStaleMembers] = useState<Set<string>>(new Set());
   const [connected, setConnected] = useState(false);
   const [cmoStates, setCmoStates] = useState<Map<string, CMOState>>(new Map());
   const [sweepGap, setSweepGap] = useState<SweepGap | null>(null);
@@ -143,6 +150,16 @@ export function useGroupWebSocket(options?: UseGroupWebSocketOptions): UseGroupW
           battery: payload.battery ?? 100,
           timestamp: payload.timestamp ?? new Date().toISOString(),
         };
+        // Save to LocationCache (last-known-position with display metadata)
+        void LocationCache.saveLocation({
+          userId: loc.userId,
+          displayName: payload.displayName ?? payload.riderName ?? loc.userId,
+          lat: loc.lat,
+          lng: loc.lng,
+          speed: loc.speed,
+          battery: loc.battery,
+          timestamp: loc.timestamp,
+        });
         setMembers((prev) => {
           const next = new Map(prev);
           next.set(loc.userId, loc);
@@ -303,8 +320,29 @@ export function useGroupWebSocket(options?: UseGroupWebSocketOptions): UseGroupW
       .catch(() => {});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ── Stale member detection — recompute every 30s ───────────────────────────
+  useEffect(() => {
+    const computeStale = () => {
+      setMembers((current) => {
+        const now = Date.now();
+        const stale = new Set<string>();
+        for (const [userId, loc] of current) {
+          const age = now - new Date(loc.timestamp).getTime();
+          if (age > STALE_THRESHOLD_MS) stale.add(userId);
+        }
+        setStaleMembers(stale);
+        return current; // no change to members map
+      });
+    };
+
+    computeStale(); // immediate check
+    const timer = setInterval(computeStale, STALE_CHECK_INTERVAL);
+    return () => clearInterval(timer);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   return {
     members,
+    staleMembers,
     connected,
     cmoStates,
     sweepGap,
