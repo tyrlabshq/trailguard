@@ -60,10 +60,18 @@ export async function createSOSAlert(params: CreateSOSParams): Promise<SOSAlert>
     throw new Error(`SOS insert failed: ${error.message}`);
   }
 
-  // Broadcast to group Realtime channel so other members see it immediately
+  // Broadcast to group Realtime channel so other members see it immediately.
+  // In Supabase v2 Realtime, channel.subscribe() does NOT return a Promise —
+  // it accepts a callback. We must wait for SUBSCRIBED state before sending,
+  // otherwise the broadcast fires before the channel is ready.
   if (params.group_id) {
     const channel = supabase.channel(`sos:${params.group_id}`);
-    await channel.subscribe();
+    await new Promise<void>((resolve, reject) => {
+      channel.subscribe((status) => {
+        if (status === 'SUBSCRIBED') resolve();
+        if (status === 'CHANNEL_ERROR') reject(new Error('Subscribe failed'));
+      });
+    });
     await channel.send({
       type: 'broadcast',
       event: 'sos_alert',
