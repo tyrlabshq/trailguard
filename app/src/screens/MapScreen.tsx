@@ -15,6 +15,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import type { MapStackParamList } from '../navigation/AppNavigator';
 import { useGroup } from '../context/GroupContext';
+import { fetchMemberProfiles } from '../api/groups';
 import HomeOverlay, { type RecentRide } from './HomeOverlay';
 import ActiveRideBar from './ActiveRideBar';
 import MapboxGL from '@rnmapbox/maps';
@@ -515,7 +516,31 @@ export default function MapScreen() {
 
   // ── Incoming SOS overlay (received from another group member) ─────────────
   const [incomingSOSAlert, setIncomingSOSAlert] = useState<SOSAlert | null>(null);
+  const [incomingSOSRiderInfo, setIncomingSOSRiderInfo] = useState<{ name: string | null; phone: string | null } | null>(null);
   const incomingSOSVisible = incomingSOSAlert !== null;
+
+  // ── Member profile map: rider UUID → { name, phone } ─────────────────────
+  // Populated when a group is active; used by the SOS notification service to
+  // personalise push notifications and surface a CALL button per sender.
+  const [memberProfiles, setMemberProfiles] = useState<Map<string, { name: string | null; phone: string | null }>>(new Map());
+
+  useEffect(() => {
+    if (!group?.groupId) {
+      setMemberProfiles(new Map());
+      return;
+    }
+    fetchMemberProfiles(group.groupId)
+      .then((profiles) => {
+        const map = new Map<string, { name: string | null; phone: string | null }>();
+        for (const p of profiles) {
+          map.set(p.riderId, { name: p.displayName, phone: p.phone });
+        }
+        setMemberProfiles(map);
+      })
+      .catch((err) => {
+        console.warn('[MapScreen] fetchMemberProfiles failed:', err);
+      });
+  }, [group?.groupId]);
 
   // ── Authenticated user identity (for Realtime broadcasting) ──────────────
   const [authUserId, setAuthUserId] = useState<string | null>(null);
@@ -547,15 +572,19 @@ export default function MapScreen() {
       groupId: group.groupId,
       groupName: group.name,
       currentUserId: authUserId,
+      getMemberInfo: (userId: string) => memberProfiles.get(userId) ?? null,
       onIncomingAlert: (alert: SOSAlert) => {
         setIncomingSOSAlert(alert);
+        // Capture sender info for the in-app overlay (mirrors what the push
+        // notification already resolved inside SOSNotificationService).
+        setIncomingSOSRiderInfo(memberProfiles.get(alert.user_id) ?? null);
       },
     });
 
     return () => {
       cancelGroupSOSSubscription();
     };
-  }, [group?.groupId, group?.name, authUserId]);
+  }, [group?.groupId, group?.name, authUserId, memberProfiles]);
 
   // Recent rides for HomeOverlay
   const [recentRides, setRecentRides] = useState<RecentRide[]>([]);
@@ -1109,9 +1138,12 @@ export default function MapScreen() {
       <SOSAlertOverlay
         visible={incomingSOSVisible}
         alert={incomingSOSAlert}
-        riderName={null}
-        riderPhone={null}
-        onDismiss={() => setIncomingSOSAlert(null)}
+        riderName={incomingSOSRiderInfo?.name ?? null}
+        riderPhone={incomingSOSRiderInfo?.phone ?? null}
+        onDismiss={() => {
+          setIncomingSOSAlert(null);
+          setIncomingSOSRiderInfo(null);
+        }}
       />
     </View>
   );

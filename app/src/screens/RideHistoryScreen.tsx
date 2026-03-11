@@ -92,9 +92,9 @@ export default function RideHistoryScreen() {
         }
         ListEmptyComponent={
           <EmptyState
-            icon=""
+            icon="🏍"
             title="No rides yet"
-            subtitle={"Your last 30 rides will appear here.\nHead out and start your first trail ride!"}
+            subtitle={"No rides yet — start your first ride!\nYour history and stats will appear here."}
             ctaLabel="Start a Ride"
             onCta={() => navigation.getParent()?.navigate('Map')}
           />

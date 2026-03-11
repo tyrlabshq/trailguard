@@ -44,16 +44,14 @@ export interface SOSSubscriptionOptions {
    */
   currentUserId: string | null;
   /**
-   * Display name of the rider who may send an SOS (used in notifications).
-   * When provided, notifications show "<riderName> needs help!" instead of
-   * the generic "SOS from a group member".
+   * Optional lookup function that returns the display name and phone number
+   * for any group member by their auth UUID.  Called at alert-receive time so
+   * the push notification can say "<riderName> needs help!" and surface a
+   * CALL button when a phone number is known.
+   *
+   * Return null / undefined when no profile is available for that user.
    */
-  riderName?: string | null;
-  /**
-   * Phone number for the CALL quick action in the notification.
-   * When provided, a "CALL" action button appears on the notification.
-   */
-  riderPhone?: string | null;
+  getMemberInfo?: (userId: string) => { name: string | null; phone: string | null } | null;
   /**
    * Called when a *foreign* SOS arrives (i.e. from another group member).
    * The caller is responsible for showing the in-app overlay.
@@ -197,7 +195,7 @@ export function subscribeToGroupSOS(options: SOSSubscriptionOptions): void {
   // Always cancel previous subscription before starting a new one
   cancelGroupSOSSubscription();
 
-  const { groupId, currentUserId, riderName, riderPhone, onIncomingAlert } = options;
+  const { groupId, currentUserId, getMemberInfo, onIncomingAlert } = options;
 
   _unsubscribe = subscribeToSOSAlerts(groupId, (alert: SOSAlert) => {
     // Don't alert the sender — they already know they pressed SOS
@@ -205,6 +203,12 @@ export function subscribeToGroupSOS(options: SOSSubscriptionOptions): void {
 
     // Only trigger for active alerts (not cancellations)
     if (alert.status !== 'active') return;
+
+    // Resolve sender's name + phone from the caller-supplied lookup (dynamic,
+    // supports multi-member groups where any rider could send the SOS).
+    const memberInfo = getMemberInfo?.(alert.user_id) ?? null;
+    const riderName = memberInfo?.name ?? null;
+    const riderPhone = memberInfo?.phone ?? null;
 
     // Aggressive vibration pattern to grab attention in a noisy environment
     if (Platform.OS !== 'web') {

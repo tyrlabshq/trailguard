@@ -115,6 +115,47 @@ export async function disbandGroup(groupId: string): Promise<void> {
   if (error) throw new Error(`Failed to disband group: ${error.message}`);
 }
 
+// ─── Member profile (for SOS notification name/phone lookup) ─────────────────
+
+export interface GroupMemberProfile {
+  riderId: string;
+  displayName: string | null;
+  /** Rider's own phone number (from riders.phone), or null if not set. */
+  phone: string | null;
+}
+
+/**
+ * Fetch display name and phone for every member of a group.
+ * Requires the "group members can read co-member riders" RLS policy
+ * (migration 20260311000000_riders_phone.sql).
+ */
+export async function fetchMemberProfiles(groupId: string): Promise<GroupMemberProfile[]> {
+  const { data, error } = await supabase
+    .from('group_members')
+    .select(`
+      rider_id,
+      riders ( display_name, phone )
+    `)
+    .eq('group_id', groupId);
+
+  if (error) throw new Error(`fetchMemberProfiles failed: ${error.message}`);
+
+  return (data ?? []).map((row) => {
+    // Supabase may return the foreign-key join as an object or single-element
+    // array depending on the cardinality hint it infers. Normalise to object.
+    const rawRider = row.riders;
+    const rider = (Array.isArray(rawRider) ? rawRider[0] : rawRider) as
+      | { display_name: string | null; phone: string | null }
+      | null
+      | undefined;
+    return {
+      riderId: row.rider_id as string,
+      displayName: rider?.display_name ?? null,
+      phone: rider?.phone ?? null,
+    };
+  });
+}
+
 // Assign a role to a group member (leader only)
 export async function assignMemberRole(
   groupId: string,

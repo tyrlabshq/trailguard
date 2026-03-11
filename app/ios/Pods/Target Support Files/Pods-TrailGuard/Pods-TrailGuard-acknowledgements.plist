@@ -142,7 +142,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 Mapbox Common SDK uses portions of jni-hpp-internal
 
-Copyright  2016, Mapbox
+Copyright © 2016, Mapbox
 
 Permission to use, copy, modify, and/or distribute this software for any
 purpose with or without fee is hereby granted, provided that the above
@@ -270,7 +270,7 @@ DEALINGS IN THE SOFTWARE.
 
 Mapbox Common SDK uses portions of filesystem
 
-Copyright (c) 2018, Steffen Schmann &lt;s.schuemann@pobox.com&gt;
+Copyright (c) 2018, Steffen Schümann &lt;s.schuemann@pobox.com&gt;
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -484,7 +484,7 @@ Copyright (c) 2015, 2016, 2017 Howard Hinnant
 Copyright (c) 2016 Adrian Colomitchi
 Copyright (c) 2017 Florian Dang
 Copyright (c) 2017 Paul Thompson
-Copyright (c) 2018, 2019 Tomasz Kamiski
+Copyright (c) 2018, 2019 Tomasz Kamiński
 Copyright (c) 2019 Jiangang Zhuang
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -2057,7 +2057,7 @@ For more information, please refer to &lt;http://unlicense.org/&gt;
 
 Mapbox Common SDK uses portions of mapbox-adas-data
 
-Copyright  2021 Mapbox, Inc. 
+Copyright © 2021 Mapbox, Inc. 
 Unauthorized copying of this source code, via any medium is strictly prohibited.
 Proprietary and confidential. 
 
@@ -2068,7 +2068,7 @@ All other rights reserved.
 
 Mapbox Common SDK uses portions of mapbox-navigation-hd-data
 
-Copyright  2024 Mapbox, Inc. Unauthorized copying of this source code, via any medium is strictly prohibited. Proprietary and confidential.
+Copyright © 2024 Mapbox, Inc. Unauthorized copying of this source code, via any medium is strictly prohibited. Proprietary and confidential.
 
 Use of any work based on a compiled binary form of this source code is governed by Mapbox Terms of Service (available at: https://www.mapbox.com/tos/). All other rights reserved.
 
@@ -2680,7 +2680,7 @@ UNICODE LICENSE V3
 
 COPYRIGHT AND PERMISSION NOTICE
 
-Copyright  2016-2024 Unicode, Inc.
+Copyright © 2016-2024 Unicode, Inc.
 
 NOTICE TO USER: Carefully read the following legal agreement. BY
 DOWNLOADING, INSTALLING, COPYING OR OTHERWISE USING DATA FILES, AND/OR
@@ -2722,10 +2722,10 @@ SPDX-License-Identifier: Unicode-3.0
 
 ---
 
-### filesystem,1.5.10,MIT,Steffen Schmann,https://github.com/gulrak/filesystem/
+### filesystem,1.5.10,MIT,Steffen Schümann,https://github.com/gulrak/filesystem/
 
 ```
-Copyright (c) 2018, Steffen Schmann &lt;s.schuemann@pobox.com&gt;
+Copyright (c) 2018, Steffen Schümann &lt;s.schuemann@pobox.com&gt;
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -3089,11 +3089,11 @@ DEALINGS IN THE SOFTWARE.
 
 ---
 
-### csscolorparser,dev,MIT,Dean McNamee and Konstantin Kfer,https://github.com/mapbox/css-color-parser-cpp
+### csscolorparser,dev,MIT,Dean McNamee and Konstantin Käfer,https://github.com/mapbox/css-color-parser-cpp
 
 ```
 (c) Dean McNamee &lt;dean@gmail.com&gt;, 2012.
-(c) Konstantin Kfer &lt;mail@kkaefer.com&gt;, 2014.
+(c) Konstantin Käfer &lt;mail@kkaefer.com&gt;, 2014.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to
@@ -3711,7 +3711,7 @@ SOFTWARE.
 ```
 Mapbox spatial-algorithms version 0.1.0
 
-Copyright  2017 - 2024 Mapbox, Inc. All rights reserved.
+Copyright © 2017 - 2024 Mapbox, Inc. All rights reserved.
 
 The software and files in this repository (collectively, "Software") are
 licensed under the Mapbox TOS for use only with the relevant Mapbox product(s)
@@ -4438,7 +4438,7 @@ Mapbox Maps iOS SDK
 
 Copyright &amp;copy; 2021 - 2025 Mapbox, Inc. All rights reserved.
 
-The software and files in this repository (collectively, Software) are licensed under the Mapbox TOS for use only with the relevant Mapbox product(s) listed at www.mapbox.com/pricing. This license allows developers with a current active Mapbox account to use and modify the authorized portions of the Software as needed for use only with the relevant Mapbox product(s) through their Mapbox account in accordance with the Mapbox TOS.  This license terminates automatically if a developer no longer has a Mapbox account in good standing or breaches the Mapbox TOS. For the license terms, please see the Mapbox TOS at https://www.mapbox.com/legal/tos/ which incorporates the Mapbox Product Terms at www.mapbox.com/legal/service-terms.  If this Software is a SDK, modifications that change or interfere with marked portions of the code related to billing, accounting, or data collection are not authorized and the SDK sends limited de-identified location and usage data which is used in accordance with the Mapbox TOS. [Updated 2023-01]
+The software and files in this repository (collectively, “Software”) are licensed under the Mapbox TOS for use only with the relevant Mapbox product(s) listed at www.mapbox.com/pricing. This license allows developers with a current active Mapbox account to use and modify the authorized portions of the Software as needed for use only with the relevant Mapbox product(s) through their Mapbox account in accordance with the Mapbox TOS.  This license terminates automatically if a developer no longer has a Mapbox account in good standing or breaches the Mapbox TOS. For the license terms, please see the Mapbox TOS at https://www.mapbox.com/legal/tos/ which incorporates the Mapbox Product Terms at www.mapbox.com/legal/service-terms.  If this Software is a SDK, modifications that change or interfere with marked portions of the code related to billing, accounting, or data collection are not authorized and the SDK sends limited de-identified location and usage data which is used in accordance with the Mapbox TOS. [Updated 2023-01]
 
 ## Acknowledgements
 
@@ -4447,7 +4447,7 @@ This application makes use of the following third party libraries:
 ### turf-swift, https://github.com/mapbox/turf-swift
 
 ```
-Copyright  20142024, Mapbox
+Copyright © 2014–2024, Mapbox
 
 Permission to use, copy, modify, and/or distribute this software for any
 purpose with or without fee is hereby granted, provided that the above
@@ -4500,7 +4500,7 @@ UNICODE LICENSE V3
 
 COPYRIGHT AND PERMISSION NOTICE
 
-Copyright  2016-2024 Unicode, Inc.
+Copyright © 2016-2024 Unicode, Inc.
 
 NOTICE TO USER: Carefully read the following legal agreement. BY
 DOWNLOADING, INSTALLING, COPYING OR OTHERWISE USING DATA FILES, AND/OR
@@ -4542,10 +4542,10 @@ SPDX-License-Identifier: Unicode-3.0
 
 ---
 
-### filesystem,1.5.10,MIT,Steffen Schmann,https://github.com/gulrak/filesystem/
+### filesystem,1.5.10,MIT,Steffen Schümann,https://github.com/gulrak/filesystem/
 
 ```
-Copyright (c) 2018, Steffen Schmann &lt;s.schuemann@pobox.com&gt;
+Copyright (c) 2018, Steffen Schümann &lt;s.schuemann@pobox.com&gt;
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -4909,11 +4909,11 @@ DEALINGS IN THE SOFTWARE.
 
 ---
 
-### csscolorparser,dev,MIT,Dean McNamee and Konstantin Kfer,https://github.com/mapbox/css-color-parser-cpp
+### csscolorparser,dev,MIT,Dean McNamee and Konstantin Käfer,https://github.com/mapbox/css-color-parser-cpp
 
 ```
 (c) Dean McNamee &lt;dean@gmail.com&gt;, 2012.
-(c) Konstantin Kfer &lt;mail@kkaefer.com&gt;, 2014.
+(c) Konstantin Käfer &lt;mail@kkaefer.com&gt;, 2014.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to
@@ -5531,7 +5531,7 @@ SOFTWARE.
 ```
 Mapbox spatial-algorithms version 0.1.0
 
-Copyright  2017 - 2024 Mapbox, Inc. All rights reserved.
+Copyright © 2017 - 2024 Mapbox, Inc. All rights reserved.
 
 The software and files in this repository (collectively, "Software") are
 licensed under the Mapbox TOS for use only with the relevant Mapbox product(s)
@@ -6828,6 +6828,60 @@ SOFTWARE.
 		</dict>
 		<dict>
 			<key>FooterText</key>
+			<string>Apache-2.0 License
+------------------
+
+Copyright (c) 2016-present Invertase Limited &lt;oss@invertase.io&gt;
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this library except in compliance with the License.
+
+You may obtain a copy of the Apache-2.0 License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+
+
+Creative Commons Attribution 3.0 License
+----------------------------------------
+
+Copyright (c) 2016-present Invertase Limited &lt;oss@invertase.io&gt;
+
+Documentation and other instructional materials provided for this project
+(including on a separate documentation repository or it's documentation website) are
+licensed under the Creative Commons Attribution 3.0 License. Code samples/blocks
+contained therein are licensed under the Apache License, Version 2.0 (the "License"), as above.
+
+You may obtain a copy of the Creative Commons Attribution 3.0 License at
+
+    https://creativecommons.org/licenses/by/3.0/
+
+
+
+Notifee CORE License
+--------------------
+
+The Notifee "core" submodule on Android/iOS (e.g. `android/libs/notifee_core_release.aar`) is not Open Source
+but is distributed in minified &amp; obfuscated form. A purchased license is required to use Notifee Core in
+release builds and is subject to the Notifee License terms which can be found at:
+
+   https://notifee.app/license-terms
+</string>
+			<key>License</key>
+			<string>Apache-2.0</string>
+			<key>Title</key>
+			<string>RNNotifee</string>
+			<key>Type</key>
+			<string>PSGroupSpecifier</string>
+		</dict>
+		<dict>
+			<key>FooterText</key>
 			<string>MIT License
 
 Copyright (c) 2019 Mathieu Acthernoene
@@ -7053,7 +7107,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</string>
 		</dict>
 		<dict>
 			<key>FooterText</key>
-			<string>Copyright  20142024, Mapbox
+			<string>Copyright © 2014–2024, Mapbox
 
 Permission to use, copy, modify, and/or distribute this software for any
 purpose with or without fee is hereby granted, provided that the above
@@ -7424,11 +7478,11 @@ SOFTWARE.
 		</dict>
 		<dict>
 			<key>FooterText</key>
-			<string>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the Software), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+			<string>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED AS IS, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 </string>
 			<key>License</key>
 			<string>MIT</string>

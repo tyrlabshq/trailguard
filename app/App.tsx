@@ -1,13 +1,22 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StatusBar, View, StyleSheet } from 'react-native';
 import MapboxGL from '@rnmapbox/maps';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import AppNavigator from './src/navigation/AppNavigator';
 import { OfflineBanner } from './src/components/OfflineBanner';
+import { setupSOSNotificationChannel } from './src/services/SOSNotificationService';
 
 MapboxGL.setAccessToken('pk.eyJ1IjoidHlyOSIsImEiOiJjbW1mdzRwbG8wY24xMnFuZHYwN2poaXdwIn0.7He6Sr04fkb6EjN9Xq35yw');
 
 export default function App() {
+  // Register the Android SOS notification channel once at startup.
+  // notifee is idempotent on channel creation; this is a no-op on iOS.
+  useEffect(() => {
+    setupSOSNotificationChannel().catch((err) => {
+      console.warn('[App] setupSOSNotificationChannel failed:', err);
+    });
+  }, []);
+
   return (
     <SafeAreaProvider>
       <StatusBar barStyle="light-content" />

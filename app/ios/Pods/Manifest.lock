@@ -1097,6 +1097,11 @@ PODS:
     - React
     - React-Core
     - Turf
+  - RNNotifee (9.1.8):
+    - React-Core
+    - RNNotifee/NotifeeCore (= 9.1.8)
+  - RNNotifee/NotifeeCore (9.1.8):
+    - React-Core
   - RNPermissions (4.1.5):
     - React-Core
   - RNScreens (3.37.0):
@@ -1173,6 +1178,7 @@ DEPENDENCIES:
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNKeychain (from `../node_modules/react-native-keychain`)
   - "rnmapbox-maps (from `../node_modules/@rnmapbox/maps`)"
+  - "RNNotifee (from `../node_modules/@notifee/react-native`)"
   - RNPermissions (from `../node_modules/react-native-permissions`)
   - RNScreens (from `../node_modules/react-native-screens`)
   - RNSensors (from `../node_modules/react-native-sensors`)
@@ -1305,6 +1311,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-keychain"
   rnmapbox-maps:
     :path: "../node_modules/@rnmapbox/maps"
+  RNNotifee:
+    :path: "../node_modules/@notifee/react-native"
   RNPermissions:
     :path: "../node_modules/react-native-permissions"
   RNScreens:
@@ -1379,6 +1387,7 @@ SPEC CHECKSUMS:
   RNGestureHandler: f1c8544c074f74911e713ede852b07c51c0cf8f2
   RNKeychain: bbe2f6d5cc008920324acb49ef86ccc03d3b38e4
   rnmapbox-maps: 86eb3e67a73a722933c6bb5679d977af64a27a98
+  RNNotifee: 5e3b271e8ea7456a36eec994085543c9adca9168
   RNPermissions: 4f7b81b0d457c8ec4e892cc36ef2376734a4b22c
   RNScreens: b12996ef8ef492d56d126400e8aef6e613c13ef6
   RNSensors: 111159597ac51505df10413c61b28bcd28e88983

@@ -26,6 +26,7 @@ import GroupRadarScreen from '../screens/GroupRadarScreen';
 import PreRideScreen from '../screens/PreRideScreen';
 import RideSummaryScreen from '../screens/RideSummaryScreen';
 import RideHistoryScreen from '../screens/RideHistoryScreen';
+import RideDetailScreen from '../screens/RideDetailScreen';
 import RideReplayScreen from '../screens/RideReplayScreen';
 import CompassNavScreen from '../screens/CompassNavScreen';
 import GarminSetupScreen from '../screens/GarminSetupScreen';
@@ -146,8 +147,8 @@ function ProfileNavigator() {
       <ProfileStack.Screen name="MeshtasticSetup" component={MeshtasticSetupScreen} options={{ title: 'Meshtastic Radio' }} />
       <ProfileStack.Screen
         name="RideSummaryFromHistory"
-        component={RideSummaryScreen}
-        options={{ title: 'Ride Details', headerShown: false }}
+        component={RideDetailScreen}
+        options={{ headerShown: false }}
       />
       <ProfileStack.Screen
         name="RideReplay"
