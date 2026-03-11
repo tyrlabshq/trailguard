@@ -28,6 +28,8 @@ import {
   ActivityIndicator,
   Vibration,
   Platform,
+  Alert,
+  Linking,
 } from 'react-native';
 import { colors } from '../theme/colors';
 import { createSOSAlert, cancelSOSAlert, type SOSAlert } from '../api/sos';
@@ -178,11 +180,31 @@ export default function SOSConfirmationModal({
   }, [userId, coords, rideId, groupId, onSOSSent]);
 
   // ── Solo ride: manual send ───────────────────────────────────────────────
-  const handleSoloSend = useCallback(() => {
-    // Stub: log the SMS intent; SMS API integration deferred
-    console.log('[SOS] Solo ride SOS — would SMS emergency contact:', contactNumber);
+  const handleSoloSend = useCallback(async () => {
+    // Validate phone number
+    if (!contactNumber || contactNumber.trim() === '') {
+      Alert.alert('No Phone Number', 'Please enter an emergency contact number before sending SOS.');
+      return;
+    }
+
+    // Check SMS is available on this device
+    const canOpen = await Linking.canOpenURL('sms:');
+    if (!canOpen) {
+      Alert.alert('SMS Unavailable', 'SMS is not available on this device.');
+      return;
+    }
+
+    // Open SMS app pre-filled with location
+    const lat = coords?.lat ?? 0;
+    const lng = coords?.lng ?? 0;
+    const msgBody = encodeURIComponent(
+      `SOS — TrailGuard emergency alert. Location: ${lat},${lng}. Please call for help.`,
+    );
+    const smsUrl = `sms:${contactNumber.trim()}?body=${msgBody}`;
+    await Linking.openURL(smsUrl);
+
     void fireSOSAlert();
-  }, [contactNumber, fireSOSAlert]);
+  }, [contactNumber, coords, fireSOSAlert]);
 
   // ── User cancels BEFORE alert fires ─────────────────────────────────────
   const handlePreFireCancel = useCallback(() => {
@@ -295,7 +317,7 @@ export default function SOSConfirmationModal({
 
               <TouchableOpacity
                 style={styles.sendBtn}
-                onPress={handleSoloSend}
+                onPress={() => void handleSoloSend()}
                 activeOpacity={0.85}
               >
                 <Text style={styles.sendBtnText}>SEND SOS</Text>
