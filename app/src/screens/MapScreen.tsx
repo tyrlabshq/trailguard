@@ -44,6 +44,12 @@ import { CoverageWarningBanner } from '../components/CoverageWarningBanner';
 import { useOfflineQueue } from '../hooks/useOfflineQueue';
 import { LocationCache } from '../services/LocationCache';
 import SOSConfirmationModal from '../components/SOSConfirmationModal';
+import SOSAlertOverlay from '../components/SOSAlertOverlay';
+import {
+  subscribeToGroupSOS,
+  cancelGroupSOSSubscription,
+} from '../services/SOSNotificationService';
+import type { SOSAlert } from '../api/sos';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -504,8 +510,12 @@ export default function MapScreen() {
   const [soloRideActive, setSoloRideActive] = useState(false);
   const hasActiveRide = !!group || soloRideActive;
 
-  // ── SOS modal state ──────────────────────────────────────────────────────
+  // ── SOS modal state (outbound — current user sending SOS) ────────────────
   const [sosModalVisible, setSosModalVisible] = useState(false);
+
+  // ── Incoming SOS overlay (received from another group member) ─────────────
+  const [incomingSOSAlert, setIncomingSOSAlert] = useState<SOSAlert | null>(null);
+  const incomingSOSVisible = incomingSOSAlert !== null;
 
   // ── Authenticated user identity (for Realtime broadcasting) ──────────────
   const [authUserId, setAuthUserId] = useState<string | null>(null);
@@ -523,6 +533,29 @@ export default function MapScreen() {
       setAuthDisplayName(name ?? null);
     });
   }, []);
+
+  // ── Subscribe to group SOS events for incoming alert overlay ────────────
+  // Subscribes when we have an active group and auth identity.
+  // Unsubscribes on group leave or auth change.
+  useEffect(() => {
+    if (!group?.groupId || !authUserId) {
+      cancelGroupSOSSubscription();
+      return;
+    }
+
+    subscribeToGroupSOS({
+      groupId: group.groupId,
+      groupName: group.name,
+      currentUserId: authUserId,
+      onIncomingAlert: (alert: SOSAlert) => {
+        setIncomingSOSAlert(alert);
+      },
+    });
+
+    return () => {
+      cancelGroupSOSSubscription();
+    };
+  }, [group?.groupId, group?.name, authUserId]);
 
   // Recent rides for HomeOverlay
   const [recentRides, setRecentRides] = useState<RecentRide[]>([]);
@@ -1058,7 +1091,7 @@ export default function MapScreen() {
         />
       )}
 
-      {/* ── SOS Confirmation Modal ── */}
+      {/* ── SOS Confirmation Modal (outbound — current user sending SOS) ── */}
       <SOSConfirmationModal
         visible={sosModalVisible}
         userId={authUserId}
@@ -1070,6 +1103,15 @@ export default function MapScreen() {
           // Keep modal open to show "SOS Active" phase — handled inside the modal
         }}
         onSOSCancelled={() => setSosModalVisible(false)}
+      />
+
+      {/* ── Incoming SOS Overlay (received from another group member) ── */}
+      <SOSAlertOverlay
+        visible={incomingSOSVisible}
+        alert={incomingSOSAlert}
+        riderName={null}
+        riderPhone={null}
+        onDismiss={() => setIncomingSOSAlert(null)}
       />
     </View>
   );
