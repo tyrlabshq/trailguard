@@ -21,9 +21,11 @@ import MapboxGL from '@rnmapbox/maps';
 import { SatelliteStatusIndicator } from '../components/SatelliteStatusIndicator';
 import { colors } from '../theme/colors';
 import { useGroupWebSocket, type MemberLocation } from '../hooks/useGroupWebSocket';
+import { useGroupRealtimeLocation } from '../hooks/useGroupRealtimeLocation';
 import { useMeshNetwork } from '../hooks/useMeshNetwork';
 import { MemberPin } from '../components/MemberPin';
 import { MemberListPanel } from '../components/MemberListPanel';
+import { supabase } from '../lib/supabase';
 import { getAvalancheGeoJSON, type AvalancheGeoJSON, cacheAge } from '../services/avalanche';
 import { fetchPOIs, type POI, POI_COLORS } from '../services/poi';
 import { autoDownloadAroundLocation } from '../services/offlineMaps';
@@ -41,6 +43,7 @@ import { typography } from '../theme/typography';
 import { CoverageWarningBanner } from '../components/CoverageWarningBanner';
 import { useOfflineQueue } from '../hooks/useOfflineQueue';
 import { LocationCache } from '../services/LocationCache';
+import SOSConfirmationModal from '../components/SOSConfirmationModal';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -501,6 +504,26 @@ export default function MapScreen() {
   const [soloRideActive, setSoloRideActive] = useState(false);
   const hasActiveRide = !!group || soloRideActive;
 
+  // ── SOS modal state ──────────────────────────────────────────────────────
+  const [sosModalVisible, setSosModalVisible] = useState(false);
+
+  // ── Authenticated user identity (for Realtime broadcasting) ──────────────
+  const [authUserId, setAuthUserId] = useState<string | null>(null);
+  const [authDisplayName, setAuthDisplayName] = useState<string | null>(null);
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session?.user) return;
+      setAuthUserId(session.user.id);
+      // Prefer full_name from user metadata, fall back to email prefix
+      const meta = session.user.user_metadata as Record<string, string> | undefined;
+      const name =
+        meta?.full_name ??
+        meta?.name ??
+        (session.user.email ? session.user.email.split('@')[0] : null);
+      setAuthDisplayName(name ?? null);
+    });
+  }, []);
+
   // Recent rides for HomeOverlay
   const [recentRides, setRecentRides] = useState<RecentRide[]>([]);
 
@@ -550,25 +573,8 @@ export default function MapScreen() {
 
   // ── SOS ──────────────────────────────────────────────────────────────────
   const handleSOS = useCallback(() => {
-    Alert.alert(
-      'EMERGENCY SOS',
-      'This will send your location and an emergency alert to your group and emergency contacts.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'SEND SOS',
-          style: 'destructive',
-          onPress: () => {
-            // Navigate to Safety tab for full SOS flow
-            const tabNav = navigation.getParent();
-            if (tabNav) {
-              (tabNav as any).navigate('Safety');
-            }
-          },
-        },
-      ],
-    );
-  }, [navigation]);
+    setSosModalVisible(true);
+  }, []);
 
   const {
     members,
@@ -580,6 +586,16 @@ export default function MapScreen() {
     sweepLeaderAlert,
     dismissSweepLeaderAlert,
   } = useGroupWebSocket();
+
+  // ── Live group location sharing via Supabase Realtime ────────────────────
+  // Broadcasts our lat/lng/heading every 5 s on group-location:{groupId}.
+  // Only active during an active ride; unsubscribes on END RIDE or background.
+  const { realtimeMembers, broadcastLocation } = useGroupRealtimeLocation({
+    groupId: group?.groupId ?? null,
+    rideActive: hasActiveRide,
+    userId: authUserId,
+    displayName: authDisplayName,
+  });
 
   const { queueLength } = useOfflineQueue();
 
@@ -743,10 +759,12 @@ export default function MapScreen() {
   }, [userCoords]);
 
   const handleUserLocationUpdate = useCallback((location: MapboxGL.Location) => {
-    const { longitude, latitude } = location.coords;
+    const { longitude, latitude, heading } = location.coords;
     setUserCoords([longitude, latitude]);
     setMapReady(true);
-  }, []);
+    // Feed live coords into the Realtime broadcaster (batched to 5-s interval)
+    broadcastLocation(latitude, longitude, heading ?? undefined);
+  }, [broadcastLocation]);
 
   // Fallback: mark map ready after 3s even without GPS fix
   useEffect(() => {
@@ -780,10 +798,14 @@ export default function MapScreen() {
 
         {memberList.map((member) => {
           const isStale = staleMembers.has(member.userId);
+          // Prefer display name from the Realtime channel (includes full_name)
+          const realtimeMember = realtimeMembers.get(member.userId);
+          const displayName = realtimeMember?.displayName ?? undefined;
           return (
             <MapboxGL.MarkerView key={member.userId} coordinate={[member.lng, member.lat]}>
               <MemberPin
                 member={member}
+                displayName={displayName}
                 onPress={handleMemberPress}
                 isStale={isStale}
                 staleLabel={isStale ? LocationCache.getRelativeAge(member.timestamp) : undefined}
@@ -791,6 +813,36 @@ export default function MapScreen() {
             </MapboxGL.MarkerView>
           );
         })}
+
+        {/* Realtime-only members: arrived via group-location channel but not yet
+            in the legacy WebSocket members map (e.g. new joiners). */}
+        {Array.from(realtimeMembers.values())
+          .filter((rm) => !members.has(rm.userId))
+          .map((rm) => {
+            // Synthesise a minimal MemberLocation so MemberPin can render
+            const syntheticMember: MemberLocation = {
+              userId: rm.userId,
+              lat: rm.lat,
+              lng: rm.lng,
+              speed: 0,
+              heading: rm.heading,
+              battery: 100,
+              timestamp: rm.timestamp,
+            };
+            return (
+              <MapboxGL.MarkerView
+                key={`rt-${rm.userId}`}
+                coordinate={[rm.lng, rm.lat]}
+              >
+                <MemberPin
+                  member={syntheticMember}
+                  displayName={rm.displayName}
+                  onPress={handleMemberPress}
+                  isStale={false}
+                />
+              </MapboxGL.MarkerView>
+            );
+          })}
 
         {/* Garmin inReach satellite location — distinct satellite icon marker */}
         {garminLocation && (
@@ -1005,6 +1057,20 @@ export default function MapScreen() {
           onSOS={handleSOS}
         />
       )}
+
+      {/* ── SOS Confirmation Modal ── */}
+      <SOSConfirmationModal
+        visible={sosModalVisible}
+        userId={authUserId}
+        groupId={group?.groupId ?? null}
+        rideId={null}
+        coords={userCoords ? { lat: userCoords[1], lng: userCoords[0] } : null}
+        onCancel={() => setSosModalVisible(false)}
+        onSOSSent={() => {
+          // Keep modal open to show "SOS Active" phase — handled inside the modal
+        }}
+        onSOSCancelled={() => setSosModalVisible(false)}
+      />
     </View>
   );
 }
