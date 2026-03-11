@@ -4,18 +4,32 @@
  * Listens for incoming SOS alerts on the `sos:{groupId}` Supabase Realtime
  * channel and triggers in-app alerts + device vibration for group members.
  *
+ * Background push: Uses @notifee/react-native to fire a high-priority local
+ * notification so riders are alerted even when the app is backgrounded or closed.
+ *
  * Architecture:
+ *  - setupSOSNotificationChannel() — call once at app startup to register the
+ *      Android notification channel (no-op on iOS)
  *  - subscribeToGroupSOS(options)  — start listening (call on group join)
  *  - cancelGroupSOSSubscription()  — stop listening (call on group leave)
- *
- * Push notifications (background):
- *   For true background push when the app is closed, wire this up with a
- *   native notifications library such as @notifee/react-native. The in-app
- *   overlay + vibration path covers the foreground case fully.
  */
 
 import { Platform, Vibration } from 'react-native';
+import notifee, {
+  AndroidImportance,
+  AndroidVisibility,
+  AndroidCategory,
+  AndroidLaunchActivityFlag,
+} from '@notifee/react-native';
 import { subscribeToSOSAlerts, type SOSAlert } from '../api/sos';
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+/** Android notification channel id for SOS alerts. */
+export const SOS_CHANNEL_ID = 'sos-alerts';
+
+/** Notifee action id for the "CALL" quick action. */
+export const SOS_ACTION_CALL = 'sos_call';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -30,6 +44,17 @@ export interface SOSSubscriptionOptions {
    */
   currentUserId: string | null;
   /**
+   * Display name of the rider who may send an SOS (used in notifications).
+   * When provided, notifications show "<riderName> needs help!" instead of
+   * the generic "SOS from a group member".
+   */
+  riderName?: string | null;
+  /**
+   * Phone number for the CALL quick action in the notification.
+   * When provided, a "CALL" action button appears on the notification.
+   */
+  riderPhone?: string | null;
+  /**
    * Called when a *foreign* SOS arrives (i.e. from another group member).
    * The caller is responsible for showing the in-app overlay.
    */
@@ -39,6 +64,128 @@ export interface SOSSubscriptionOptions {
 // ─── Module-level state (singleton subscription) ─────────────────────────────
 
 let _unsubscribe: (() => void) | null = null;
+
+// ─── Channel setup ───────────────────────────────────────────────────────────
+
+/**
+ * Create (or update) the Android "SOS Alerts" notification channel.
+ * Must be called once at app startup before any SOS notification is fired.
+ * Safe to call multiple times — notifee is idempotent on channel creation.
+ * No-op on iOS (channels are Android-only; iOS settings are per-notification).
+ */
+export async function setupSOSNotificationChannel(): Promise<void> {
+  if (Platform.OS !== 'android') return;
+
+  await notifee.createChannel({
+    id: SOS_CHANNEL_ID,
+    name: 'SOS Alerts',
+    description: 'Critical alerts when a group rider triggers an SOS.',
+    importance: AndroidImportance.HIGH,
+    visibility: AndroidVisibility.PUBLIC,
+    // Allow sound + vibration even in DND
+    bypassDnd: true,
+    lights: true,
+    lightColor: '#FF0000',
+    vibration: true,
+    vibrationPattern: [300, 600, 300, 600, 300, 1200],
+    sound: 'default',
+  });
+}
+
+// ─── Internal: fire notification ─────────────────────────────────────────────
+
+async function _fireSOSNotification(
+  alert: SOSAlert,
+  riderName?: string | null,
+  riderPhone?: string | null,
+): Promise<void> {
+  // Request permissions on first call (iOS prompts; Android 13+ prompts)
+  await notifee.requestPermission();
+
+  const displayName = riderName ?? 'A group member';
+  const coordsText = `${alert.lat.toFixed(5)}, ${alert.lng.toFixed(5)}`;
+
+  const timestampStr = alert.timestamp
+    ? new Date(alert.timestamp).toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      })
+    : null;
+
+  const bodyAndroid = [
+    `📍 ${coordsText}`,
+    timestampStr ? `⏱ ${timestampStr}` : null,
+  ]
+    .filter(Boolean)
+    .join('  •  ');
+
+  const bodyIOS = [
+    `📍 ${coordsText}`,
+    timestampStr ? `⏱ ${timestampStr}` : null,
+  ]
+    .filter(Boolean)
+    .join('\n');
+
+  if (Platform.OS === 'android') {
+    // Build the CALL action only when a phone number is available
+    const actions = riderPhone
+      ? [
+          {
+            id: SOS_ACTION_CALL,
+            title: '📞  CALL RIDER',
+            pressAction: {
+              id: SOS_ACTION_CALL,
+              launchActivity: 'default',
+              launchActivityFlags: [AndroidLaunchActivityFlag.SINGLE_TOP],
+            },
+          },
+        ]
+      : [];
+
+    await notifee.displayNotification({
+      title: `🚨 SOS — ${displayName} needs help!`,
+      body: bodyAndroid,
+      android: {
+        channelId: SOS_CHANNEL_ID,
+        importance: AndroidImportance.HIGH,
+        visibility: AndroidVisibility.PUBLIC,
+        category: AndroidCategory.ALARM,
+        // Full-screen intent — shows even on lock screen
+        fullScreenAction: {
+          id: 'default',
+          launchActivityFlags: [AndroidLaunchActivityFlag.SINGLE_TOP],
+        },
+        color: '#FF0000',
+        colorized: true,
+        sound: 'default',
+        vibrationPattern: [300, 600, 300, 600, 300, 1200],
+        lights: ['#FF0000', 500, 500],
+        actions,
+      },
+    });
+  } else {
+    // iOS
+    await notifee.displayNotification({
+      title: `🚨 SOS — ${displayName} needs help!`,
+      body: bodyIOS,
+      ios: {
+        // Critical alert bypasses mute / Do Not Disturb
+        // (requires Apple entitlement — degrades gracefully without it)
+        critical: true,
+        criticalVolume: 1.0,
+        sound: 'default',
+        foregroundPresentationOptions: {
+          badge: true,
+          sound: true,
+          banner: true,
+          list: true,
+        },
+        categoryId: riderPhone ? 'SOS_WITH_CALL' : 'SOS',
+      },
+    });
+  }
+}
 
 // ─── Public API ──────────────────────────────────────────────────────────────
 
@@ -50,7 +197,7 @@ export function subscribeToGroupSOS(options: SOSSubscriptionOptions): void {
   // Always cancel previous subscription before starting a new one
   cancelGroupSOSSubscription();
 
-  const { groupId, currentUserId, onIncomingAlert } = options;
+  const { groupId, currentUserId, riderName, riderPhone, onIncomingAlert } = options;
 
   _unsubscribe = subscribeToSOSAlerts(groupId, (alert: SOSAlert) => {
     // Don't alert the sender — they already know they pressed SOS
@@ -63,6 +210,11 @@ export function subscribeToGroupSOS(options: SOSSubscriptionOptions): void {
     if (Platform.OS !== 'web') {
       Vibration.vibrate([0, 600, 200, 600, 200, 600, 200, 1200]);
     }
+
+    // Fire background/foreground push notification via notifee
+    _fireSOSNotification(alert, riderName, riderPhone).catch((err) => {
+      console.warn('[SOSNotificationService] notifee error:', err);
+    });
 
     // Delegate overlay rendering to the caller (MapScreen)
     onIncomingAlert(alert);
@@ -85,7 +237,7 @@ export function cancelGroupSOSSubscription(): void {
  * Exported for use in overlay components.
  *
  * @example
- * formatSOSAlertText(alert) // "📍 44.98765, -84.12345"
+ * formatSOSCoords(alert) // "📍 44.98765, -84.12345"
  */
 export function formatSOSCoords(alert: SOSAlert): string {
   return `📍 ${alert.lat.toFixed(5)}, ${alert.lng.toFixed(5)}`;
