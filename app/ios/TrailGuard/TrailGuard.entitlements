@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!--
+	  Critical Alerts Entitlement
+	  ─────────────────────────────────────────────────────────────────────────
+	  This entitlement allows SOS push notifications to bypass iOS Silent Mode
+	  and Do Not Disturb (DND), playing at full volume regardless of user settings.
+
+	  ⚠️  IMPORTANT — APPLE APPROVAL REQUIRED:
+	  This entitlement MUST be approved by Apple before it works in production.
+	  The code change here is a prerequisite, but it is NOT sufficient on its own.
+
+	  Ty must submit an entitlement request at:
+	    https://developer.apple.com/contact/request/notifications-critical-alerts-entitlement/
+
+	  Apple reviews each request case-by-case. Safety/emergency apps (like TrailGuard)
+	  generally qualify, but approval is not automatic. Without Apple's approval,
+	  iOS will silently ignore the critical: true flag and deliver notifications
+	  normally (respecting silent mode / DND).
+
+	  Once Apple approves, regenerate the provisioning profile and re-sign the app.
+	  ─────────────────────────────────────────────────────────────────────────
+	-->
+	<key>com.apple.developer.usernotifications.critical-alerts</key>
+	<true/>
+</dict>
+</plist>

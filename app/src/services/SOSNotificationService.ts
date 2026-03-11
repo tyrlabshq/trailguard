@@ -168,8 +168,21 @@ async function _fireSOSNotification(
       title: `🚨 SOS — ${displayName} needs help!`,
       body: bodyIOS,
       ios: {
-        // Critical alert bypasses mute / Do Not Disturb
-        // (requires Apple entitlement — degrades gracefully without it)
+        /**
+         * Critical Alert — bypasses iOS Silent Mode and Do Not Disturb.
+         *
+         * ⚠️  REQUIRES APPLE ENTITLEMENT APPROVAL:
+         * The `com.apple.developer.usernotifications.critical-alerts` entitlement
+         * has been added to TrailGuard.entitlements, but Apple must approve the
+         * request before Critical Alerts work in production builds.
+         *
+         * Ty must submit the request at:
+         *   https://developer.apple.com/contact/request/notifications-critical-alerts-entitlement/
+         *
+         * Without approval, iOS silently ignores `critical: true` and delivers
+         * the notification normally (silent mode / DND will suppress it).
+         * The app degrades gracefully — SOS still notifies, just not at full volume.
+         */
         critical: true,
         criticalVolume: 1.0,
         sound: 'default',

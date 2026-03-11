@@ -22,3 +22,7 @@ targets:
         INFOPLIST_FILE: TrailGuard/Info.plist
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         SWIFT_OBJC_BRIDGING_HEADER: TrailGuard/TrailGuard-Bridging-Header.h
+        # Critical Alerts entitlement — allows SOS to bypass silent mode / DND.
+        # Requires Apple approval before it works in production.
+        # Submit request at: https://developer.apple.com/contact/request/notifications-critical-alerts-entitlement/
+        CODE_SIGN_ENTITLEMENTS: TrailGuard/TrailGuard.entitlements
