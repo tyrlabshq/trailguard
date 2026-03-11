@@ -290,6 +290,30 @@ async function flushQueueViaRest(apiUrl: string): Promise<void> {
   }
 }
 
+// ─── Last-known location cache ────────────────────────────────────────────
+
+/**
+ * Key shared with DeadMansSwitchService and SOSScreen.
+ * Written on every location event so SOS always has a fresh fallback fix.
+ * Shape: { lat, lng, ts } where ts is Unix ms.
+ */
+export const LAST_LOCATION_KEY = 'lastLocation';
+
+async function persistLastLocation(
+  lat: number,
+  lng: number,
+  ts: number,
+): Promise<void> {
+  try {
+    await AsyncStorage.setItem(
+      LAST_LOCATION_KEY,
+      JSON.stringify({ lat, lng, ts }),
+    );
+  } catch {
+    // Non-fatal — queue still has the data
+  }
+}
+
 // ─── Location broadcast ───────────────────────────────────────────────────
 
 async function broadcastLocation(
@@ -302,6 +326,10 @@ async function broadcastLocation(
 
   // Adjust polling cadence for current speed + battery
   applyAdaptiveRate(speedMph, batteryLevel);
+
+  const ts = location.timestamp
+    ? new Date(location.timestamp).getTime()
+    : Date.now();
 
   const update: QueuedLocation = {
     groupId: config.groupId,
@@ -316,10 +344,11 @@ async function broadcastLocation(
         : null,
     batteryLevel,
     signalSource: currentSignalSource,
-    timestamp: location.timestamp
-      ? new Date(location.timestamp).getTime()
-      : Date.now(),
+    timestamp: ts,
   };
+
+  // Always persist last known fix for SOS / DMS fallback
+  void persistLastLocation(update.lat, update.lng, ts);
 
   // ── Route selection ──────────────────────────────────────────────────
   // 1. Satellite bridge active → queue for inReach drain

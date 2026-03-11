@@ -24,6 +24,8 @@
 	<true/>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>TrailGuard needs your location to share your position with your riding group and provide safety features like crash detection.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>TrailGuard needs your location at all times to track your ride, share your position with your group, and trigger automatic safety alerts in the background.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>TrailGuard needs your location to show your position on the map and share it with your riding group.</string>
 	<key>NSMotionUsageDescription</key>

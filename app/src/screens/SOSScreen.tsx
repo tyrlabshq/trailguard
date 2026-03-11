@@ -11,8 +11,80 @@ import {
   Animated,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import BackgroundGeolocation from 'react-native-background-geolocation';
 import { colors } from '../theme/colors';
 import { fireSOS, getMyEmergencyInfo, EmergencyContact } from '../api/emergency';
+
+// ─── SOS Location helpers ─────────────────────────────────────────────────
+
+/** How stale (ms) a cached location is before we warn the user. */
+const LOCATION_STALE_MS = 5 * 60 * 1000; // 5 minutes
+
+/** Timeout (seconds) for a live GPS fix at SOS time. */
+const GPS_FIX_TIMEOUT_SECS = 8;
+
+interface SOSLocation {
+  lat: number;
+  lng: number;
+  /** True if we fell back to a cached/stale position (no live fix available). */
+  stale: boolean;
+  /** True if we have no coordinates at all — SOS will still fire, location unknown. */
+  unavailable: boolean;
+}
+
+/**
+ * Attempt to get the best available location for the SOS payload:
+ *   1. Live GPS fix via BackgroundGeolocation (8s timeout)
+ *   2. Cached last-known location from AsyncStorage ('lastLocation' key)
+ *   3. Fallback: unavailable flag set — SOS fires without coordinates
+ */
+async function getSOSLocation(): Promise<SOSLocation> {
+  // ── 1. Live GPS fix ──────────────────────────────────────────────────
+  try {
+    const loc = await BackgroundGeolocation.getCurrentPosition({
+      samples: 1,
+      persist: false,
+      timeout: GPS_FIX_TIMEOUT_SECS,
+      // Accept a recent background fix so we don't block if GPS is warm
+      maximumAge: 30_000,
+    });
+    return {
+      lat: loc.coords.latitude,
+      lng: loc.coords.longitude,
+      stale: false,
+      unavailable: false,
+    };
+  } catch {
+    // GPS unavailable or timed out — try cached location
+  }
+
+  // ── 2. Cached last-known fix ─────────────────────────────────────────
+  try {
+    const raw = await AsyncStorage.getItem('lastLocation');
+    if (raw) {
+      const cached = JSON.parse(raw) as { lat: number; lng: number; ts?: number };
+      if (
+        typeof cached.lat === 'number' &&
+        typeof cached.lng === 'number' &&
+        cached.lat !== 0 &&
+        cached.lng !== 0
+      ) {
+        const ageMs = cached.ts ? Date.now() - cached.ts : Infinity;
+        return {
+          lat: cached.lat,
+          lng: cached.lng,
+          stale: ageMs > LOCATION_STALE_MS,
+          unavailable: false,
+        };
+      }
+    }
+  } catch {
+    // Fall through to unavailable
+  }
+
+  // ── 3. No location available ─────────────────────────────────────────
+  return { lat: 0, lng: 0, stale: true, unavailable: true };
+}
 
 export default function SOSScreen() {
   const [firing, setFiring] = useState(false);
@@ -61,18 +133,17 @@ export default function SOSScreen() {
     try {
       const groupId = await AsyncStorage.getItem('currentGroupId');
 
-      // Get location (simplified — real impl uses LocationService)
-      let lat = 0;
-      let lng = 0;
-      try {
-        // Attempt to get last known location from storage
-        const lastLoc = await AsyncStorage.getItem('lastLocation');
-        if (lastLoc) {
-          const loc = JSON.parse(lastLoc);
-          lat = loc.lat;
-          lng = loc.lng;
-        }
-      } catch {}
+      // Get best available location — live fix first, cached fallback second
+      const location = await getSOSLocation();
+      const { lat, lng } = location;
+
+      // Warn (non-blocking) if location quality is degraded
+      if (location.unavailable) {
+        // Don't block the SOS — just note the issue. Fire first, warn after.
+        console.warn('[SOS] No GPS fix available — firing SOS with unknown location.');
+      } else if (location.stale) {
+        console.warn('[SOS] Using stale cached location — GPS fix was unavailable.');
+      }
 
       // Fire SOS to server
       await fireSOS({ groupId: groupId || undefined, lat, lng });
@@ -81,10 +152,15 @@ export default function SOSScreen() {
 
       // SMS each emergency contact
       if (contacts.length > 0) {
-        const mapsLink = lat && lng
-          ? `https://maps.google.com/?q=${lat},${lng}`
-          : 'Location unavailable';
-        const smsBody = `SOS! I need help. My last known location: ${mapsLink} — Sent via PowderLink`;
+        let mapsLink: string;
+        if (location.unavailable) {
+          mapsLink = 'Location unavailable (no GPS signal)';
+        } else if (location.stale) {
+          mapsLink = `STALE location: https://maps.google.com/?q=${lat},${lng}`;
+        } else {
+          mapsLink = `https://maps.google.com/?q=${lat},${lng}`;
+        }
+        const smsBody = `SOS! I need help. My last known location: ${mapsLink} — Sent via TrailGuard`;
         for (const contact of contacts) {
           const smsUrl = `sms:${contact.phone}?body=${encodeURIComponent(smsBody)}`;
           try {
