@@ -5,16 +5,22 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import AppNavigator from './src/navigation/AppNavigator';
 import { OfflineBanner } from './src/components/OfflineBanner';
 import { setupSOSNotificationChannel } from './src/services/SOSNotificationService';
+import { initDeviceTokenService } from './src/services/DeviceTokenService';
 
 MapboxGL.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_TOKEN ?? '');
 
 export default function App() {
-  // Register the Android SOS notification channel once at startup.
-  // notifee is idempotent on channel creation; this is a no-op on iOS.
+  // One-time startup: notification channel + APNs device token registration
   useEffect(() => {
+    // Register the Android SOS notification channel (no-op on iOS)
     setupSOSNotificationChannel().catch((err) => {
       console.warn('[App] setupSOSNotificationChannel failed:', err);
     });
+
+    // Register for APNs remote push and upsert device token to Supabase.
+    // Enables sos-push edge function to deliver push when app is killed (Task #803).
+    // No-op on Android until FCM is integrated.
+    initDeviceTokenService();
   }, []);
 
   return (

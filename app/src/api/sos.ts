@@ -79,9 +79,53 @@ export async function createSOSAlert(params: CreateSOSParams): Promise<SOSAlert>
     });
     // Don't wait for the channel to fully clean up
     void supabase.removeChannel(channel);
+
+    // ── Remote push for killed-app recipients (Task #803) ─────────────────
+    // The Realtime broadcast above only reaches members whose app is open.
+    // Call the sos-push edge function to deliver APNs remote push to all
+    // group members who have registered a device token, so they're alerted
+    // even when their app is killed.
+    //
+    // Fire-and-forget — a push delivery failure must never block the SOS.
+    void triggerSOSPush({
+      alertId: (data as SOSAlert).id,
+      groupId: params.group_id,
+      userId: params.user_id,
+      lat: params.lat,
+      lng: params.lng,
+    });
   }
 
   return data as SOSAlert;
+}
+
+// ─── Internal: remote push trigger ───────────────────────────────────────────
+
+interface SOSPushParams {
+  alertId: string;
+  groupId: string;
+  userId: string;
+  lat: number;
+  lng: number;
+  riderName?: string | null;
+}
+
+/**
+ * Fire-and-forget call to the `sos-push` edge function.
+ * Sends APNs remote push to group members whose apps are killed.
+ * Errors are logged but never thrown — push failure must never block SOS.
+ */
+async function triggerSOSPush(params: SOSPushParams): Promise<void> {
+  try {
+    const { error } = await supabase.functions.invoke('sos-push', {
+      body: params,
+    });
+    if (error) {
+      console.warn('[sos] sos-push edge function error:', error.message);
+    }
+  } catch (err) {
+    console.warn('[sos] sos-push invocation failed:', err);
+  }
 }
 
 /**
