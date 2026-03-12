@@ -25,5 +25,26 @@
 	-->
 	<key>com.apple.developer.usernotifications.critical-alerts</key>
 	<true/>
+	<!--
+	  APS Environment Entitlement
+	  ─────────────────────────────────────────────────────────────────────────
+	  Required for APNs (Apple Push Notification service) — both remote push
+	  and silent background pushes.  Without this, iOS will reject any attempt
+	  to register a device token and remote notifications will never arrive.
+
+	  Values:
+	    development  → sandbox APNs (debug/TestFlight builds)
+	    production   → production APNs (App Store / Ad Hoc distribution builds)
+
+	  Xcode normally manages this automatically when "Push Notifications" is
+	  toggled in the Signing & Capabilities tab.  Because TrailGuard uses a
+	  hand-authored entitlements file (via CODE_SIGN_ENTITLEMENTS in project.yml),
+	  the key must be declared here explicitly.
+
+	  Switch to "production" before the App Store submission build.
+	  ─────────────────────────────────────────────────────────────────────────
+	-->
+	<key>aps-environment</key>
+	<string>development</string>
 </dict>
 </plist>
