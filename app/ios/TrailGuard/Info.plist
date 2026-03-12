@@ -49,6 +49,12 @@
 		<string>_tg-mesh._tcp</string>
 		<string>_tg-mesh._udp</string>
 	</array>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>TrailGuard uses Bluetooth to connect directly with nearby riders for offline mesh networking, enabling group tracking and safety alerts even without an internet connection.</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>TrailGuard uses Bluetooth to broadcast your presence to nearby riders and enable direct device-to-device communication for group ride coordination.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>TrailGuard uses your camera to scan QR codes for quickly joining ride groups and connecting with other TrailGuard users.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>bluetooth-central</string>
