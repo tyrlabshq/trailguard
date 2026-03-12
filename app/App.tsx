@@ -6,7 +6,7 @@ import AppNavigator from './src/navigation/AppNavigator';
 import { OfflineBanner } from './src/components/OfflineBanner';
 import { setupSOSNotificationChannel } from './src/services/SOSNotificationService';
 
-MapboxGL.setAccessToken('pk.eyJ1IjoidHlyOSIsImEiOiJjbW1mdzRwbG8wY24xMnFuZHYwN2poaXdwIn0.7He6Sr04fkb6EjN9Xq35yw');
+MapboxGL.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_TOKEN ?? '');
 
 export default function App() {
   // Register the Android SOS notification channel once at startup.

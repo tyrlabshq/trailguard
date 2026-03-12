@@ -1,0 +1,28 @@
+{
+  "cli": {
+    "version": ">= 5.0.0"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_ENV": "development"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_ENV": "production"
+      }
+    },
+    "production": {
+      "env": {
+        "EXPO_PUBLIC_ENV": "production"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}
