@@ -30,7 +30,7 @@ const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
 // ─── Types ─────────────────────────────────────────────────────────────────
 
 /** Difficulty categories for display and routing preference. */
-export type TrailDifficulty = 'easy' | 'moderate' | 'hard' | 'unknown';
+export type TrailDifficulty = 'easy' | 'moderate' | 'hard' | 'expert' | 'unknown';
 
 export interface TrailSegment {
   id: string;
@@ -78,7 +78,8 @@ function mapDifficulty(tags: Record<string, string>): TrailDifficulty {
   if (pisteDiff) {
     if (['novice', 'easy'].includes(pisteDiff)) return 'easy';
     if (['intermediate'].includes(pisteDiff)) return 'moderate';
-    if (['advanced', 'expert', 'freeride', 'extreme'].includes(pisteDiff)) return 'hard';
+    if (['advanced'].includes(pisteDiff)) return 'hard';
+    if (['expert', 'freeride', 'extreme'].includes(pisteDiff)) return 'expert';
   }
 
   // Hiking / SAC scale
@@ -86,7 +87,8 @@ function mapDifficulty(tags: Record<string, string>): TrailDifficulty {
   if (sacScale) {
     if (sacScale === 'hiking') return 'easy';
     if (['mountain_hiking', 'demanding_mountain_hiking'].includes(sacScale)) return 'moderate';
-    if (['alpine_hiking', 'demanding_alpine_hiking', 'difficult_alpine_hiking'].includes(sacScale)) return 'hard';
+    if (['alpine_hiking'].includes(sacScale)) return 'hard';
+    if (['demanding_alpine_hiking', 'difficult_alpine_hiking'].includes(sacScale)) return 'expert';
   }
 
   // MTB scale
@@ -96,7 +98,8 @@ function mapDifficulty(tags: Record<string, string>): TrailDifficulty {
     if (!isNaN(level)) {
       if (level <= 1) return 'easy';
       if (level <= 2) return 'moderate';
-      return 'hard';
+      if (level <= 3) return 'hard';
+      return 'expert';
     }
   }
 
@@ -382,4 +385,25 @@ export function getTrailsGeoJSON(): GeoJSON.FeatureCollection {
  */
 export function getCachedSegmentCount(): number {
   return cachedSegments.length;
+}
+
+/**
+ * Computes the total length of a trail segment in metres
+ * by summing haversine distances between consecutive coordinates.
+ */
+export function segmentLengthM(coords: [number, number][]): number {
+  let total = 0;
+  for (let i = 0; i < coords.length - 1; i++) {
+    const [lng1, lat1] = coords[i];
+    const [lng2, lat2] = coords[i + 1];
+    total += haversineM(lat1, lng1, lat2, lng2);
+  }
+  return total;
+}
+
+/**
+ * Returns all cached non-road trail segments for listing in the UI.
+ */
+export function getNearbyTrails(): TrailSegment[] {
+  return cachedSegments.filter((s) => !s.isRoad);
 }

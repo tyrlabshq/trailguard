@@ -31,7 +31,8 @@ import { getAvalancheGeoJSON, type AvalancheGeoJSON, cacheAge } from '../service
 import { fetchPOIs, type POI, POI_COLORS } from '../services/poi';
 import { autoDownloadAroundLocation } from '../services/offlineMaps';
 import { useTrailSnapping } from '../hooks/useTrailSnapping';
-import { getTrailsGeoJSON } from '../services/TrailSnapping';
+import { getTrailsGeoJSON, getNearbyTrails, type TrailSegment } from '../services/TrailSnapping';
+import { NearbyTrailsPanel } from '../components/NearbyTrailsPanel';
 import { suggestRoutes, formatDistanceM, type RouteSuggestion } from '../services/TrailRouting';
 import { fetchNearbyConditions, type TrailConditionReport } from '../api/trailConditions';
 import { TrailConditionModal } from '../components/TrailConditionModal';
@@ -42,7 +43,10 @@ import { useGarminTracking } from '../hooks/useGarminTracking';
 import { useMeshtastic } from '../hooks/useMeshtastic';
 import { typography } from '../theme/typography';
 import { CoverageWarningBanner } from '../components/CoverageWarningBanner';
+import { OfflineTrailBadge } from '../components/OfflineTrailBadge';
 import { useOfflineQueue } from '../hooks/useOfflineQueue';
+import { useConnectivity } from '../hooks/useConnectivity';
+import { useTrailDataCache } from '../hooks/useTrailDataCache';
 import { LocationCache } from '../services/LocationCache';
 import SOSConfirmationModal from '../components/SOSConfirmationModal';
 import SOSAlertOverlay from '../components/SOSAlertOverlay';
@@ -123,7 +127,8 @@ function TrailLayer() {
 const DIFFICULTY_COLORS: Record<string, string> = {
   easy: '#00dd66',
   moderate: colors.warning,
-  hard: colors.danger,
+  hard: '#FF8C00',
+  expert: colors.danger,
   unknown: '#6699cc',
 };
 
@@ -154,6 +159,7 @@ function TrailDifficultyLayer({ geojson }: { geojson: GeoJSON.FeatureCollection 
             'easy', DIFFICULTY_COLORS.easy,
             'moderate', DIFFICULTY_COLORS.moderate,
             'hard', DIFFICULTY_COLORS.hard,
+            'expert', DIFFICULTY_COLORS.expert,
             DIFFICULTY_COLORS.unknown,
           ] as any,
           lineWidth: ['interpolate', ['linear'], ['zoom'], 8, 1.5, 12, 2.5, 15, 4] as any,
@@ -660,6 +666,7 @@ export default function MapScreen() {
   });
 
   const { queueLength } = useOfflineQueue();
+  const { tier: connectivityTier, isOffline: deviceIsOffline } = useConnectivity();
 
   // Mesh networking — works offline when WebSocket is unavailable
   const { meshMembers, meshConnected, meshPeerCount } = useMeshNetwork();
@@ -682,6 +689,22 @@ export default function MapScreen() {
       return MAP_STYLES[(idx + 1) % MAP_STYLES.length].id;
     });
   }, []);
+
+  // Offline trail data cache
+  const {
+    isDownloading: trailCacheDownloading,
+    downloadProgress: trailCacheProgress,
+    cachedArea: trailCachedArea,
+    isServingCached: trailIsServingCached,
+    offlineTrailsGeoJSON,
+    offlineConditions,
+    downloadArea: downloadTrailArea,
+    downloadError: trailDownloadError,
+  } = useTrailDataCache(
+    userCoords ? userCoords[1] : null,
+    userCoords ? userCoords[0] : null,
+    connectivityTier,
+  );
 
   // Layer data
   const [avalancheData, setAvalancheData] = useState<AvalancheGeoJSON | null>(null);
@@ -710,6 +733,10 @@ export default function MapScreen() {
   const [conditionsPanelVisible, setConditionsPanelVisible] = useState(false);
   const [conditionReportModalVisible, setConditionReportModalVisible] = useState(false);
 
+  // Nearby trails panel
+  const [trailsPanelVisible, setTrailsPanelVisible] = useState(false);
+  const [nearbyTrails, setNearbyTrails] = useState<TrailSegment[]>([]);
+
   // Follow mode — camera tracks a specific member
   const [followUserId, setFollowUserId] = useState<string | null>(null);
 
@@ -737,9 +764,18 @@ export default function MapScreen() {
     if (!userCoords) return;
     const [lng, lat] = userCoords;
     const delta = 0.5;
-    fetchPOIs([[lng - delta, lat - delta], [lng + delta, lat + delta]]).then(setPois);
-    fetchNearbyConditions(lat, lng).then(setConditionReports).catch(() => {});
-  }, [userCoords]);
+    if (!deviceIsOffline) {
+      fetchPOIs([[lng - delta, lat - delta], [lng + delta, lat + delta]]).then(setPois);
+      fetchNearbyConditions(lat, lng).then(setConditionReports).catch(() => {});
+    }
+  }, [userCoords, deviceIsOffline]);
+
+  // Offline fallback: use cached conditions when offline
+  useEffect(() => {
+    if (trailIsServingCached && offlineConditions) {
+      setConditionReports(offlineConditions);
+    }
+  }, [trailIsServingCached, offlineConditions]);
 
   // Auto-download region around user location on WiFi
   useEffect(() => {
@@ -749,15 +785,23 @@ export default function MapScreen() {
     autoDownloadAroundLocation(lat, lng, 'auto-current-location').catch(() => {});
   }, [userCoords]);
 
-  // Refresh trail GeoJSON after snapping updates (snap service loads new data)
+  // Refresh trail GeoJSON + nearby trails after snapping updates
   useEffect(() => {
     if (!snappedCoord) return;
     // Slight delay to let TrailSnapping finish loading Overpass data
     const timer = setTimeout(() => {
       setTrailsGeoJSON(getTrailsGeoJSON());
+      setNearbyTrails(getNearbyTrails());
     }, 500);
     return () => clearTimeout(timer);
   }, [snappedCoord, snapLoading]);
+
+  // Offline fallback: use cached trail GeoJSON when offline
+  useEffect(() => {
+    if (trailIsServingCached && offlineTrailsGeoJSON) {
+      setTrailsGeoJSON(offlineTrailsGeoJSON);
+    }
+  }, [trailIsServingCached, offlineTrailsGeoJSON]);
 
   // Refresh route suggestions when snapped position changes
   useEffect(() => {
@@ -936,6 +980,22 @@ export default function MapScreen() {
 
       <CoverageWarningBanner />
 
+      {/* Offline trail data badge */}
+      <OfflineTrailBadge
+        isOffline={deviceIsOffline}
+        isServingCached={trailIsServingCached}
+        cachedArea={trailCachedArea}
+        isDownloading={trailCacheDownloading}
+        downloadProgress={trailCacheProgress}
+        downloadError={trailDownloadError}
+        onDownload={() => {
+          if (userCoords) {
+            const [lng, lat] = userCoords;
+            downloadTrailArea(lat, lng, 'Current Area');
+          }
+        }}
+      />
+
       {/* HUD */}
       <View style={[styles.hud, { top: hudTop }]}>
         <Text style={[styles.hudText, { color: connected ? colors.success : colors.danger }]}>
@@ -1024,7 +1084,7 @@ export default function MapScreen() {
       {/* Conditions shortcut */}
       <TouchableOpacity
         style={[styles.conditionsBtn, conditionsPanelVisible && styles.conditionsBtnActive, hasActiveRide && { bottom: 220 + ACTIVE_RIDE_BAR_HEIGHT }]}
-        onPress={() => { setSelectedMember(null); setPanelVisible(false); setLayerPanelVisible(false); setConditionsPanelVisible((v) => !v); setRoutePanelVisible(false); }}
+        onPress={() => { setSelectedMember(null); setPanelVisible(false); setLayerPanelVisible(false); setConditionsPanelVisible((v) => !v); setRoutePanelVisible(false); setTrailsPanelVisible(false); }}
       >
         <Text style={styles.conditionsBtnText}>Cond</Text>
       </TouchableOpacity>
@@ -1037,10 +1097,26 @@ export default function MapScreen() {
           setPanelVisible(false);
           setLayerPanelVisible(false);
           setConditionsPanelVisible(false);
+          setTrailsPanelVisible(false);
           setRoutePanelVisible((v) => !v);
         }}
       >
         <Text style={styles.routesBtnText}>Routes</Text>
+      </TouchableOpacity>
+
+      {/* Trails listing shortcut */}
+      <TouchableOpacity
+        style={[styles.trailsListBtn, trailsPanelVisible && styles.trailsListBtnActive, hasActiveRide && { bottom: 340 + ACTIVE_RIDE_BAR_HEIGHT }]}
+        onPress={() => {
+          setSelectedMember(null);
+          setPanelVisible(false);
+          setLayerPanelVisible(false);
+          setConditionsPanelVisible(false);
+          setRoutePanelVisible(false);
+          setTrailsPanelVisible((v) => !v);
+        }}
+      >
+        <Text style={styles.trailsListBtnText}>Trails</Text>
       </TouchableOpacity>
 
       <RouteSuggestionsPanel
@@ -1051,6 +1127,13 @@ export default function MapScreen() {
           setSelectedRouteIndex((prev) => (prev === idx ? null : idx));
         }}
         onClose={() => { setRoutePanelVisible(false); setSelectedRouteIndex(null); }}
+      />
+
+      {/* Nearby Trails Panel */}
+      <NearbyTrailsPanel
+        visible={trailsPanelVisible}
+        trails={nearbyTrails}
+        onClose={() => setTrailsPanelVisible(false)}
       />
 
       {selectedMember && !panelVisible && (
@@ -1191,6 +1274,9 @@ const styles = StyleSheet.create({
   routesBtn: { position: 'absolute', bottom: 280, right: 16, width: 52, height: 48, borderRadius: 6, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.4, shadowRadius: 4 },
   routesBtnActive: { backgroundColor: colors.primary + '33', borderColor: colors.primary },
   routesBtnText: { fontSize: 11, fontWeight: '700', color: colors.text, letterSpacing: 0.5 },
+  trailsListBtn: { position: 'absolute', bottom: 340, right: 16, width: 52, height: 48, borderRadius: 6, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.4, shadowRadius: 4 },
+  trailsListBtnActive: { backgroundColor: colors.primary + '33', borderColor: colors.primary },
+  trailsListBtnText: { fontSize: 11, fontWeight: '700', color: colors.text, letterSpacing: 0.5 },
   routePanel: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: colors.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 16, paddingBottom: 36, maxHeight: 320, shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.4, shadowRadius: 12, elevation: 20 },
   routePanelHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   routePanelTitle: { color: colors.text, fontSize: typography.lg, fontWeight: '700' },

@@ -50,6 +50,7 @@ const DIFFICULTY_COST: Record<TrailDifficulty, number> = {
   easy: 1.0,
   moderate: 1.5,
   hard: 2.5,
+  expert: 4.0,
   unknown: 1.2,
 };
 
