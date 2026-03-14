@@ -18,6 +18,10 @@ interface Props {
   onClose: () => void;
   onReportCondition: () => void;
   onUpvote?: (reportId: string) => void;
+  /** Whether the device is currently offline. */
+  isOffline?: boolean;
+  /** ISO timestamp of when cached data was last updated (shown when offline). */
+  cachedAt?: string;
 }
 
 function formatRelativeTime(iso: string): string {
@@ -141,7 +145,7 @@ function ReportRow({ item, onUpvote }: ReportRowProps) {
   );
 }
 
-export function RecentConditionsPanel({ visible, reports, onClose, onReportCondition, onUpvote }: Props) {
+export function RecentConditionsPanel({ visible, reports, onClose, onReportCondition, onUpvote, isOffline, cachedAt }: Props) {
   if (!visible) return null;
 
   return (
@@ -153,6 +157,16 @@ export function RecentConditionsPanel({ visible, reports, onClose, onReportCondi
         </TouchableOpacity>
       </View>
 
+      {/* Offline cached data banner */}
+      {isOffline && cachedAt && (
+        <View style={styles.offlineBanner}>
+          <Text style={styles.offlineBadgeText}>OFFLINE</Text>
+          <Text style={styles.offlineCacheAge}>
+            Cached {formatRelativeTime(cachedAt)}
+          </Text>
+        </View>
+      )}
+
       {/* Summary strip */}
       {reports.length > 0 && (
         <View style={styles.summaryRow}>
@@ -161,7 +175,7 @@ export function RecentConditionsPanel({ visible, reports, onClose, onReportCondi
             {reports.filter((r) => r.reportType === 'hazard').length} hazards ·{' '}
             {reports.filter((r) => r.reportType === 'snow_depth').length} snow reports
           </Text>
-          <Text style={styles.allRidersTag}>All riders</Text>
+          <Text style={styles.allRidersTag}>{isOffline ? 'Cached' : 'All riders'}</Text>
         </View>
       )}
 
@@ -226,6 +240,28 @@ const styles = StyleSheet.create({
   },
   summaryText: { color: colors.textDim, fontSize: 12 },
   allRidersTag: { color: '#00cc66', fontSize: 11, fontWeight: '700' },
+  offlineBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(255,59,59,0.1)',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255,59,59,0.2)',
+  },
+  offlineBadgeText: {
+    color: '#FF3B3B',
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  offlineCacheAge: {
+    color: colors.textDim,
+    fontSize: 11,
+  },
   reportBtn: {
     backgroundColor: colors.accent + '22',
     borderColor: colors.accent,

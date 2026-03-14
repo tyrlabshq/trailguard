@@ -1166,6 +1166,8 @@ export default function MapScreen() {
           setConditionsPanelVisible(false);
           setConditionReportModalVisible(true);
         }}
+        isOffline={deviceIsOffline}
+        cachedAt={trailIsServingCached && trailCachedArea ? trailCachedArea.cachedAt : undefined}
       />
 
       {/* Trail Condition Report Modal */}
