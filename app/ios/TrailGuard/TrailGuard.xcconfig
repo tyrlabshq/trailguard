@@ -1,0 +1,12 @@
+// TrailGuard.xcconfig
+// Injects MAPBOX_ACCESS_TOKEN from the build environment into Info.plist.
+// EAS builds: set MAPBOX_ACCESS_TOKEN as an EAS secret, then reference it
+// in eas.json build env. Local builds: export the var before running xcodebuild
+// or add it to your shell profile.
+//
+// Note: CocoaPods will automatically add:
+//   #include "../../TrailGuard/TrailGuard.xcconfig"
+// to Pods-TrailGuard.debug.xcconfig / Pods-TrailGuard.release.xcconfig
+// the next time `pod install` runs, chaining this file into the build.
+
+MAPBOX_ACCESS_TOKEN = $(MAPBOX_ACCESS_TOKEN)

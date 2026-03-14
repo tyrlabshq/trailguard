@@ -209,7 +209,7 @@ export default function GroupDashboardScreen() {
 
   async function shareCode() {
     if (!group) return;
-    await Share.share({ message: `Join my PowderLink group: ${group.code}` });
+    await Share.share({ message: `Join my TrailGuard group: ${group.code}` });
   }
 
   async function handleStartRide() {

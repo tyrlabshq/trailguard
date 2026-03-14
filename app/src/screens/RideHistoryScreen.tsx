@@ -3,6 +3,7 @@ import {
   View, Text, FlatList, TouchableOpacity, StyleSheet,
   RefreshControl,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { colors } from '../theme/colors';
@@ -42,21 +43,34 @@ function RideRow({ ride, onPress }: { ride: Ride; onPress: () => void }) {
   );
 }
 
-// Placeholder rider ID — in a real app this comes from auth context
-const PLACEHOLDER_RIDER_ID = 'me';
-
 export default function RideHistoryScreen() {
   const navigation = useNavigation<Nav>();
   const [rides, setRides] = useState<Ride[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [riderId, setRiderId] = useState<string | null>(null);
+
+  // Load riderId from auth storage
+  useEffect(() => {
+    AsyncStorage.getItem('riderId').then((id) => {
+      setRiderId(id);
+    }).catch(() => {
+      setRiderId(null);
+    });
+  }, []);
 
   const load = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
     setError(null);
     try {
-      const history = await getRideHistory(PLACEHOLDER_RIDER_ID);
+      const id = riderId ?? (await AsyncStorage.getItem('riderId'));
+      if (!id) {
+        setError('Not authenticated');
+        setRides([]);
+        return;
+      }
+      const history = await getRideHistory(id);
       setRides(history);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to load rides');
@@ -64,7 +78,7 @@ export default function RideHistoryScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [riderId]);
 
   useEffect(() => { load(); }, [load]);
 

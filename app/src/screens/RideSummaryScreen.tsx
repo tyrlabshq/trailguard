@@ -40,7 +40,7 @@ export default function RideSummaryScreen() {
   async function handleShare() {
     if (!stats) return;
     const text =
-      `PowderLink Ride Summary\n` +
+      `TrailGuard Ride Summary\n` +
       `${rideDate} — ${groupName}\n\n` +
       `Distance: ${stats.distanceMiles} mi\n` +
       `Duration: ${formatDuration(stats.durationSeconds)}\n` +
@@ -49,10 +49,10 @@ export default function RideSummaryScreen() {
       `Max Altitude: ${stats.maxAltitudeFt.toLocaleString()} ft\n` +
       `Elevation Gain: +${stats.elevationGainFt} ft\n` +
       `Elevation Loss: -${stats.elevationLossFt} ft\n\n` +
-      `Tracked with PowderLink`;
+      `Tracked with TrailGuard`;
 
     try {
-      await Share.share({ message: text, title: 'PowderLink Ride' });
+      await Share.share({ message: text, title: 'TrailGuard Ride' });
     } catch (e) {
       Alert.alert('Share failed', 'Could not share ride stats.');
     }

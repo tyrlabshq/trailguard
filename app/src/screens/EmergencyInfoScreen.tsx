@@ -27,7 +27,7 @@ try {
 }
 
 const BLOOD_TYPES = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Unknown'];
-const API_BASE = 'http://localhost:8420';
+const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8420';
 
 export default function EmergencyInfoScreen() {
   const [riderId, setRiderId] = useState<string | null>(null);
@@ -102,7 +102,7 @@ export default function EmergencyInfoScreen() {
     setContacts(contacts.filter((_, i) => i !== idx));
   };
 
-  const emergencyUrl = riderId ? `${API_BASE}/emergency/${riderId}` : null;
+  const emergencyUrl = riderId ? `${API_URL}/emergency/${riderId}` : null;
 
   if (loading) {
     return (

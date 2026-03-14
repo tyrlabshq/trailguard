@@ -23,6 +23,7 @@ target 'TrailGuard' do
 
   pod 'RNPermissions', :path => '../node_modules/react-native-permissions'
   pod 'RNKeychain', :path => '../node_modules/react-native-keychain'
+  pod 'RNAppleAuthentication', :path => '../node_modules/@invertase/react-native-apple-authentication'
 
   # Tests target removed — add back if you add a test target in Xcode
 

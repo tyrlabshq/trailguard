@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ActivityIndicator } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import OnboardingFlow, { ONBOARDING_KEY } from '../screens/onboarding/OnboardingFlow';
 
 // Tab indicator — a thin colored bar under the label
 function TabIcon({ color }: { color: string }) {
@@ -31,7 +33,7 @@ import RideReplayScreen from '../screens/RideReplayScreen';
 import CompassNavScreen from '../screens/CompassNavScreen';
 import GarminSetupScreen from '../screens/GarminSetupScreen';
 import MeshtasticSetupScreen from '../screens/MeshtasticSetupScreen';
-import OnboardingScreen from '../screens/OnboardingScreen';
+import OnboardingScreen from '../screens/OnboardingScreen'; // legacy — kept for reference
 import { GroupProvider } from '../context/GroupContext';
 import { colors } from '../theme/colors';
 import type { Ride } from '../api/rides';
@@ -161,14 +163,24 @@ function ProfileNavigator() {
 
 // ─── Root Tab Navigator ───────────────────────────────────────────────────────
 export default function AppNavigator() {
-  const [authChecked, setAuthChecked] = useState(false);
+  const [ready, setReady] = useState(false);
+  const [hasSeenOnboarding, setHasSeenOnboarding] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    // Check for an active Supabase session (replaces legacy AsyncStorage token check)
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    async function boot() {
+      // Check onboarding flag and auth session in parallel
+      const [seen, { data: { session } }] = await Promise.all([
+        AsyncStorage.getItem(ONBOARDING_KEY),
+        supabase.auth.getSession(),
+      ]);
+      setHasSeenOnboarding(!!seen);
       setIsAuthenticated(!!session);
-      setAuthChecked(true);
+      setReady(true);
+    }
+    boot().catch((e) => {
+      console.warn('[AppNavigator] boot error', e);
+      setReady(true);
     });
 
     // Keep auth state in sync if the session is refreshed or signed out
@@ -180,7 +192,7 @@ export default function AppNavigator() {
   }, []);
 
   // Splash while checking storage
-  if (!authChecked) {
+  if (!ready) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
         <ActivityIndicator color={colors.accent} />
@@ -188,7 +200,19 @@ export default function AppNavigator() {
     );
   }
 
-  // Show onboarding if no token
+  // First-run: show full onboarding flow (includes auth step)
+  if (!hasSeenOnboarding) {
+    return (
+      <OnboardingFlow
+        onComplete={() => {
+          setHasSeenOnboarding(true);
+          setIsAuthenticated(true);
+        }}
+      />
+    );
+  }
+
+  // Returning user, not authenticated (e.g. session expired) — legacy simple re-auth
   if (!isAuthenticated) {
     return <OnboardingScreen onAuthenticated={() => setIsAuthenticated(true)} />;
   }

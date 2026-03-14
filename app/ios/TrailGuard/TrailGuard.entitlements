@@ -23,6 +23,18 @@
 	  Once Apple approves, regenerate the provisioning profile and re-sign the app.
 	  ─────────────────────────────────────────────────────────────────────────
 	-->
+	<!--
+	  Sign in with Apple Entitlement
+	  ─────────────────────────────────────────────────────────────────────────
+	  Required for @invertase/react-native-apple-authentication.
+	  Must be enabled in your App ID on developer.apple.com under
+	  "Sign in with Apple" capability.
+	  ─────────────────────────────────────────────────────────────────────────
+	-->
+	<key>com.apple.developer.applesignin</key>
+	<array>
+		<string>Default</string>
+	</array>
 	<key>com.apple.developer.usernotifications.critical-alerts</key>
 	<true/>
 	<!--

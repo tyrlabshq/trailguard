@@ -17,12 +17,19 @@
       }
     },
     "production": {
+      "autoIncrement": true,
       "env": {
         "EXPO_PUBLIC_ENV": "production"
       }
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "ios": {
+        "appleId": "tj.clawdbot@gmail.com",
+        "ascAppId": "[TY_TO_FILL_FROM_APP_STORE_CONNECT]",
+        "bundleIdentifier": "com.trailguard.app"
+      }
+    }
   }
 }

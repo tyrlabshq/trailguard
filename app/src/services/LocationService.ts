@@ -424,7 +424,7 @@ export const LocationService = {
 
       // Android foreground service notification (required for background)
       notification: {
-        title: 'PowderLink Active',
+        title: 'TrailGuard Active',
         text: 'Sharing location with your group',
         sticky: true,
       },

@@ -1068,6 +1068,8 @@ PODS:
     - React-jsi (= 0.73.4)
     - React-logger (= 0.73.4)
     - React-perflogger (= 0.73.4)
+  - RNAppleAuthentication (2.5.1):
+    - React-Core
   - RNBackgroundFetch (4.3.0):
     - React-Core
     - TSBackgroundFetch (~> 4.0.0)
@@ -1171,6 +1173,7 @@ DEPENDENCIES:
   - React-runtimescheduler (from `../node_modules/react-native/ReactCommon/react/renderer/runtimescheduler`)
   - React-utils (from `../node_modules/react-native/ReactCommon/react/utils`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
+  - "RNAppleAuthentication (from `../node_modules/@invertase/react-native-apple-authentication`)"
   - RNBackgroundFetch (from `../node_modules/react-native-background-fetch`)
   - RNBackgroundGeolocation (from `../node_modules/react-native-background-geolocation`)
   - RNBleManager (from `../node_modules/react-native-ble-manager`)
@@ -1297,6 +1300,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/react/utils"
   ReactCommon:
     :path: "../node_modules/react-native/ReactCommon"
+  RNAppleAuthentication:
+    :path: "../node_modules/@invertase/react-native-apple-authentication"
   RNBackgroundFetch:
     :path: "../node_modules/react-native-background-fetch"
   RNBackgroundGeolocation:
@@ -1380,6 +1385,7 @@ SPEC CHECKSUMS:
   React-runtimescheduler: ceaeeb19e75912958625f72883d240640e8f40da
   React-utils: 8439db27c3745f6de9d67eb61f5600c8d624274c
   ReactCommon: cc18bd33c0fab03c67620da6a602dcc1704e66b4
+  RNAppleAuthentication: a89c9804592b38ed4ab11f0aee68d05ba12ad432
   RNBackgroundFetch: a5c9975c270d869a666364ade366d92f7435dd74
   RNBackgroundGeolocation: f4d90dd38ecc6a17a7ebdda0bf924d6d29f0d3bd
   RNBleManager: d37b9331cb50f1d46a454b1749c16a77efb72fc2
@@ -1397,6 +1403,6 @@ SPEC CHECKSUMS:
   Turf: c9eb11a65d96af58cac523460fd40fec5061b081
   Yoga: 1b901a6d6eeba4e8a2e8f308f708691cdb5db312
 
-PODFILE CHECKSUM: e06258740891f6ed2ebfefc2a29fd9884b1b234f
+PODFILE CHECKSUM: 5d702660216e5670aa1278f30e732b3536ce9b50
 
 COCOAPODS: 1.16.2
