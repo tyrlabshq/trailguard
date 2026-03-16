@@ -18,6 +18,12 @@ struct TrailGuardApp: App {
         AppReducer()
     }
 
+    init() {
+        // Register BGTask identifier before the app finishes launching.
+        // Must match Info.plist BGTaskSchedulerPermittedIdentifiers entry.
+        registerDMSBackgroundTask()
+    }
+
     var body: some Scene {
         WindowGroup {
             AppRootView(store: store)

@@ -21,6 +21,7 @@ struct AppReducer {
 
         var auth: AuthReducer.State = .init()
         var emergencyCard: EmergencyCardReducer.State = .init()
+        var deadManSwitch: DeadManSwitchReducer.State = .init()
 
         enum Route: Equatable {
             case loading
@@ -46,9 +47,13 @@ struct AppReducer {
         case signOutTapped
         case signedOut
 
+        // DMS auto-SOS escalation
+        case deadManSwitchSOSTriggered
+
         // Child actions
         case auth(AuthReducer.Action)
         case emergencyCard(EmergencyCardReducer.Action)
+        case deadManSwitch(DeadManSwitchReducer.Action)
     }
 
     // MARK: - Dependencies
@@ -64,6 +69,9 @@ struct AppReducer {
         }
         Scope(state: \.emergencyCard, action: \.emergencyCard) {
             EmergencyCardReducer()
+        }
+        Scope(state: \.deadManSwitch, action: \.deadManSwitch) {
+            DeadManSwitchReducer()
         }
 
         Reduce { state, action in
@@ -150,10 +158,21 @@ struct AppReducer {
                 state.route = .unauthenticated
                 state.auth = .init()
                 state.emergencyCard = .init()
+                // Deactivate DMS on sign out
+                state.deadManSwitch = .init()
+                return .none
+
+            // MARK: DMS SOS escalation
+            case .deadManSwitch(.dispatchSOS):
+                // DMS escalated to SOS — bubble up so the Ride tab can route to SOS screen
+                return .send(.deadManSwitchSOSTriggered)
+
+            case .deadManSwitchSOSTriggered:
+                // TODO: When SOSReducer is integrated into AppReducer, trigger it here
                 return .none
 
             // MARK: Passthrough child actions
-            case .auth, .emergencyCard:
+            case .auth, .emergencyCard, .deadManSwitch:
                 return .none
             }
         }

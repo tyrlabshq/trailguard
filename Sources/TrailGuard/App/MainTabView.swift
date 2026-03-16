@@ -12,11 +12,9 @@ struct MainTabView: View {
 
     var body: some View {
         TabView {
-            // MARK: Ride
-            ComingSoonView(
-                icon: "play.circle",
-                title: "Ride",
-                description: "Start a ride, track your route, and activate safety features."
+            // MARK: Ride (hosts Dead Man's Switch)
+            DeadManSwitchView(
+                store: store.scope(state: \.deadManSwitch, action: \.deadManSwitch)
             )
             .tabItem {
                 Label("Ride", systemImage: "play.circle")
