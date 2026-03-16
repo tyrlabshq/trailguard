@@ -24,6 +24,8 @@ struct AppReducer {
         var deadManSwitch: DeadManSwitchReducer.State = .init()
         var rideRecording: RideRecordingReducer.State = .init()
         var crashDetection: CrashDetectionReducer.State = .init()
+        var groupRide: GroupRideReducer.State = .init()
+        var trailConditions: TrailConditionsReducer.State = .init()
 
         enum Route: Equatable {
             case loading
@@ -61,6 +63,8 @@ struct AppReducer {
         case deadManSwitch(DeadManSwitchReducer.Action)
         case rideRecording(RideRecordingReducer.Action)
         case crashDetection(CrashDetectionReducer.Action)
+        case groupRide(GroupRideReducer.Action)
+        case trailConditions(TrailConditionsReducer.Action)
     }
 
     // MARK: - Dependencies
@@ -85,6 +89,12 @@ struct AppReducer {
         }
         Scope(state: \.crashDetection, action: \.crashDetection) {
             CrashDetectionReducer()
+        }
+        Scope(state: \.groupRide, action: \.groupRide) {
+            GroupRideReducer()
+        }
+        Scope(state: \.trailConditions, action: \.trailConditions) {
+            TrailConditionsReducer()
         }
 
         Reduce { state, action in
@@ -174,6 +184,8 @@ struct AppReducer {
                 state.deadManSwitch = .init()
                 state.rideRecording = .init()
                 state.crashDetection = .init()
+                state.groupRide = .init()
+                state.trailConditions = .init()
                 return .send(.crashDetection(.deactivate))
 
             // MARK: DMS SOS escalation
@@ -214,8 +226,13 @@ struct AppReducer {
                 // TODO: When SOSReducer is integrated, trigger SOS with crash context
                 return .none
 
+            // MARK: Group Ride SOS broadcast
+            case .groupRide(.sosBroadcastTapped):
+                // TODO: When SOSReducer is integrated, trigger group SOS broadcast
+                return .none
+
             // MARK: Passthrough child actions
-            case .auth, .emergencyCard, .deadManSwitch, .rideRecording, .crashDetection:
+            case .auth, .emergencyCard, .deadManSwitch, .rideRecording, .crashDetection, .groupRide, .trailConditions:
                 return .none
             }
         }

@@ -1,7 +1,7 @@
 // TrailConditionsReducer.swift
 // TrailGuard — Features/TrailConditions
 //
-// TCA reducer for trail condition browsing and reporting.
+// TCA reducer for trail condition browsing, filtering, upvoting, and reporting.
 
 import ComposableArchitecture
 import CoreLocation
@@ -17,35 +17,40 @@ struct TrailConditionsReducer {
         var conditions: [TrailCondition] = []
         var isLoading: Bool = false
         var error: String?
-        var selectedCondition: TrailCondition?
 
-        // Filter state
-        var filterCondition: TrailCondition.ConditionType?
-        var filterRideType: User.RideType?
-        var filterRecency: RecencyFilter = .last24Hours
+        // Filter
+        var selectedFilter: TrailCondition.ConditionType?
+        var searchText: String = ""
 
-        // Report form state
+        // Report sheet
         var isReportSheetPresented: Bool = false
         var reportForm: ReportForm = .init()
 
-        enum RecencyFilter: String, CaseIterable, Equatable {
-            case last24Hours = "24h"
-            case last3Days   = "3d"
-            case last7Days   = "7d"
+        // Computed: filtered list
+        var filteredConditions: [TrailCondition] {
+            var result = conditions
+            if let filter = selectedFilter {
+                result = result.filter { $0.condition == filter }
+            }
+            if !searchText.isEmpty {
+                let query = searchText.lowercased()
+                result = result.filter {
+                    $0.trailName.lowercased().contains(query) ||
+                    ($0.notes?.lowercased().contains(query) ?? false)
+                }
+            }
+            return result
         }
 
         struct ReportForm: Equatable {
-            var condition: TrailCondition.ConditionType?
-            var notes: String = ""
-            var rideType: User.RideType?
-            var coordinate: CLLocationCoordinate2D?
+            var trailName: String = ""
+            var conditionType: TrailCondition.ConditionType = .groomed
+            var severity: Int = 3
+            var description: String = ""
             var isSubmitting: Bool = false
 
-            static func == (lhs: Self, rhs: Self) -> Bool {
-                lhs.condition == rhs.condition &&
-                lhs.notes == rhs.notes &&
-                lhs.rideType == rhs.rideType &&
-                lhs.isSubmitting == rhs.isSubmitting
+            var isValid: Bool {
+                !trailName.trimmingCharacters(in: .whitespaces).isEmpty
             }
         }
     }
@@ -54,49 +59,55 @@ struct TrailConditionsReducer {
 
     enum Action {
         // Load
-        case loadConditions(center: CLLocationCoordinate2D, radiusMiles: Double)
+        case onAppear
         case conditionsLoaded([TrailCondition])
         case loadFailed(String)
 
         // Filter
-        case setConditionFilter(TrailCondition.ConditionType?)
-        case setRideTypeFilter(User.RideType?)
-        case setRecencyFilter(State.RecencyFilter)
-
-        // Selection
-        case conditionTapped(TrailCondition)
-        case conditionDetailDismissed
+        case filterChanged(TrailCondition.ConditionType?)
+        case searchTextChanged(String)
 
         // Upvote
         case upvoteTapped(id: UUID)
-        case upvoteConfirmed(id: UUID)
+        case upvoteSucceeded(id: UUID)
+        case upvoteFailed(id: UUID)
 
         // Report
         case reportButtonTapped
+        case reportSheetDismissed
+        case reportFormTrailNameChanged(String)
         case reportFormConditionChanged(TrailCondition.ConditionType)
-        case reportFormNotesChanged(String)
-        case reportFormRideTypeChanged(User.RideType?)
-        case reportFormCoordinateChanged(lat: Double, lng: Double)
+        case reportFormSeverityChanged(Int)
+        case reportFormDescriptionChanged(String)
         case submitReport
         case reportSubmitted(TrailCondition)
         case reportFailed(String)
-        case reportSheetDismissed
+
+        // Pull to refresh
+        case refreshTriggered
     }
 
     // MARK: - Dependencies
-    // TODO: @Dependency(\.supabaseClient) var supabaseClient
-    // TODO: @Dependency(\.locationService) var locationService
+
+    @Dependency(\.supabase) var supabase
+
+    // MARK: - Cancellation
+
+    private enum CancelID { case load }
 
     // MARK: - Body
 
     var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
-            case let .loadConditions(center, radius):
-                state.isLoading = true
-                // TODO: supabaseClient.fetchTrailConditions(near: center, radiusMiles: radius, filter: state.filterCondition, recency: state.filterRecency)
-                _ = (center, radius)
-                return .none
+
+            // MARK: Load
+            case .onAppear:
+                guard !state.isLoading, state.conditions.isEmpty else { return .none }
+                return loadConditions(state: &state)
+
+            case .refreshTriggered:
+                return loadConditions(state: &state)
 
             case let .conditionsLoaded(conditions):
                 state.isLoading = false
@@ -108,78 +119,133 @@ struct TrailConditionsReducer {
                 state.error = error
                 return .none
 
-            case let .setConditionFilter(filter):
-                state.filterCondition = filter
+            // MARK: Filter
+            case let .filterChanged(filter):
+                state.selectedFilter = filter
                 return .none
 
-            case let .setRideTypeFilter(rideType):
-                state.filterRideType = rideType
+            case let .searchTextChanged(text):
+                state.searchText = text
                 return .none
 
-            case let .setRecencyFilter(recency):
-                state.filterRecency = recency
-                return .none
-
-            case let .conditionTapped(condition):
-                state.selectedCondition = condition
-                return .none
-
-            case .conditionDetailDismissed:
-                state.selectedCondition = nil
-                return .none
-
+            // MARK: Upvote (optimistic)
             case let .upvoteTapped(id):
-                // TODO: Optimistic increment + supabaseClient.upvote(id)
-                _ = id
+                guard let idx = state.conditions.firstIndex(where: { $0.id == id }) else {
+                    return .none
+                }
+                state.conditions[idx].upvotes += 1
+                let currentCount = state.conditions[idx].upvotes
+                return .run { send in
+                    do {
+                        try await supabase
+                            .from("trail_conditions")
+                            .update(["upvotes": currentCount])
+                            .eq("id", value: id.uuidString)
+                            .execute()
+                        await send(.upvoteSucceeded(id: id))
+                    } catch {
+                        await send(.upvoteFailed(id: id))
+                    }
+                }
+
+            case .upvoteSucceeded:
                 return .none
 
-            case let .upvoteConfirmed(id):
-                _ = id
+            case let .upvoteFailed(id):
+                // Roll back optimistic increment
+                if let idx = state.conditions.firstIndex(where: { $0.id == id }) {
+                    state.conditions[idx].upvotes = max(0, state.conditions[idx].upvotes - 1)
+                }
                 return .none
 
+            // MARK: Report Sheet
             case .reportButtonTapped:
                 state.isReportSheetPresented = true
-                return .none
-
-            case let .reportFormConditionChanged(condition):
-                state.reportForm.condition = condition
-                return .none
-
-            case let .reportFormNotesChanged(notes):
-                // Enforce 140 char max
-                state.reportForm.notes = String(notes.prefix(140))
-                return .none
-
-            case let .reportFormRideTypeChanged(rideType):
-                state.reportForm.rideType = rideType
-                return .none
-
-            case let .reportFormCoordinateChanged(lat, lng):
-                state.reportForm.coordinate = CLLocationCoordinate2D(latitude: lat, longitude: lng)
-                return .none
-
-            case .submitReport:
-                guard state.reportForm.condition != nil else { return .none }
-                state.reportForm.isSubmitting = true
-                // TODO: supabaseClient.createTrailCondition(form: state.reportForm)
-                return .none
-
-            case let .reportSubmitted(condition):
-                state.reportForm.isSubmitting = false
-                state.isReportSheetPresented = false
-                state.conditions.insert(condition, at: 0) // Optimistic UI
-                return .none
-
-            case let .reportFailed(error):
-                state.reportForm.isSubmitting = false
-                state.error = error
+                state.reportForm = .init()
                 return .none
 
             case .reportSheetDismissed:
                 state.isReportSheetPresented = false
                 state.reportForm = .init()
                 return .none
+
+            case let .reportFormTrailNameChanged(name):
+                state.reportForm.trailName = name
+                return .none
+
+            case let .reportFormConditionChanged(condition):
+                state.reportForm.conditionType = condition
+                return .none
+
+            case let .reportFormSeverityChanged(severity):
+                state.reportForm.severity = max(1, min(5, severity))
+                return .none
+
+            case let .reportFormDescriptionChanged(desc):
+                state.reportForm.description = String(desc.prefix(280))
+                return .none
+
+            case .submitReport:
+                guard state.reportForm.isValid else { return .none }
+                state.reportForm.isSubmitting = true
+                let form = state.reportForm
+                return .run { send in
+                    do {
+                        let session = try await supabase.auth.session
+                        let payload: [String: String] = [
+                            "trail_name": form.trailName.trimmingCharacters(in: .whitespaces),
+                            "condition_type": form.conditionType.rawValue,
+                            "severity": "\(form.severity)",
+                            "description": form.description,
+                            "reporter_id": session.user.id.uuidString,
+                        ]
+                        let inserted: TrailCondition = try await supabase
+                            .from("trail_conditions")
+                            .insert(payload)
+                            .select()
+                            .single()
+                            .execute()
+                            .value
+                        await send(.reportSubmitted(inserted))
+                    } catch {
+                        await send(.reportFailed(error.localizedDescription))
+                    }
+                }
+
+            case let .reportSubmitted(condition):
+                state.reportForm.isSubmitting = false
+                state.isReportSheetPresented = false
+                state.conditions.insert(condition, at: 0)
+                state.reportForm = .init()
+                return .none
+
+            case let .reportFailed(error):
+                state.reportForm.isSubmitting = false
+                state.error = error
+                return .none
             }
         }
+    }
+
+    // MARK: - Helpers
+
+    private func loadConditions(state: inout State) -> Effect<Action> {
+        state.isLoading = true
+        state.error = nil
+        return .run { send in
+            do {
+                let conditions: [TrailCondition] = try await supabase
+                    .from("trail_conditions")
+                    .select()
+                    .order("created_at", ascending: false)
+                    .limit(100)
+                    .execute()
+                    .value
+                await send(.conditionsLoaded(conditions))
+            } catch {
+                await send(.loadFailed(error.localizedDescription))
+            }
+        }
+        .cancellable(id: CancelID.load, cancelInFlight: true)
     }
 }

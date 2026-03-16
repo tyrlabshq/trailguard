@@ -22,20 +22,16 @@ struct MainTabView: View {
             }
 
             // MARK: Group
-            ComingSoonView(
-                icon: "person.3",
-                title: "Group",
-                description: "Create or join a group ride. See your crew on the map in real time."
+            GroupRideView(
+                store: store.scope(state: \.groupRide, action: \.groupRide)
             )
             .tabItem {
                 Label("Group", systemImage: "person.3")
             }
 
             // MARK: Trails
-            ComingSoonView(
-                icon: "map",
-                title: "Trails",
-                description: "Explore trails near you, check conditions, and report hazards."
+            TrailConditionsView(
+                store: store.scope(state: \.trailConditions, action: \.trailConditions)
             )
             .tabItem {
                 Label("Trails", systemImage: "map")

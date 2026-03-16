@@ -8,9 +8,11 @@ import Foundation
 struct TrailCondition: Codable, Identifiable, Equatable {
     let id: UUID
     let reporterId: UUID
+    var trailName: String
     let lat: Double
     let lng: Double
     var condition: ConditionType
+    var severity: Int               // 1-5 scale
     var notes: String?              // 140 char max
     var rideType: User.RideType?    // nil = applicable to all ride types
     var upvotes: Int
@@ -54,13 +56,29 @@ struct TrailCondition: Codable, Identifiable, Equatable {
 
     // MARK: - Supabase Column Mapping
 
+    // MARK: - Time Ago
+
+    var timeAgo: String {
+        let interval = Date().timeIntervalSince(createdAt)
+        let minutes = Int(interval / 60)
+        if minutes < 60 { return "\(minutes)m ago" }
+        let hours = minutes / 60
+        if hours < 24 { return "\(hours)h ago" }
+        let days = hours / 24
+        return "\(days)d ago"
+    }
+
+    // MARK: - Supabase Column Mapping
+
     enum CodingKeys: String, CodingKey {
         case id
         case reporterId = "reporter_id"
+        case trailName  = "trail_name"
         case lat
         case lng
-        case condition
-        case notes
+        case condition  = "condition_type"
+        case severity
+        case notes      = "description"
         case rideType   = "ride_type"
         case upvotes
         case createdAt  = "created_at"
