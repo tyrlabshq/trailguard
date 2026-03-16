@@ -29,6 +29,14 @@ struct MainTabView: View {
                 Label("Group", systemImage: "person.3")
             }
 
+            // MARK: History
+            RideHistoryView(
+                store: store.scope(state: \.rideHistory, action: \.rideHistory)
+            )
+            .tabItem {
+                Label("History", systemImage: "clock.arrow.circlepath")
+            }
+
             // MARK: Trails
             TrailConditionsView(
                 store: store.scope(state: \.trailConditions, action: \.trailConditions)

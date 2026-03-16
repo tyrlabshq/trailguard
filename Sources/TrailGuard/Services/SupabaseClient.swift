@@ -77,15 +77,66 @@ struct GroupLocationUpdate: Equatable {
 
 extension SupabaseClientDep {
     /// Production Supabase client.
-    /// TODO: Load URL and anon key from Info.plist / environment
-    static func live(supabase: SupabaseClient) -> Self {
-        // TODO: Implement all closures against supabase client
-        fatalError("Live SupabaseClientDep not yet implemented")
+    /// NOTE: Reducers currently use the raw SupabaseClient directly via
+    /// @Dependency(\.supabase). This wrapper is provided for future use.
+    static func live(supabase client: SupabaseClient) -> Self {
+        Self(
+            signInWithApple: { _ in throw SupabaseClientDepError.notImplemented },
+            signInWithMagicLink: { _ in throw SupabaseClientDepError.notImplemented },
+            signOut: { try await client.auth.signOut() },
+            currentUser: { nil },
+            fetchEmergencyCard: { nil },
+            upsertEmergencyCard: { card in card },
+            startRide: { _, _ in throw SupabaseClientDepError.notImplemented },
+            endRide: { _, _ in throw SupabaseClientDepError.notImplemented },
+            fetchRideHistory: { _ in [] },
+            insertWaypoints: { _, _ in },
+            createAlert: { _, _, _ in throw SupabaseClientDepError.notImplemented },
+            createGroup: { _, _ in throw SupabaseClientDepError.notImplemented },
+            joinGroup: { _ in throw SupabaseClientDepError.notImplemented },
+            leaveGroup: { _ in },
+            updateMemberRole: { _, _, _ in },
+            fetchTrailConditions: { _, _, _ in [] },
+            createTrailCondition: { _, _, _, _, _ in throw SupabaseClientDepError.notImplemented },
+            upvoteTrailCondition: { _ in },
+            subscribeToGroupLocations: { _ in AsyncStream { $0.finish() } },
+            publishMyLocation: { _, _, _, _, _ in }
+        )
     }
 
     /// Test/preview client with in-memory mock responses.
     static var preview: Self {
-        // TODO: Return mock implementation for SwiftUI previews and XCTest
-        fatalError("Preview SupabaseClientDep not yet implemented")
+        Self(
+            signInWithApple: { _ in throw SupabaseClientDepError.notImplemented },
+            signInWithMagicLink: { _ in },
+            signOut: { },
+            currentUser: { nil },
+            fetchEmergencyCard: { nil },
+            upsertEmergencyCard: { card in card },
+            startRide: { _, _ in throw SupabaseClientDepError.notImplemented },
+            endRide: { _, _ in throw SupabaseClientDepError.notImplemented },
+            fetchRideHistory: { _ in [] },
+            insertWaypoints: { _, _ in },
+            createAlert: { _, _, _ in UUID() },
+            createGroup: { _, _ in throw SupabaseClientDepError.notImplemented },
+            joinGroup: { _ in throw SupabaseClientDepError.notImplemented },
+            leaveGroup: { _ in },
+            updateMemberRole: { _, _, _ in },
+            fetchTrailConditions: { _, _, _ in [] },
+            createTrailCondition: { _, _, _, _, _ in throw SupabaseClientDepError.notImplemented },
+            upvoteTrailCondition: { _ in },
+            subscribeToGroupLocations: { _ in AsyncStream { $0.finish() } },
+            publishMyLocation: { _, _, _, _, _ in }
+        )
+    }
+}
+
+// MARK: - Error Type
+
+enum SupabaseClientDepError: LocalizedError {
+    case notImplemented
+
+    var errorDescription: String? {
+        "This SupabaseClientDep method is not yet implemented."
     }
 }

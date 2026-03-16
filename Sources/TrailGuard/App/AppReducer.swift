@@ -28,6 +28,7 @@ struct AppReducer {
         var trailConditions: TrailConditionsReducer.State = .init()
         var sos: SOSReducer.State = .init()
         var emergencyContacts: EmergencyContactsReducer.State = .init()
+        var rideHistory: RideHistoryReducer.State = .init()
 
         enum Route: Equatable {
             case loading
@@ -69,6 +70,7 @@ struct AppReducer {
         case trailConditions(TrailConditionsReducer.Action)
         case sos(SOSReducer.Action)
         case emergencyContacts(EmergencyContactsReducer.Action)
+        case rideHistory(RideHistoryReducer.Action)
     }
 
     // MARK: - Dependencies
@@ -105,6 +107,9 @@ struct AppReducer {
         }
         Scope(state: \.emergencyContacts, action: \.emergencyContacts) {
             EmergencyContactsReducer()
+        }
+        Scope(state: \.rideHistory, action: \.rideHistory) {
+            RideHistoryReducer()
         }
 
         Reduce { state, action in
@@ -198,6 +203,7 @@ struct AppReducer {
                 state.trailConditions = .init()
                 state.sos = .init()
                 state.emergencyContacts = .init()
+                state.rideHistory = .init()
                 return .send(.crashDetection(.deactivate))
 
             // MARK: DMS SOS escalation
@@ -248,7 +254,7 @@ struct AppReducer {
                     await send(.sos(.cancelButtonTapped))
                 }
 
-            case .auth, .emergencyCard, .deadManSwitch, .rideRecording, .crashDetection, .groupRide, .trailConditions, .sos, .emergencyContacts:
+            case .auth, .emergencyCard, .deadManSwitch, .rideRecording, .crashDetection, .groupRide, .trailConditions, .sos, .emergencyContacts, .rideHistory:
                 return .none
             }
         }
