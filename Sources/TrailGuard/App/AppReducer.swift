@@ -26,6 +26,8 @@ struct AppReducer {
         var crashDetection: CrashDetectionReducer.State = .init()
         var groupRide: GroupRideReducer.State = .init()
         var trailConditions: TrailConditionsReducer.State = .init()
+        var sos: SOSReducer.State = .init()
+        var emergencyContacts: EmergencyContactsReducer.State = .init()
 
         enum Route: Equatable {
             case loading
@@ -65,6 +67,8 @@ struct AppReducer {
         case crashDetection(CrashDetectionReducer.Action)
         case groupRide(GroupRideReducer.Action)
         case trailConditions(TrailConditionsReducer.Action)
+        case sos(SOSReducer.Action)
+        case emergencyContacts(EmergencyContactsReducer.Action)
     }
 
     // MARK: - Dependencies
@@ -95,6 +99,12 @@ struct AppReducer {
         }
         Scope(state: \.trailConditions, action: \.trailConditions) {
             TrailConditionsReducer()
+        }
+        Scope(state: \.sos, action: \.sos) {
+            SOSReducer()
+        }
+        Scope(state: \.emergencyContacts, action: \.emergencyContacts) {
+            EmergencyContactsReducer()
         }
 
         Reduce { state, action in
@@ -186,6 +196,8 @@ struct AppReducer {
                 state.crashDetection = .init()
                 state.groupRide = .init()
                 state.trailConditions = .init()
+                state.sos = .init()
+                state.emergencyContacts = .init()
                 return .send(.crashDetection(.deactivate))
 
             // MARK: DMS SOS escalation
@@ -194,8 +206,7 @@ struct AppReducer {
                 return .send(.deadManSwitchSOSTriggered)
 
             case .deadManSwitchSOSTriggered:
-                // TODO: When SOSReducer is integrated into AppReducer, trigger it here
-                return .none
+                return .send(.sos(.triggerFromExternal))
 
             // MARK: Crash Detection → Ride Recording wiring
             case .rideRecording(.countdownFinished):
@@ -223,16 +234,21 @@ struct AppReducer {
                 return .send(.crashDetectionSOSTriggered)
 
             case .crashDetectionSOSTriggered:
-                // TODO: When SOSReducer is integrated, trigger SOS with crash context
-                return .none
+                return .send(.sos(.triggerFromExternal))
 
             // MARK: Group Ride SOS broadcast
             case .groupRide(.sosBroadcastTapped):
-                // TODO: When SOSReducer is integrated, trigger group SOS broadcast
-                return .none
+                return .send(.sos(.triggerFromExternal))
 
             // MARK: Passthrough child actions
-            case .auth, .emergencyCard, .deadManSwitch, .rideRecording, .crashDetection, .groupRide, .trailConditions:
+            // SOS cancelled — reset to idle (auto-dismiss overlay after brief delay)
+            case .sos(.cancelSOSConfirmed):
+                return .run { send in
+                    try await Task.sleep(for: .seconds(1))
+                    await send(.sos(.cancelButtonTapped))
+                }
+
+            case .auth, .emergencyCard, .deadManSwitch, .rideRecording, .crashDetection, .groupRide, .trailConditions, .sos, .emergencyContacts:
                 return .none
             }
         }

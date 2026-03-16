@@ -38,12 +38,24 @@ struct MainTabView: View {
             }
 
             // MARK: Profile
-            ProfilePlaceholderView(store: store)
+            ProfileView(store: store)
                 .tabItem {
                     Label("Profile", systemImage: "person.circle")
                 }
         }
         .tint(.orange)
+        .overlay(alignment: .bottomTrailing) {
+            // Floating SOS button — visible when SOS is idle
+            if !store.sos.isOverlayVisible {
+                SOSButton(store: store.scope(state: \.sos, action: \.sos))
+                    .padding(.trailing, 20)
+                    .padding(.bottom, 100)
+            }
+        }
+        .overlay {
+            // SOS confirmation / active overlay
+            SOSOverlayView(store: store.scope(state: \.sos, action: \.sos))
+        }
         .overlay {
             CrashDetectionView(
                 store: store.scope(state: \.crashDetection, action: \.crashDetection)
@@ -85,42 +97,35 @@ struct ComingSoonView: View {
     }
 }
 
-// MARK: - Profile (with sign out)
+// MARK: - Profile
 
-private struct ProfilePlaceholderView: View {
+private struct ProfileView: View {
     let store: StoreOf<AppReducer>
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 24) {
-                Image(systemName: "person.circle")
-                    .font(.system(size: 64))
-                    .foregroundStyle(.orange)
-
-                Text("Profile")
-                    .font(.title.bold())
-
-                Text("Coming Soon")
-                    .font(.headline)
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 6)
-                    .background(Color.orange)
-                    .clipShape(Capsule())
-
-                Spacer().frame(height: 20)
-
-                Button(role: .destructive) {
-                    store.send(.signOutTapped)
-                } label: {
-                    Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color(.secondarySystemBackground))
-                        .foregroundStyle(.red)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
+            List {
+                Section("Safety") {
+                    NavigationLink {
+                        EmergencyContactsView(
+                            store: store.scope(
+                                state: \.emergencyContacts,
+                                action: \.emergencyContacts
+                            )
+                        )
+                    } label: {
+                        Label("Emergency Contacts", systemImage: "person.crop.circle.badge.exclamationmark")
+                    }
                 }
-                .padding(.horizontal, 40)
+
+                Section {
+                    Button(role: .destructive) {
+                        store.send(.signOutTapped)
+                    } label: {
+                        Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
+                            .foregroundStyle(.red)
+                    }
+                }
             }
             .navigationTitle("Profile")
         }
