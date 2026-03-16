@@ -33,6 +33,7 @@ import { fetchMembers } from '../api/groups';
 import type { Ride, RideStats } from '../api/rides';
 import type { GroupMember } from '../api/groups';
 import type { ProfileStackParamList } from '../navigation/AppNavigator';
+import { useSubscription } from '../context/SubscriptionContext';
 
 // ─── Navigation types ─────────────────────────────────────────────────────────
 
@@ -80,6 +81,7 @@ export default function RideDetailScreen() {
   const route = useRoute<RideDetailRoute>();
   const navigation = useNavigation<Nav>();
   const { ride } = route.params;
+  const { isPro, triggerPaywall } = useSubscription();
   const stats: RideStats | null = ride.stats ?? null;
 
   const [members, setMembers] = useState<GroupMember[]>([]);
@@ -256,13 +258,21 @@ export default function RideDetailScreen() {
             </View>
           )}
 
-          {/* Replay overlay */}
+          {/* Replay overlay — Pro feature: Advanced Ride Analytics */}
           <TouchableOpacity
             style={styles.replayChip}
-            onPress={() => navigation.navigate('RideReplay', { rideId: ride.rideId })}
+            onPress={() => {
+              if (!isPro) {
+                triggerPaywall('Ride Replay is a TrailGuard Pro feature.');
+                return;
+              }
+              navigation.navigate('RideReplay', { rideId: ride.rideId });
+            }}
             activeOpacity={0.85}
           >
-            <Text style={styles.replayChipText}>▶  REPLAY</Text>
+            <Text style={styles.replayChipText}>
+              {isPro ? '▶  REPLAY' : '🔒  REPLAY (Pro)'}
+            </Text>
           </TouchableOpacity>
         </View>
 

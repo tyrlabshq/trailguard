@@ -42,6 +42,11 @@
 	</array>
 	<key>MBXAccessToken</key>
 	<string>$(MAPBOX_ACCESS_TOKEN)</string>
+	<!-- RevenueCat API Key — set REVENUECAT_API_KEY as an EAS secret or in your .env.
+	     Get your iOS public key at: https://app.revenuecat.com/
+	     Format: appl_xxxxxxxxxxxxxxxxxxxxxxxx -->
+	<key>REVENUECAT_API_KEY</key>
+	<string>$(REVENUECAT_API_KEY)</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>TrailGuard uses local network and Bluetooth to connect your device directly with nearby riders for offline group tracking when there's no internet.</string>
 	<key>NSBonjourServices</key>

@@ -13,7 +13,7 @@ import type { SignalSource } from '../../../shared/types';
 const ENV = process.env as Record<string, string | undefined>;
 
 const WS_URL = ENV.EXPO_PUBLIC_WS_URL ?? 'ws://localhost:3001';
-const API_URL = ENV.EXPO_PUBLIC_API_URL ?? 'http://localhost:3001';
+const API_URL = ENV.EXPO_PUBLIC_API_URL ?? 'https://api.trailguard.app';
 
 /**
  * Returns the rider's current signal source.

@@ -24,6 +24,9 @@ target 'TrailGuard' do
   pod 'RNPermissions', :path => '../node_modules/react-native-permissions'
   pod 'RNKeychain', :path => '../node_modules/react-native-keychain'
   pod 'RNAppleAuthentication', :path => '../node_modules/@invertase/react-native-apple-authentication'
+  # RevenueCat — IAP/subscription management (Task #1015)
+  pod 'PurchasesHybridCommon', '13.28.0'
+  pod 'RevenueCat', '5.20.0'
 
   # Tests target removed — add back if you add a test target in Xcode
 

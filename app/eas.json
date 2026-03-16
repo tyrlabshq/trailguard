@@ -19,7 +19,9 @@
     "production": {
       "autoIncrement": true,
       "env": {
-        "EXPO_PUBLIC_ENV": "production"
+        "EXPO_PUBLIC_ENV": "production",
+        "EXPO_PUBLIC_API_URL": "https://api.trailguard.app",
+        "EXPO_PUBLIC_WS_URL": "wss://api.trailguard.app"
       }
     }
   },

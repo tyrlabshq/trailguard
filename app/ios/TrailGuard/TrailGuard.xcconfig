@@ -10,3 +10,6 @@
 // the next time `pod install` runs, chaining this file into the build.
 
 MAPBOX_ACCESS_TOKEN = $(MAPBOX_ACCESS_TOKEN)
+# RevenueCat iOS public API key — set in environment or EAS secrets
+# Get your key at: https://app.revenuecat.com/
+REVENUECAT_API_KEY = $(REVENUECAT_API_KEY)

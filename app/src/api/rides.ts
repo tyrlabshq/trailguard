@@ -1,6 +1,6 @@
 import { getAuthHeader } from './authHeader';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8420';
+const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'https://api.trailguard.app';
 
 export interface RideStats {
   distanceMiles: number;

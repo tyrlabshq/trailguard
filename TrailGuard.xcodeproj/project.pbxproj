@@ -1,0 +1,682 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0C18D13F6C321DF72A91C04A /* SOSView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49251F22431473D2008D2EFC /* SOSView.swift */; };
+		1EC71553DDAFCF0BFC2793B5 /* Ride.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1637BD8D86703AB722DF9AEA /* Ride.swift */; };
+		27AE821C0B8CE1C753E12E81 /* EmergencyCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86957553430A8E6F9802B1C6 /* EmergencyCardView.swift */; };
+		2D48FF6EB381667B72ABCE65 /* DeadManSwitchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A1D72E2019797FBF47E083A /* DeadManSwitchView.swift */; };
+		38C9BE5BB1AFB98D44B3DD2B /* TrailCondition.swift in Sources */ = {isa = PBXBuildFile; fileRef = C28A43AD2F730AE0EB0CBB34 /* TrailCondition.swift */; };
+		47ABD85035C168754BBC0D10 /* SupabaseDependency.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0402C8341B6ECB1B1DFB5D0 /* SupabaseDependency.swift */; };
+		4919F7D14F203BC8E2109A16 /* TrailGuardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA3D85B39F5B89830E25EBE7 /* TrailGuardTests.swift */; };
+		5218B32AD82D92FD84E83A97 /* EmergencyCardReducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0C01A4583AE7351D60958C1 /* EmergencyCardReducer.swift */; };
+		5364B6BD9DA8B139B3E7CC0C /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6C3A8A1ABAA78AB86B77481 /* AuthView.swift */; };
+		55BC272022BE719E0B578BB6 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = ACB94D72FDE6C68218B2A50C /* Supabase */; };
+		55F259E0D46649BAF87900DB /* CrashDetectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 589C441C60E238DDC06B31B3 /* CrashDetectionView.swift */; };
+		59C30F9CD872FC9FE9C45A18 /* SOSReducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A87828D1732EF3909897593 /* SOSReducer.swift */; };
+		66B5098691E7526EEA010D94 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = C40EB5ADD01F87E3DE8463C3 /* User.swift */; };
+		671554C1A46291E21C51B089 /* TrailConditionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3E853946130847864DE05E5 /* TrailConditionsView.swift */; };
+		6DC3B49E9903F74C4CD15DE5 /* EmergencyCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6BF363BB297B9375BE5FC44 /* EmergencyCard.swift */; };
+		71FE7208FCF22F36BD12CFB8 /* GroupRideReducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82803E1C8DBD94007793FCDF /* GroupRideReducer.swift */; };
+		795C43D6A5C9C095EDBFF465 /* TrailConditionsReducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60621533795001EA877AD868 /* TrailConditionsReducer.swift */; };
+		79F4D296B3AFB9E9FCD2E4D2 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7165C4DD8EEF3A37ABC7A414 /* NotificationService.swift */; };
+		7F9E828660D2EBF5A942D334 /* LocationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB77001B3B1E1938DE95623A /* LocationService.swift */; };
+		958973462FF440F19229874D /* SupabaseClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0A02352EBF13B7B9B91F711 /* SupabaseClient.swift */; };
+		B33493B8A20C7DDAA0537DBF /* AppEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 114D00D314E3145E30B3D4F7 /* AppEntry.swift */; };
+		B9B613D7F792F6FCCE9CBB31 /* AuthReducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B69D37CAC7D1F855D58541A /* AuthReducer.swift */; };
+		CEFBB2C8F17ED86EA3FED7EF /* CrashDetectionReducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23787AC11E09F1D4453E5C9F /* CrashDetectionReducer.swift */; };
+		D59A01C43DB35FC2DB9B28EA /* DeadManSwitchReducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63D6DEE070F1466DAF1D3A08 /* DeadManSwitchReducer.swift */; };
+		DF4A4360719789E79D687CCF /* AppReducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47414CE861C211D1E492EC1A /* AppReducer.swift */; };
+		E1CF9FFE81D0378CFCBCF454 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = 6FDFEE9A147520BC7ADEEEF0 /* ComposableArchitecture */; };
+		E601770755F10516644A9E48 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 729C204E2793F6446AC7F165 /* MainTabView.swift */; };
+		F164C97F68ADE0EC3CEBCB6A /* MotionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C5CE3724E3A2C65FD3572E9 /* MotionService.swift */; };
+		F244FEDBB0B825B6C7349D0B /* GroupRideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10A7FC9D1021B2DBBD26641 /* GroupRideView.swift */; };
+		F9BB32D4915E8C832C538281 /* GroupSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 483E13D5C684C26F6BEC2924 /* GroupSession.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		32A93B4F2069144DD700F9D8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 16899B174D86240DD1B75FA3 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 204AA3DCE358B4F4C76B381D;
+			remoteInfo = TrailGuard;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		114D00D314E3145E30B3D4F7 /* AppEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEntry.swift; sourceTree = "<group>"; };
+		1637BD8D86703AB722DF9AEA /* Ride.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Ride.swift; sourceTree = "<group>"; };
+		23787AC11E09F1D4453E5C9F /* CrashDetectionReducer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashDetectionReducer.swift; sourceTree = "<group>"; };
+		29C254B73EE71AFB020FD93E /* TrailGuard.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TrailGuard.entitlements; sourceTree = "<group>"; };
+		47414CE861C211D1E492EC1A /* AppReducer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppReducer.swift; sourceTree = "<group>"; };
+		483E13D5C684C26F6BEC2924 /* GroupSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupSession.swift; sourceTree = "<group>"; };
+		49251F22431473D2008D2EFC /* SOSView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SOSView.swift; sourceTree = "<group>"; };
+		4CA5A8DAC2FF22624436A993 /* TrailGuardTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = TrailGuardTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		589C441C60E238DDC06B31B3 /* CrashDetectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashDetectionView.swift; sourceTree = "<group>"; };
+		60621533795001EA877AD868 /* TrailConditionsReducer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrailConditionsReducer.swift; sourceTree = "<group>"; };
+		63D6DEE070F1466DAF1D3A08 /* DeadManSwitchReducer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeadManSwitchReducer.swift; sourceTree = "<group>"; };
+		6A1D72E2019797FBF47E083A /* DeadManSwitchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeadManSwitchView.swift; sourceTree = "<group>"; };
+		6C5CE3724E3A2C65FD3572E9 /* MotionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionService.swift; sourceTree = "<group>"; };
+		7165C4DD8EEF3A37ABC7A414 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
+		729C204E2793F6446AC7F165 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		790256BA7B750F0CC950B6A2 /* .gitkeep */ = {isa = PBXFileReference; path = .gitkeep; sourceTree = "<group>"; };
+		7A87828D1732EF3909897593 /* SOSReducer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SOSReducer.swift; sourceTree = "<group>"; };
+		82803E1C8DBD94007793FCDF /* GroupRideReducer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupRideReducer.swift; sourceTree = "<group>"; };
+		84B76875FB40F62119685323 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		86957553430A8E6F9802B1C6 /* EmergencyCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmergencyCardView.swift; sourceTree = "<group>"; };
+		9B69D37CAC7D1F855D58541A /* AuthReducer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthReducer.swift; sourceTree = "<group>"; };
+		A0A02352EBF13B7B9B91F711 /* SupabaseClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseClient.swift; sourceTree = "<group>"; };
+		A10A7FC9D1021B2DBBD26641 /* GroupRideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupRideView.swift; sourceTree = "<group>"; };
+		A3B44446E15CFEE72360BEFB /* TrailGuard.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = TrailGuard.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C28A43AD2F730AE0EB0CBB34 /* TrailCondition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrailCondition.swift; sourceTree = "<group>"; };
+		C3E853946130847864DE05E5 /* TrailConditionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrailConditionsView.swift; sourceTree = "<group>"; };
+		C40EB5ADD01F87E3DE8463C3 /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
+		C6C3A8A1ABAA78AB86B77481 /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthView.swift; sourceTree = "<group>"; };
+		CB77001B3B1E1938DE95623A /* LocationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationService.swift; sourceTree = "<group>"; };
+		E0402C8341B6ECB1B1DFB5D0 /* SupabaseDependency.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseDependency.swift; sourceTree = "<group>"; };
+		E0C01A4583AE7351D60958C1 /* EmergencyCardReducer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmergencyCardReducer.swift; sourceTree = "<group>"; };
+		E6BF363BB297B9375BE5FC44 /* EmergencyCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmergencyCard.swift; sourceTree = "<group>"; };
+		FA3D85B39F5B89830E25EBE7 /* TrailGuardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrailGuardTests.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		248BC795CF80FCAA0253F727 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E1CF9FFE81D0378CFCBCF454 /* ComposableArchitecture in Frameworks */,
+				55BC272022BE719E0B578BB6 /* Supabase in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0F1B0DDE1FBE92E33211294D /* TrailConditions */ = {
+			isa = PBXGroup;
+			children = (
+				60621533795001EA877AD868 /* TrailConditionsReducer.swift */,
+				C3E853946130847864DE05E5 /* TrailConditionsView.swift */,
+			);
+			path = TrailConditions;
+			sourceTree = "<group>";
+		};
+		10CA0298D970CC3AEDFAC901 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				5D3D5FF663F43D229DA74DA8 /* TrailGuardTests */,
+			);
+			path = Tests;
+			sourceTree = "<group>";
+		};
+		1B208915C5D28BECF0E6390F /* GroupRide */ = {
+			isa = PBXGroup;
+			children = (
+				82803E1C8DBD94007793FCDF /* GroupRideReducer.swift */,
+				A10A7FC9D1021B2DBBD26641 /* GroupRideView.swift */,
+			);
+			path = GroupRide;
+			sourceTree = "<group>";
+		};
+		1C8660A2F9000197B15B1042 /* CrashDetection */ = {
+			isa = PBXGroup;
+			children = (
+				23787AC11E09F1D4453E5C9F /* CrashDetectionReducer.swift */,
+				589C441C60E238DDC06B31B3 /* CrashDetectionView.swift */,
+			);
+			path = CrashDetection;
+			sourceTree = "<group>";
+		};
+		2059FEFF0EFB1A8DDA5D829C /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				FC2B8476C918A43FB0C75FE0 /* TrailGuard */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		3B62D25EE0C3D7AC6292EEB7 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				E6BF363BB297B9375BE5FC44 /* EmergencyCard.swift */,
+				483E13D5C684C26F6BEC2924 /* GroupSession.swift */,
+				1637BD8D86703AB722DF9AEA /* Ride.swift */,
+				C28A43AD2F730AE0EB0CBB34 /* TrailCondition.swift */,
+				C40EB5ADD01F87E3DE8463C3 /* User.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		4E2E2F8A0AA2E7D1255F8D77 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A3B44446E15CFEE72360BEFB /* TrailGuard.app */,
+				4CA5A8DAC2FF22624436A993 /* TrailGuardTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		4F41A0DE7E488FBD84555B50 = {
+			isa = PBXGroup;
+			children = (
+				2059FEFF0EFB1A8DDA5D829C /* Sources */,
+				10CA0298D970CC3AEDFAC901 /* Tests */,
+				4E2E2F8A0AA2E7D1255F8D77 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		5D3D5FF663F43D229DA74DA8 /* TrailGuardTests */ = {
+			isa = PBXGroup;
+			children = (
+				FA3D85B39F5B89830E25EBE7 /* TrailGuardTests.swift */,
+			);
+			path = TrailGuardTests;
+			sourceTree = "<group>";
+		};
+		6CE2E5AF9EC410CE12B0F889 /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				FA7BBA1343ECEDD68BED484D /* Components */,
+			);
+			path = UI;
+			sourceTree = "<group>";
+		};
+		732641CF9CA7AE10F668C21E /* Auth */ = {
+			isa = PBXGroup;
+			children = (
+				9B69D37CAC7D1F855D58541A /* AuthReducer.swift */,
+				C6C3A8A1ABAA78AB86B77481 /* AuthView.swift */,
+			);
+			path = Auth;
+			sourceTree = "<group>";
+		};
+		743A90A1323F2975BA5C1C86 /* EmergencyCard */ = {
+			isa = PBXGroup;
+			children = (
+				E0C01A4583AE7351D60958C1 /* EmergencyCardReducer.swift */,
+				86957553430A8E6F9802B1C6 /* EmergencyCardView.swift */,
+			);
+			path = EmergencyCard;
+			sourceTree = "<group>";
+		};
+		773884E9060ECDB1BE78AABB /* App */ = {
+			isa = PBXGroup;
+			children = (
+				114D00D314E3145E30B3D4F7 /* AppEntry.swift */,
+				47414CE861C211D1E492EC1A /* AppReducer.swift */,
+				729C204E2793F6446AC7F165 /* MainTabView.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		7F4C0A3D862D2138D9CB3B29 /* SOS */ = {
+			isa = PBXGroup;
+			children = (
+				7A87828D1732EF3909897593 /* SOSReducer.swift */,
+				49251F22431473D2008D2EFC /* SOSView.swift */,
+			);
+			path = SOS;
+			sourceTree = "<group>";
+		};
+		8F8897D9C59B1E1CE09577C7 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				CB77001B3B1E1938DE95623A /* LocationService.swift */,
+				6C5CE3724E3A2C65FD3572E9 /* MotionService.swift */,
+				7165C4DD8EEF3A37ABC7A414 /* NotificationService.swift */,
+				A0A02352EBF13B7B9B91F711 /* SupabaseClient.swift */,
+				E0402C8341B6ECB1B1DFB5D0 /* SupabaseDependency.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		A784C973C8567B1BFB923CCA /* DeadManSwitch */ = {
+			isa = PBXGroup;
+			children = (
+				63D6DEE070F1466DAF1D3A08 /* DeadManSwitchReducer.swift */,
+				6A1D72E2019797FBF47E083A /* DeadManSwitchView.swift */,
+			);
+			path = DeadManSwitch;
+			sourceTree = "<group>";
+		};
+		AEBF2E10549B6862F6CA1FE5 /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				732641CF9CA7AE10F668C21E /* Auth */,
+				1C8660A2F9000197B15B1042 /* CrashDetection */,
+				A784C973C8567B1BFB923CCA /* DeadManSwitch */,
+				743A90A1323F2975BA5C1C86 /* EmergencyCard */,
+				1B208915C5D28BECF0E6390F /* GroupRide */,
+				7F4C0A3D862D2138D9CB3B29 /* SOS */,
+				0F1B0DDE1FBE92E33211294D /* TrailConditions */,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		FA7BBA1343ECEDD68BED484D /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				790256BA7B750F0CC950B6A2 /* .gitkeep */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		FC2B8476C918A43FB0C75FE0 /* TrailGuard */ = {
+			isa = PBXGroup;
+			children = (
+				84B76875FB40F62119685323 /* Info.plist */,
+				29C254B73EE71AFB020FD93E /* TrailGuard.entitlements */,
+				773884E9060ECDB1BE78AABB /* App */,
+				AEBF2E10549B6862F6CA1FE5 /* Features */,
+				3B62D25EE0C3D7AC6292EEB7 /* Models */,
+				8F8897D9C59B1E1CE09577C7 /* Services */,
+				6CE2E5AF9EC410CE12B0F889 /* UI */,
+			);
+			path = TrailGuard;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		204AA3DCE358B4F4C76B381D /* TrailGuard */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8AF00BAB91456A0020B74BAD /* Build configuration list for PBXNativeTarget "TrailGuard" */;
+			buildPhases = (
+				59DBA32F0B3CF5EE6C3CB730 /* Sources */,
+				248BC795CF80FCAA0253F727 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = TrailGuard;
+			packageProductDependencies = (
+				6FDFEE9A147520BC7ADEEEF0 /* ComposableArchitecture */,
+				ACB94D72FDE6C68218B2A50C /* Supabase */,
+			);
+			productName = TrailGuard;
+			productReference = A3B44446E15CFEE72360BEFB /* TrailGuard.app */;
+			productType = "com.apple.product-type.application";
+		};
+		9CD5650D1F6254DE35D7D1FE /* TrailGuardTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B7F0A84E6A455586772C4A0E /* Build configuration list for PBXNativeTarget "TrailGuardTests" */;
+			buildPhases = (
+				3A3FBEF276EBE984812FF41B /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				25ACD439D360E24046646E35 /* PBXTargetDependency */,
+			);
+			name = TrailGuardTests;
+			packageProductDependencies = (
+			);
+			productName = TrailGuardTests;
+			productReference = 4CA5A8DAC2FF22624436A993 /* TrailGuardTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		16899B174D86240DD1B75FA3 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					204AA3DCE358B4F4C76B381D = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 12C6C7176FDE174ED5DA873C /* Build configuration list for PBXProject "TrailGuard" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 4F41A0DE7E488FBD84555B50;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				8B7971B40B4CDB1962214D3A /* XCRemoteSwiftPackageReference "swift-composable-architecture" */,
+				E3A25E051AA29CB2D8F2A5F7 /* XCRemoteSwiftPackageReference "supabase-swift" */,
+			);
+			preferredProjectObjectVersion = 77;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				204AA3DCE358B4F4C76B381D /* TrailGuard */,
+				9CD5650D1F6254DE35D7D1FE /* TrailGuardTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		3A3FBEF276EBE984812FF41B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4919F7D14F203BC8E2109A16 /* TrailGuardTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		59DBA32F0B3CF5EE6C3CB730 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B33493B8A20C7DDAA0537DBF /* AppEntry.swift in Sources */,
+				DF4A4360719789E79D687CCF /* AppReducer.swift in Sources */,
+				B9B613D7F792F6FCCE9CBB31 /* AuthReducer.swift in Sources */,
+				5364B6BD9DA8B139B3E7CC0C /* AuthView.swift in Sources */,
+				CEFBB2C8F17ED86EA3FED7EF /* CrashDetectionReducer.swift in Sources */,
+				55F259E0D46649BAF87900DB /* CrashDetectionView.swift in Sources */,
+				D59A01C43DB35FC2DB9B28EA /* DeadManSwitchReducer.swift in Sources */,
+				2D48FF6EB381667B72ABCE65 /* DeadManSwitchView.swift in Sources */,
+				6DC3B49E9903F74C4CD15DE5 /* EmergencyCard.swift in Sources */,
+				5218B32AD82D92FD84E83A97 /* EmergencyCardReducer.swift in Sources */,
+				27AE821C0B8CE1C753E12E81 /* EmergencyCardView.swift in Sources */,
+				71FE7208FCF22F36BD12CFB8 /* GroupRideReducer.swift in Sources */,
+				F244FEDBB0B825B6C7349D0B /* GroupRideView.swift in Sources */,
+				F9BB32D4915E8C832C538281 /* GroupSession.swift in Sources */,
+				7F9E828660D2EBF5A942D334 /* LocationService.swift in Sources */,
+				E601770755F10516644A9E48 /* MainTabView.swift in Sources */,
+				F164C97F68ADE0EC3CEBCB6A /* MotionService.swift in Sources */,
+				79F4D296B3AFB9E9FCD2E4D2 /* NotificationService.swift in Sources */,
+				1EC71553DDAFCF0BFC2793B5 /* Ride.swift in Sources */,
+				59C30F9CD872FC9FE9C45A18 /* SOSReducer.swift in Sources */,
+				0C18D13F6C321DF72A91C04A /* SOSView.swift in Sources */,
+				958973462FF440F19229874D /* SupabaseClient.swift in Sources */,
+				47ABD85035C168754BBC0D10 /* SupabaseDependency.swift in Sources */,
+				38C9BE5BB1AFB98D44B3DD2B /* TrailCondition.swift in Sources */,
+				795C43D6A5C9C095EDBFF465 /* TrailConditionsReducer.swift in Sources */,
+				671554C1A46291E21C51B089 /* TrailConditionsView.swift in Sources */,
+				66B5098691E7526EEA010D94 /* User.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		25ACD439D360E24046646E35 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 204AA3DCE358B4F4C76B381D /* TrailGuard */;
+			targetProxy = 32A93B4F2069144DD700F9D8 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		09B4B32088A1D0124A17FA3A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Sources/TrailGuard/TrailGuard.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				INFOPLIST_FILE = Sources/TrailGuard/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.trailguard.app;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		A226F46D10A6AA11BEE3B48B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.trailguard.app.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TrailGuard.app/TrailGuard";
+			};
+			name = Debug;
+		};
+		BBA35308300EF7F256AB2ECC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.trailguard.app.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TrailGuard.app/TrailGuard";
+			};
+			name = Release;
+		};
+		D43D1AFA17DBAFA5984D3904 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Sources/TrailGuard/TrailGuard.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				INFOPLIST_FILE = Sources/TrailGuard/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.trailguard.app;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		F1B78D2D370F6DA18C6A7C35 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		F2D06D9F0BAB6B6764B5A3AC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		12C6C7176FDE174ED5DA873C /* Build configuration list for PBXProject "TrailGuard" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F1B78D2D370F6DA18C6A7C35 /* Debug */,
+				F2D06D9F0BAB6B6764B5A3AC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		8AF00BAB91456A0020B74BAD /* Build configuration list for PBXNativeTarget "TrailGuard" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				09B4B32088A1D0124A17FA3A /* Debug */,
+				D43D1AFA17DBAFA5984D3904 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		B7F0A84E6A455586772C4A0E /* Build configuration list for PBXNativeTarget "TrailGuardTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A226F46D10A6AA11BEE3B48B /* Debug */,
+				BBA35308300EF7F256AB2ECC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		8B7971B40B4CDB1962214D3A /* XCRemoteSwiftPackageReference "swift-composable-architecture" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pointfreeco/swift-composable-architecture";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.9.0;
+			};
+		};
+		E3A25E051AA29CB2D8F2A5F7 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.5.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		6FDFEE9A147520BC7ADEEEF0 /* ComposableArchitecture */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8B7971B40B4CDB1962214D3A /* XCRemoteSwiftPackageReference "swift-composable-architecture" */;
+			productName = ComposableArchitecture;
+		};
+		ACB94D72FDE6C68218B2A50C /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E3A25E051AA29CB2D8F2A5F7 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 16899B174D86240DD1B75FA3 /* Project object */;
+}

@@ -26,6 +26,8 @@ import { joinGroup } from '../api/groups';
 import { useGroup } from '../context/GroupContext';
 import { colors } from '../theme/colors';
 import type { MapStackParamList } from '../navigation/AppNavigator';
+import { useSubscription } from '../context/SubscriptionContext';
+import { SUBSCRIPTION_CONFIG } from '../services/SubscriptionService';
 
 type Nav = StackNavigationProp<MapStackParamList, 'GroupJoin'>;
 
@@ -34,6 +36,7 @@ export default function GroupJoinScreen() {
   const { setGroup } = useGroup();
   const insets = useSafeAreaInsets();
   const inputRef = useRef<TextInput>(null);
+  const { isPro, triggerPaywall } = useSubscription();
 
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
@@ -54,6 +57,18 @@ export default function GroupJoinScreen() {
     setLoading(true);
     try {
       const res = await joinGroup(trimmed);
+
+      // Pro gate: free tier allows groups up to SUBSCRIPTION_CONFIG.freeGroupSizeLimit members.
+      // The joining rider is the +1, so check if current member count meets the free limit.
+      const wouldExceedFreeLimit = res.members.length >= SUBSCRIPTION_CONFIG.freeGroupSizeLimit;
+      if (wouldExceedFreeLimit && !isPro) {
+        triggerPaywall(
+          `This group has ${res.members.length} riders. Upgrade to Pro for unlimited group size.`
+        );
+        setLoading(false);
+        return;
+      }
+
       // Set in context — HomeOverlay will collapse when MapScreen detects group
       setGroup({ groupId: res.groupId, code: trimmed, name: res.name, role: 'member' });
       setJoinedGroupName(res.name);

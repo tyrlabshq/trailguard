@@ -27,7 +27,7 @@ try {
 }
 
 const BLOOD_TYPES = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Unknown'];
-const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8420';
+const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'https://api.trailguard.app';
 
 export default function EmergencyInfoScreen() {
   const [riderId, setRiderId] = useState<string | null>(null);

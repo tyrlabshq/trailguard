@@ -28,11 +28,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { garminService, type GarminLocation } from '../services/GarminService';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
+import { useSubscription } from '../context/SubscriptionContext';
 
 const STORAGE_KEY = 'garmin_mapshare_id';
 const GARMIN_HELP_URL = 'https://explore.garmin.com/en-US/inreach/#mapshare';
 
 export default function GarminSetupScreen() {
+  const { isPro, triggerPaywall } = useSubscription();
   const [inputId, setInputId] = useState('');
   const [savedId, setSavedId] = useState<string | null>(null);
   const [lastLocation, setLastLocation] = useState<GarminLocation | null>(null);
@@ -53,6 +55,12 @@ export default function GarminSetupScreen() {
   }, []);
 
   const handleSave = useCallback(async () => {
+    // Satellite Bridge is a Pro-only feature (Task #1015)
+    if (!isPro) {
+      triggerPaywall('Satellite Bridge requires TrailGuard Pro.');
+      return;
+    }
+
     const trimmed = inputId.trim();
     if (!trimmed) {
       Alert.alert('Missing ID', 'Please enter your Garmin MapShare identifier.');

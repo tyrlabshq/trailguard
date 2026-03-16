@@ -27,9 +27,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { check, request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 import notifee, { AuthorizationStatus } from '@notifee/react-native';
 import appleAuth, {
-  AppleAuthRequestScope,
-  AppleAuthRequestOperation,
-  AppleAuthError,
+  AppleRequestScope,
+  AppleRequestOperation,
+  AppleError,
 } from '@invertase/react-native-apple-authentication';
 import { supabase } from '../../lib/supabase';
 import { colors } from '../../theme/colors';
@@ -315,8 +315,8 @@ function AuthStep({ loading, setLoading, onNext }: AuthStepProps) {
     setLoading(true);
     try {
       const appleAuthResponse = await appleAuth.performRequest({
-        requestedOperation: AppleAuthRequestOperation.LOGIN,
-        requestedScopes: [AppleAuthRequestScope.EMAIL, AppleAuthRequestScope.FULL_NAME],
+        requestedOperation: AppleRequestOperation.LOGIN,
+        requestedScopes: [AppleRequestScope.EMAIL, AppleRequestScope.FULL_NAME],
       });
 
       const { identityToken, user, email, fullName } = appleAuthResponse;
@@ -348,7 +348,7 @@ function AuthStep({ loading, setLoading, onNext }: AuthStepProps) {
       onNext();
     } catch (err: unknown) {
       // AppleAuthError.CANCELED = 1001 — user dismissed the sheet, not an error
-      if ((err as { code?: number })?.code === AppleAuthError.CANCELED) {
+      if ((err as { code?: string })?.code === AppleError.CANCELED) {
         console.log('[Auth] Apple sign-in cancelled by user');
         // Don't show an error message for user-initiated cancel
         setLoading(false);

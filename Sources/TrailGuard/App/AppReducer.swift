@@ -1,9 +1,14 @@
 // AppReducer.swift
 // TrailGuard
 //
-// Root TCA reducer. Composes all feature reducers and owns top-level navigation state.
+// Root TCA reducer. Owns top-level navigation state:
+//   .unauthenticated → Auth screens
+//   .onboarding      → Emergency card setup
+//   .main            → Main tab bar
 
 import ComposableArchitecture
+import Foundation
+import Supabase
 
 @Reducer
 struct AppReducer {
@@ -12,59 +17,145 @@ struct AppReducer {
 
     @ObservableState
     struct State: Equatable {
-        // TODO: Add auth state (authenticated / unauthenticated / loading)
-        var isAuthenticated: Bool = false
+        var route: Route = .loading
 
-        // TODO: Add onboarding completion flag
-        var hasCompletedOnboarding: Bool = false
+        var auth: AuthReducer.State = .init()
+        var emergencyCard: EmergencyCardReducer.State = .init()
 
-        // TODO: Embed feature states
-        // var crashDetection: CrashDetectionReducer.State = .init()
-        // var deadManSwitch: DeadManSwitchReducer.State = .init()
-        // var groupRide: GroupRideReducer.State = .init()
-        // var trailConditions: TrailConditionsReducer.State = .init()
-        // var sos: SOSReducer.State = .init()
-        // var emergencyCard: EmergencyCardReducer.State = .init()
+        enum Route: Equatable {
+            case loading
+            case unauthenticated
+            case onboarding
+            case main
+        }
     }
 
     // MARK: - Action
 
     enum Action {
-        // TODO: Add auth actions
         case appLaunched
-        case authStateChanged(isAuthenticated: Bool)
+        case sessionChecked(hasSession: Bool, hasCard: Bool)
 
-        // TODO: Embed feature actions
-        // case crashDetection(CrashDetectionReducer.Action)
-        // case deadManSwitch(DeadManSwitchReducer.Action)
-        // case groupRide(GroupRideReducer.Action)
-        // case trailConditions(TrailConditionsReducer.Action)
-        // case sos(SOSReducer.Action)
-        // case emergencyCard(EmergencyCardReducer.Action)
+        // Auth completed — check if card exists
+        case authCompleted
+
+        // Card saved — move to main
+        case emergencyCardCompleted
+
+        // Sign out
+        case signOutTapped
+        case signedOut
+
+        // Child actions
+        case auth(AuthReducer.Action)
+        case emergencyCard(EmergencyCardReducer.Action)
     }
 
     // MARK: - Dependencies
-    // TODO: @Dependency(\.supabaseClient) var supabaseClient
-    // TODO: @Dependency(\.locationService) var locationService
-    // TODO: @Dependency(\.motionService) var motionService
-    // TODO: @Dependency(\.notificationService) var notificationService
+
+    @Dependency(\.supabase) var supabase
 
     // MARK: - Body
 
     var body: some ReducerOf<Self> {
+        // Scope child reducers
+        Scope(state: \.auth, action: \.auth) {
+            AuthReducer()
+        }
+        Scope(state: \.emergencyCard, action: \.emergencyCard) {
+            EmergencyCardReducer()
+        }
+
         Reduce { state, action in
             switch action {
+
+            // MARK: App Launch
             case .appLaunched:
-                // TODO: Check auth state, load user, configure services
+                state.route = .loading
+                return .run { send in
+                    do {
+                        // Check for existing session
+                        let session = try? await supabase.auth.session
+                        guard session != nil else {
+                            await send(.sessionChecked(hasSession: false, hasCard: false))
+                            return
+                        }
+
+                        // Check for emergency card
+                        let userId = session!.user.id
+                        let count: Int = try await supabase
+                            .from("emergency_cards")
+                            .select("id", head: true, count: .exact)
+                            .eq("rider_id", value: userId.uuidString)
+                            .execute()
+                            .count ?? 0
+
+                        await send(.sessionChecked(hasSession: true, hasCard: count > 0))
+                    } catch {
+                        await send(.sessionChecked(hasSession: false, hasCard: false))
+                    }
+                }
+
+            case let .sessionChecked(hasSession, hasCard):
+                if !hasSession {
+                    state.route = .unauthenticated
+                } else if !hasCard {
+                    state.route = .onboarding
+                } else {
+                    state.route = .main
+                }
                 return .none
 
-            case let .authStateChanged(isAuthenticated):
-                state.isAuthenticated = isAuthenticated
+            // MARK: Auth → onboarding or main
+            case .auth(.authSucceeded):
+                // After sign-in/sign-up, check if card exists
+                return .run { send in
+                    await send(.authCompleted)
+                }
+
+            case .authCompleted:
+                return .run { send in
+                    do {
+                        let session = try await supabase.auth.session
+                        let userId = session.user.id
+                        let count: Int = try await supabase
+                            .from("emergency_cards")
+                            .select("id", head: true, count: .exact)
+                            .eq("rider_id", value: userId.uuidString)
+                            .execute()
+                            .count ?? 0
+                        await send(.sessionChecked(hasSession: true, hasCard: count > 0))
+                    } catch {
+                        await send(.sessionChecked(hasSession: true, hasCard: false))
+                    }
+                }
+
+            // MARK: Emergency Card Saved
+            case .emergencyCard(.cardSaved):
+                state.route = .main
+                return .none
+
+            case .emergencyCardCompleted:
+                state.route = .main
+                return .none
+
+            // MARK: Sign Out
+            case .signOutTapped:
+                return .run { send in
+                    try? await supabase.auth.signOut()
+                    await send(.signedOut)
+                }
+
+            case .signedOut:
+                state.route = .unauthenticated
+                state.auth = .init()
+                state.emergencyCard = .init()
+                return .none
+
+            // MARK: Passthrough child actions
+            case .auth, .emergencyCard:
                 return .none
             }
         }
-        // TODO: Compose feature reducers
-        // Scope(state: \.crashDetection, action: \.crashDetection) { CrashDetectionReducer() }
-        // Scope(state: \.deadManSwitch, action: \.deadManSwitch) { DeadManSwitchReducer() }
     }
 }
