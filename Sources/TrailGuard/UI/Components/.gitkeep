@@ -1,0 +1,9 @@
+# UI/Components
+# Shared SwiftUI components go here.
+# Examples:
+#   - SOSButton.swift (reusable red FAB)
+#   - RideBadge.swift (active/paused/ended state indicator)
+#   - MemberPin.swift (group member map annotation)
+#   - ConditionChip.swift (colored trail condition badge)
+#   - LoadingOverlay.swift
+#   - ErrorBanner.swift

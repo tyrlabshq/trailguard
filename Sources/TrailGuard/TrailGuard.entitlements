@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- APNs environment -->
+    <key>aps-environment</key>
+    <string>development</string>
+
+    <!-- Location Push Service (iOS 15+) — used for background location precision -->
+    <!-- TODO: Enable in App Store Connect before adding here -->
+    <!-- <key>com.apple.developer.location.push</key>
+    <true/> -->
+
+    <!-- Critical Alerts — required for DMS escalation through Do Not Disturb -->
+    <!-- TODO: Apply for entitlement at developer.apple.com/contact/request/notifications-critical-alerts-entitlement/ -->
+    <!-- Add this key once Apple approves: -->
+    <!-- <key>com.apple.developer.usernotifications.critical-alerts</key>
+    <true/> -->
+
+    <!-- Push Notifications -->
+    <key>com.apple.developer.usernotifications.time-sensitive</key>
+    <true/>
+</dict>
+</plist>

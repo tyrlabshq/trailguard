@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- TrailGuard Info.plist -->
+    <!-- Core keys are set via project.yml; this file holds extras and privacy strings. -->
+
+    <!-- Location -->
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>TrailGuard uses your location for crash detection, live ride tracking, and sharing your position with your group. Always-on access is required for background crash detection.</string>
+
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>TrailGuard needs your location to track your ride and detect crashes.</string>
+
+    <!-- Motion -->
+    <key>NSMotionUsageDescription</key>
+    <string>TrailGuard uses your device's motion sensors to detect crashes and high-impact events on the trail.</string>
+
+    <!-- Background Modes -->
+    <key>UIBackgroundModes</key>
+    <array>
+        <string>location</string>
+        <string>fetch</string>
+        <string>remote-notification</string>
+        <string>processing</string>
+    </array>
+
+    <!-- BGTask identifiers -->
+    <key>BGTaskSchedulerPermittedIdentifiers</key>
+    <array>
+        <!-- TODO: Register these identifiers in AppEntry + BGTaskScheduler -->
+        <string>com.trailguard.dms.warning</string>
+        <string>com.trailguard.dms.expiry</string>
+        <string>com.trailguard.waypoints.flush</string>
+    </array>
+
+    <!-- Supabase config -->
+    <!-- TODO: Add SUPABASE_URL and SUPABASE_ANON_KEY keys -->
+    <!-- Load via Info.plist rather than hardcoding in source -->
+    <key>SupabaseURL</key>
+    <string>$(SUPABASE_URL)</string>
+    <key>SupabaseAnonKey</key>
+    <string>$(SUPABASE_ANON_KEY)</string>
+</dict>
+</plist>
