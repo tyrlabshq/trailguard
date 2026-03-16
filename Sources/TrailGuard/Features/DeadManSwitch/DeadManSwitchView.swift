@@ -11,7 +11,7 @@ import ComposableArchitecture
 // MARK: - Main View
 
 struct DeadManSwitchView: View {
-    @Bindable var store: StoreOf<DeadManSwitchReducer>
+@Perception.Bindable var store: StoreOf<DeadManSwitchReducer>
 
     var body: some View {
         NavigationStack {
@@ -226,7 +226,7 @@ private struct InactiveHeroSection: View {
             Image(systemName: "timer.circle")
                 .font(.system(size: 72))
                 .foregroundStyle(.orange)
-                .symbolEffect(.pulse)
+
 
             Text("Dead Man's Switch")
                 .font(.title2.bold())
@@ -243,7 +243,7 @@ private struct InactiveHeroSection: View {
 // MARK: - Config Section (interval picker)
 
 private struct ConfigSection: View {
-    @Bindable var store: StoreOf<DeadManSwitchReducer>
+@Perception.Bindable var store: StoreOf<DeadManSwitchReducer>
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {

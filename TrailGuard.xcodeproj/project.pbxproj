@@ -14,6 +14,7 @@
 		38C9BE5BB1AFB98D44B3DD2B /* TrailCondition.swift in Sources */ = {isa = PBXBuildFile; fileRef = C28A43AD2F730AE0EB0CBB34 /* TrailCondition.swift */; };
 		47ABD85035C168754BBC0D10 /* SupabaseDependency.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0402C8341B6ECB1B1DFB5D0 /* SupabaseDependency.swift */; };
 		4919F7D14F203BC8E2109A16 /* TrailGuardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA3D85B39F5B89830E25EBE7 /* TrailGuardTests.swift */; };
+		49B0EFF6FB6D7CB79BF8E70C /* RideRecordingReducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D6D64C6DBAE004BB97CA5D7 /* RideRecordingReducer.swift */; };
 		5218B32AD82D92FD84E83A97 /* EmergencyCardReducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0C01A4583AE7351D60958C1 /* EmergencyCardReducer.swift */; };
 		5364B6BD9DA8B139B3E7CC0C /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6C3A8A1ABAA78AB86B77481 /* AuthView.swift */; };
 		55BC272022BE719E0B578BB6 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = ACB94D72FDE6C68218B2A50C /* Supabase */; };
@@ -37,6 +38,7 @@
 		F164C97F68ADE0EC3CEBCB6A /* MotionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C5CE3724E3A2C65FD3572E9 /* MotionService.swift */; };
 		F244FEDBB0B825B6C7349D0B /* GroupRideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10A7FC9D1021B2DBBD26641 /* GroupRideView.swift */; };
 		F9BB32D4915E8C832C538281 /* GroupSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 483E13D5C684C26F6BEC2924 /* GroupSession.swift */; };
+		FB648AD39B94E86B0275360D /* RideRecordingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDF7A587862A04854983394E /* RideRecordingView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -71,6 +73,7 @@
 		84B76875FB40F62119685323 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		86957553430A8E6F9802B1C6 /* EmergencyCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmergencyCardView.swift; sourceTree = "<group>"; };
 		9B69D37CAC7D1F855D58541A /* AuthReducer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthReducer.swift; sourceTree = "<group>"; };
+		9D6D64C6DBAE004BB97CA5D7 /* RideRecordingReducer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RideRecordingReducer.swift; sourceTree = "<group>"; };
 		A0A02352EBF13B7B9B91F711 /* SupabaseClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseClient.swift; sourceTree = "<group>"; };
 		A10A7FC9D1021B2DBBD26641 /* GroupRideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupRideView.swift; sourceTree = "<group>"; };
 		A3B44446E15CFEE72360BEFB /* TrailGuard.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = TrailGuard.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -79,6 +82,7 @@
 		C40EB5ADD01F87E3DE8463C3 /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		C6C3A8A1ABAA78AB86B77481 /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthView.swift; sourceTree = "<group>"; };
 		CB77001B3B1E1938DE95623A /* LocationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationService.swift; sourceTree = "<group>"; };
+		CDF7A587862A04854983394E /* RideRecordingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RideRecordingView.swift; sourceTree = "<group>"; };
 		E0402C8341B6ECB1B1DFB5D0 /* SupabaseDependency.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseDependency.swift; sourceTree = "<group>"; };
 		E0C01A4583AE7351D60958C1 /* EmergencyCardReducer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmergencyCardReducer.swift; sourceTree = "<group>"; };
 		E6BF363BB297B9375BE5FC44 /* EmergencyCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmergencyCard.swift; sourceTree = "<group>"; };
@@ -113,6 +117,15 @@
 				5D3D5FF663F43D229DA74DA8 /* TrailGuardTests */,
 			);
 			path = Tests;
+			sourceTree = "<group>";
+		};
+		19E8E87AEA5384D571046FF0 /* RideRecording */ = {
+			isa = PBXGroup;
+			children = (
+				9D6D64C6DBAE004BB97CA5D7 /* RideRecordingReducer.swift */,
+				CDF7A587862A04854983394E /* RideRecordingView.swift */,
+			);
+			path = RideRecording;
 			sourceTree = "<group>";
 		};
 		1B208915C5D28BECF0E6390F /* GroupRide */ = {
@@ -253,6 +266,7 @@
 				A784C973C8567B1BFB923CCA /* DeadManSwitch */,
 				743A90A1323F2975BA5C1C86 /* EmergencyCard */,
 				1B208915C5D28BECF0E6390F /* GroupRide */,
+				19E8E87AEA5384D571046FF0 /* RideRecording */,
 				7F4C0A3D862D2138D9CB3B29 /* SOS */,
 				0F1B0DDE1FBE92E33211294D /* TrailConditions */,
 			);
@@ -393,6 +407,8 @@
 				F164C97F68ADE0EC3CEBCB6A /* MotionService.swift in Sources */,
 				79F4D296B3AFB9E9FCD2E4D2 /* NotificationService.swift in Sources */,
 				1EC71553DDAFCF0BFC2793B5 /* Ride.swift in Sources */,
+				49B0EFF6FB6D7CB79BF8E70C /* RideRecordingReducer.swift in Sources */,
+				FB648AD39B94E86B0275360D /* RideRecordingView.swift in Sources */,
 				59C30F9CD872FC9FE9C45A18 /* SOSReducer.swift in Sources */,
 				0C18D13F6C321DF72A91C04A /* SOSView.swift in Sources */,
 				958973462FF440F19229874D /* SupabaseClient.swift in Sources */,

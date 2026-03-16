@@ -34,7 +34,7 @@ struct TrailGuardApp: App {
 // MARK: - Root View
 
 struct AppRootView: View {
-    @Bindable var store: StoreOf<AppReducer>
+    let store: StoreOf<AppReducer>
 
     var body: some View {
         switch store.route {

@@ -22,6 +22,8 @@ struct AppReducer {
         var auth: AuthReducer.State = .init()
         var emergencyCard: EmergencyCardReducer.State = .init()
         var deadManSwitch: DeadManSwitchReducer.State = .init()
+        var rideRecording: RideRecordingReducer.State = .init()
+        var crashDetection: CrashDetectionReducer.State = .init()
 
         enum Route: Equatable {
             case loading
@@ -50,10 +52,15 @@ struct AppReducer {
         // DMS auto-SOS escalation
         case deadManSwitchSOSTriggered
 
+        // Crash detection SOS escalation
+        case crashDetectionSOSTriggered
+
         // Child actions
         case auth(AuthReducer.Action)
         case emergencyCard(EmergencyCardReducer.Action)
         case deadManSwitch(DeadManSwitchReducer.Action)
+        case rideRecording(RideRecordingReducer.Action)
+        case crashDetection(CrashDetectionReducer.Action)
     }
 
     // MARK: - Dependencies
@@ -72,6 +79,12 @@ struct AppReducer {
         }
         Scope(state: \.deadManSwitch, action: \.deadManSwitch) {
             DeadManSwitchReducer()
+        }
+        Scope(state: \.rideRecording, action: \.rideRecording) {
+            RideRecordingReducer()
+        }
+        Scope(state: \.crashDetection, action: \.crashDetection) {
+            CrashDetectionReducer()
         }
 
         Reduce { state, action in
@@ -158,9 +171,10 @@ struct AppReducer {
                 state.route = .unauthenticated
                 state.auth = .init()
                 state.emergencyCard = .init()
-                // Deactivate DMS on sign out
                 state.deadManSwitch = .init()
-                return .none
+                state.rideRecording = .init()
+                state.crashDetection = .init()
+                return .send(.crashDetection(.deactivate))
 
             // MARK: DMS SOS escalation
             case .deadManSwitch(.dispatchSOS):
@@ -171,8 +185,37 @@ struct AppReducer {
                 // TODO: When SOSReducer is integrated into AppReducer, trigger it here
                 return .none
 
+            // MARK: Crash Detection → Ride Recording wiring
+            case .rideRecording(.countdownFinished):
+                // Ride started recording → activate crash detection
+                return .send(.crashDetection(.activate))
+
+            case .rideRecording(.confirmStop):
+                // Ride stopped → deactivate crash detection
+                return .send(.crashDetection(.deactivate))
+
+            case .rideRecording(.pauseRideTapped):
+                // Ride paused → deactivate crash detection (save battery)
+                return .send(.crashDetection(.deactivate))
+
+            case .rideRecording(.resumeRideTapped):
+                // Ride resumed → reactivate crash detection
+                return .send(.crashDetection(.activate))
+
+            // Forward speed updates to crash detection for velocity-drop check
+            case let .rideRecording(.locationUpdated(point)):
+                return .send(.crashDetection(.speedUpdated(metersPerSecond: point.speed)))
+
+            // MARK: Crash Detection SOS escalation
+            case .crashDetection(.dispatchSOS):
+                return .send(.crashDetectionSOSTriggered)
+
+            case .crashDetectionSOSTriggered:
+                // TODO: When SOSReducer is integrated, trigger SOS with crash context
+                return .none
+
             // MARK: Passthrough child actions
-            case .auth, .emergencyCard, .deadManSwitch:
+            case .auth, .emergencyCard, .deadManSwitch, .rideRecording, .crashDetection:
                 return .none
             }
         }

@@ -7,7 +7,7 @@ import SwiftUI
 import ComposableArchitecture
 
 struct AuthView: View {
-    @Bindable var store: StoreOf<AuthReducer>
+    @Perception.Bindable var store: StoreOf<AuthReducer>
 
     var body: some View {
         NavigationStack {

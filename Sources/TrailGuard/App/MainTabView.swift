@@ -12,12 +12,13 @@ struct MainTabView: View {
 
     var body: some View {
         TabView {
-            // MARK: Ride (hosts Dead Man's Switch)
-            DeadManSwitchView(
-                store: store.scope(state: \.deadManSwitch, action: \.deadManSwitch)
+            // MARK: Ride (GPS recording + DMS status)
+            RideRecordingView(
+                rideStore: store.scope(state: \.rideRecording, action: \.rideRecording),
+                dmsStore: store.scope(state: \.deadManSwitch, action: \.deadManSwitch)
             )
             .tabItem {
-                Label("Ride", systemImage: "play.circle")
+                Label("Ride", systemImage: "location.north.circle")
             }
 
             // MARK: Group
@@ -47,6 +48,11 @@ struct MainTabView: View {
                 }
         }
         .tint(.orange)
+        .overlay {
+            CrashDetectionView(
+                store: store.scope(state: \.crashDetection, action: \.crashDetection)
+            )
+        }
     }
 }
 

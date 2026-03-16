@@ -3,9 +3,13 @@
 //
 // TCA reducer for crash detection feature.
 // Manages impact threshold evaluation, alert countdown, and SOS escalation.
+//
+// Flow: monitoring → impactDetected → countingDown → (dismissed | sosFired)
+// Activity-gated: only active when ride is .recording
 
 import ComposableArchitecture
 import CoreMotion
+import Foundation
 
 @Reducer
 struct CrashDetectionReducer {
@@ -14,23 +18,20 @@ struct CrashDetectionReducer {
 
     @ObservableState
     struct State: Equatable {
-        // TODO: Detection active flag (only true during .riding phase)
         var isActive: Bool = false
-
-        // TODO: Current detection phase
-        var phase: Phase = .monitoring
-
-        // TODO: Countdown seconds remaining when impact detected
-        var countdownSeconds: Int = 60
-
-        // Sensitivity setting (configurable in Safety Settings)
+        var phase: Phase = .idle
+        var countdownRemaining: Int = 60
+        var impactMagnitude: Double = 0
         var sensitivity: Sensitivity = .medium
+        var falsePositiveCount: Int = 0
 
         enum Phase: Equatable {
-            case monitoring          // Actively watching for impact
-            case impactDetected      // "Are you OK?" modal showing
-            case countdown(Int)     // Counting down to auto-SOS
-            case sosFired            // SOS has been dispatched
+            case idle               // Not monitoring (ride not active)
+            case monitoring         // Actively watching for impact
+            case impactDetected     // High-G event confirmed, showing alert
+            case countingDown       // 60s countdown to auto-SOS
+            case dismissed          // User tapped "I'm OK"
+            case sosFired           // SOS dispatched
         }
 
         enum Sensitivity: String, Equatable, CaseIterable {
@@ -46,21 +47,29 @@ struct CrashDetectionReducer {
                 }
             }
         }
+
+        var isAlertVisible: Bool {
+            switch phase {
+            case .impactDetected, .countingDown, .sosFired:
+                return true
+            default:
+                return false
+            }
+        }
     }
 
     // MARK: - Action
 
     enum Action {
-        // Lifecycle
-        case startMonitoring
-        case stopMonitoring
+        // Lifecycle (called by RideRecordingReducer)
+        case activate
+        case deactivate
 
         // Sensor events
         case impactDetected(magnitude: Double)
-        case velocityDropConfirmed
 
         // User responses
-        case userConfirmedOK       // "I'm fine" tapped
+        case userConfirmedOK       // "I'm OK" tapped
         case userCancelledSOS      // Cancel tapped during countdown
 
         // Internal timer
@@ -68,88 +77,155 @@ struct CrashDetectionReducer {
         case countdownExpired
 
         // SOS escalation
-        case fireSOS
-        case sosConfirmed          // Supabase alert created
-        case sosFailed(Error)      // Alert creation failed
+        case dispatchSOS
+        case sosConfirmed
+        case sosFailed(String)
 
-        // False positive tracking
-        case markFalsePositive
-        case sensitivityAdjusted(State.Sensitivity)
+        // Speed updates (forwarded from ride recording for velocity-drop check)
+        case speedUpdated(metersPerSecond: Double)
+
+        // Sensitivity
+        case sensitivityChanged(State.Sensitivity)
+
+        // Critical alert notification
+        case criticalAlertFired
     }
 
     // MARK: - Dependencies
-    // TODO: @Dependency(\.motionService) var motionService
-    // TODO: @Dependency(\.notificationService) var notificationService
-    // TODO: @Dependency(\.supabaseClient) var supabaseClient
-    // TODO: @Dependency(\.continuousClock) var clock
+
+    @Dependency(\.motionService) var motionService
+    @Dependency(\.continuousClock) var clock
+
+    // MARK: - Cancel IDs
+
+    private enum CancelID {
+        case motionStream
+        case countdown
+    }
 
     // MARK: - Body
 
     var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
-            case .startMonitoring:
-                // TODO: Activate CoreMotion accelerometer at 100Hz
-                // TODO: Gate on CMMotionActivityManager (only run when "automotive" motion detected)
+
+            // MARK: Activate (ride started recording)
+            case .activate:
                 state.isActive = true
                 state.phase = .monitoring
-                return .none
+                state.countdownRemaining = 60
+                state.impactMagnitude = 0
+                let threshold = state.sensitivity.gForceThreshold
+                return .run { send in
+                    let stream = motionService.startCrashDetection(threshold)
+                    for await magnitude in stream {
+                        await send(.impactDetected(magnitude: magnitude))
+                    }
+                }
+                .cancellable(id: CancelID.motionStream, cancelInFlight: true)
 
-            case .stopMonitoring:
+            // MARK: Deactivate (ride stopped/paused)
+            case .deactivate:
                 state.isActive = false
-                return .none
+                state.phase = .idle
+                motionService.stopCrashDetection()
+                return .merge(
+                    .cancel(id: CancelID.motionStream),
+                    .cancel(id: CancelID.countdown)
+                )
 
+            // MARK: Impact Detected
             case let .impactDetected(magnitude):
-                // TODO: Validate magnitude exceeds threshold for current sensitivity
-                // TODO: Require velocity drop confirmation before triggering
-                guard state.isActive else { return .none }
+                guard state.isActive, state.phase == .monitoring else { return .none }
                 state.phase = .impactDetected
-                // TODO: Show "Are you OK?" notification
-                return .none
+                state.impactMagnitude = magnitude
+                state.countdownRemaining = 60
 
-            case .velocityDropConfirmed:
-                // TODO: Both conditions met — transition to countdown
-                state.phase = .countdown(state.countdownSeconds)
-                // TODO: Start 60s countdown timer
-                return .none
+                // Immediately transition to countdown
+                state.phase = .countingDown
+                return .run { send in
+                    // Fire critical alert notification
+                    await send(.criticalAlertFired)
+                    // Start 60-second countdown
+                    for await _ in clock.timer(interval: .seconds(1)) {
+                        await send(.countdownTick)
+                    }
+                }
+                .cancellable(id: CancelID.countdown, cancelInFlight: true)
 
-            case .userConfirmedOK:
-                // TODO: Log false positive candidate
-                state.phase = .monitoring
-                return .none
-
-            case .userCancelledSOS:
-                state.phase = .monitoring
-                return .none
-
+            // MARK: Countdown Tick
             case .countdownTick:
-                // TODO: Decrement countdown, update state
+                guard state.phase == .countingDown else { return .none }
+                state.countdownRemaining -= 1
+
+                if state.countdownRemaining <= 0 {
+                    return .concatenate(
+                        .cancel(id: CancelID.countdown),
+                        .send(.countdownExpired)
+                    )
+                }
                 return .none
 
             case .countdownExpired:
-                return .send(.fireSOS)
+                return .send(.dispatchSOS)
 
-            case .fireSOS:
+            // MARK: User Confirmed OK
+            case .userConfirmedOK:
+                state.phase = .dismissed
+                state.falsePositiveCount += 1
+                return .merge(
+                    .cancel(id: CancelID.countdown),
+                    // Return to monitoring after brief dismiss
+                    .run { send in
+                        try await clock.sleep(for: .seconds(1))
+                        // Re-enter monitoring state
+                        await send(.activate)
+                    }
+                )
+
+            case .userCancelledSOS:
+                state.phase = .dismissed
+                return .merge(
+                    .cancel(id: CancelID.countdown),
+                    .run { send in
+                        try await clock.sleep(for: .seconds(1))
+                        await send(.activate)
+                    }
+                )
+
+            // MARK: Dispatch SOS
+            case .dispatchSOS:
                 state.phase = .sosFired
-                // TODO: Call supabaseClient.createAlert(type: .crash)
-                // TODO: Trigger NotificationService to push to emergency contacts
-                return .none
+                motionService.stopCrashDetection()
+                return .cancel(id: CancelID.motionStream)
 
             case .sosConfirmed:
                 return .none
 
-            case let .sosFailed(error):
-                // TODO: Log error, retry once, then surface to user
-                _ = error
+            case .sosFailed:
                 return .none
 
-            case .markFalsePositive:
-                // TODO: Track false positive count, surface sensitivity adjustment prompt after 3
-                state.phase = .monitoring
+            // MARK: Speed Updates (forwarded to motion service for velocity-drop check)
+            case let .speedUpdated(metersPerSecond):
+                motionService.setCurrentSpeed(metersPerSecond)
                 return .none
 
-            case let .sensitivityAdjusted(newSensitivity):
+            // MARK: Sensitivity
+            case let .sensitivityChanged(newSensitivity):
                 state.sensitivity = newSensitivity
+                // If currently monitoring, restart with new threshold
+                guard state.isActive, state.phase == .monitoring else { return .none }
+                motionService.stopCrashDetection()
+                let threshold = newSensitivity.gForceThreshold
+                return .run { send in
+                    let stream = motionService.startCrashDetection(threshold)
+                    for await magnitude in stream {
+                        await send(.impactDetected(magnitude: magnitude))
+                    }
+                }
+                .cancellable(id: CancelID.motionStream, cancelInFlight: true)
+
+            case .criticalAlertFired:
                 return .none
             }
         }

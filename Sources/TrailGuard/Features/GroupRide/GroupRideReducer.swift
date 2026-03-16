@@ -26,8 +26,9 @@ struct GroupRideReducer {
         // Group limits (enforced server-side too)
         var maxMembers: Int = 4  // Free tier. Pro = unlimited
 
-        // Rally point
-        var rallyPoint: CLLocationCoordinate2D?  // TODO: Use custom Equatable wrapper
+        // Rally point (lat/lng stored as doubles to avoid CLLocationCoordinate2D Equatable issues)
+        var rallyPointLatitude: Double? = nil
+        var rallyPointLongitude: Double? = nil
 
         enum Phase: Equatable {
             case none
@@ -146,12 +147,12 @@ struct GroupRideReducer {
                 return .none
 
             case let .setRallyPoint(lat, lng):
-                state.rallyPoint = CLLocationCoordinate2D(latitude: lat, longitude: lng)
+                state.rallyPointLatitude = lat; state.rallyPointLongitude = lng
                 // TODO: Broadcast rally point to group via Supabase Realtime
                 return .none
 
             case .clearRallyPoint:
-                state.rallyPoint = nil
+                state.rallyPointLatitude = nil; state.rallyPointLongitude = nil
                 return .none
 
             case .subscribeToRealtimeUpdates:

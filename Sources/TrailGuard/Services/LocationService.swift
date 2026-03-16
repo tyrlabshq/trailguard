@@ -2,70 +2,151 @@
 // TrailGuard — Services
 //
 // Wraps CoreLocation for always-on background ride tracking.
-// Published as a TCA dependency via @DependencyClient.
+// Published as a TCA dependency via DependencyKey.
 
 import CoreLocation
 import Combine
 import ComposableArchitecture
 import Foundation
 
-// MARK: - TCA Dependency Key
+// MARK: - TCA Dependency Interface
 
-/// LocationService dependency — inject in reducers that need live location.
-/// TODO: Register with DependencyValues
 struct LocationServiceClient {
-    /// Request always-on authorization (required for crash detection + background tracking)
-    var requestAlwaysAuthorization: () async -> Void
+    /// Request always-on authorization (required for background tracking)
+    var requestAlwaysAuthorization: @Sendable () async -> Void
     /// Current authorization status
-    var authorizationStatus: () -> CLAuthorizationStatus
+    var authorizationStatus: @Sendable () -> CLAuthorizationStatus
     /// Start updating location. Returns AsyncStream of CLLocation updates.
-    var startUpdating: () -> AsyncStream<CLLocation>
-    /// Stop location updates (called when ride ends or app moves to fully inactive state)
-    var stopUpdating: () -> Void
-    /// One-shot current location (for pre-ride checks, report coordinate pre-fill)
-    var currentLocation: () async throws -> CLLocation
+    var startUpdating: @Sendable () -> AsyncStream<CLLocation>
+    /// Stop location updates
+    var stopUpdating: @Sendable () -> Void
+    /// One-shot current location
+    var currentLocation: @Sendable () async throws -> CLLocation
 }
 
-// MARK: - Live Implementation Shell
+// MARK: - Dependency Key
 
-final class LocationService: NSObject, CLLocationManagerDelegate {
+private enum LocationServiceKey: DependencyKey {
+    static let liveValue: LocationServiceClient = .live
+    static let testValue: LocationServiceClient = .noop
+}
 
-    static let shared = LocationService()
+extension DependencyValues {
+    var locationService: LocationServiceClient {
+        get { self[LocationServiceKey.self] }
+        set { self[LocationServiceKey.self] = newValue }
+    }
+}
 
-    private let locationManager = CLLocationManager()
-    private var locationContinuation: AsyncStream<CLLocation>.Continuation?
+// MARK: - Live Implementation
 
-    override private init() {
-        super.init()
-        locationManager.delegate = self
-        // TODO: Configure for motorized trail use
-        // locationManager.desiredAccuracy = kCLLocationAccuracyBestForNavigation
-        // locationManager.distanceFilter = 5        // meters
-        // locationManager.activityType = .otherNavigation
-        // locationManager.allowsBackgroundLocationUpdates = true
-        // locationManager.pausesLocationUpdatesAutomatically = false
+extension LocationServiceClient {
+    static var live: Self {
+        let manager = LocationManager()
+        return Self(
+            requestAlwaysAuthorization: {
+                await manager.requestAlwaysAuthorization()
+            },
+            authorizationStatus: {
+                manager.locationManager.authorizationStatus
+            },
+            startUpdating: {
+                manager.startUpdating()
+            },
+            stopUpdating: {
+                manager.stopUpdating()
+            },
+            currentLocation: {
+                try await manager.currentLocation()
+            }
+        )
     }
 
-    // MARK: - CLLocationManagerDelegate
+    static var noop: Self {
+        Self(
+            requestAlwaysAuthorization: {},
+            authorizationStatus: { .notDetermined },
+            startUpdating: { AsyncStream { $0.finish() } },
+            stopUpdating: {},
+            currentLocation: { throw LocationError.unavailable }
+        )
+    }
+}
+
+enum LocationError: Error {
+    case unavailable
+    case denied
+}
+
+// MARK: - CLLocationManager Wrapper
+
+private final class LocationManager: NSObject, CLLocationManagerDelegate, @unchecked Sendable {
+    let locationManager = CLLocationManager()
+    private var continuation: AsyncStream<CLLocation>.Continuation?
+    private var authContinuation: CheckedContinuation<Void, Never>?
+
+    override init() {
+        super.init()
+        locationManager.delegate = self
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        locationManager.distanceFilter = 5 // meters
+        locationManager.activityType = .otherNavigation
+        locationManager.allowsBackgroundLocationUpdates = true
+        locationManager.pausesLocationUpdatesAutomatically = false
+        locationManager.showsBackgroundLocationIndicator = true
+    }
+
+    func requestAlwaysAuthorization() async {
+        let status = locationManager.authorizationStatus
+        guard status == .notDetermined else { return }
+        await withCheckedContinuation { (cont: CheckedContinuation<Void, Never>) in
+            self.authContinuation = cont
+            self.locationManager.requestAlwaysAuthorization()
+        }
+    }
+
+    func startUpdating() -> AsyncStream<CLLocation> {
+        AsyncStream { continuation in
+            self.continuation = continuation
+            continuation.onTermination = { [weak self] _ in
+                self?.locationManager.stopUpdatingLocation()
+                self?.continuation = nil
+            }
+            self.locationManager.startUpdatingLocation()
+        }
+    }
+
+    func stopUpdating() {
+        locationManager.stopUpdatingLocation()
+        continuation?.finish()
+        continuation = nil
+    }
+
+    func currentLocation() async throws -> CLLocation {
+        let stream = startUpdating()
+        for await location in stream {
+            stopUpdating()
+            return location
+        }
+        throw LocationError.unavailable
+    }
+
+    // MARK: CLLocationManagerDelegate
 
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        // TODO: Feed locations into AsyncStream continuation
-        // TODO: Buffer waypoints for batch write every 30s
+        for location in locations {
+            continuation?.yield(location)
+        }
     }
 
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-        // TODO: Notify app of authorization change
-        // If .denied or .restricted → show "Location required" prompt
+        authContinuation?.resume()
+        authContinuation = nil
     }
 
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        // TODO: Log error, attempt recovery
-        // If CLError.denied → stop updates, notify user
+        #if DEBUG
+        print("[LocationService] Error: \(error.localizedDescription)")
+        #endif
     }
-
-    // MARK: - Waypoint Batching
-
-    /// Flushes buffered waypoints to Supabase every 30s during active ride.
-    /// TODO: Implement flush timer + supabaseClient.insertWaypoints()
-    private func scheduleWaypointFlush() { }
 }
