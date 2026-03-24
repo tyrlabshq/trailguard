@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy — TrailGuard</title>
+  <style>
+    :root { --brand: #2D5016; --accent: #E8A317; --bg: #1a1a1a; --surface: #242424; --text: #e0e0e0; --muted: #a0a0a0; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
+    header { background: linear-gradient(135deg, #1a3a0a, var(--brand)); color: #fff; padding: 2rem 1rem; text-align: center; }
+    header h1 { font-size: 1.6rem; font-weight: 700; }
+    header p { font-size: 0.95rem; opacity: 0.85; margin-top: 0.3rem; }
+    main { max-width: 720px; margin: 2rem auto; padding: 0 1.25rem 4rem; }
+    h2 { font-size: 1.15rem; color: var(--accent); margin: 2rem 0 0.5rem; }
+    p, li { font-size: 0.95rem; color: var(--muted); margin-bottom: 0.6rem; }
+    ul { padding-left: 1.4rem; margin-bottom: 0.8rem; }
+    .effective { text-align: center; font-size: 0.85rem; color: var(--muted); margin-top: 3rem; border-top: 1px solid #333; padding-top: 1rem; }
+    a { color: var(--accent); }
+  </style>
+</head>
+<body>
+<header>
+  <h1>TrailGuard — Privacy Policy</h1>
+  <p>Rider Safety GPS</p>
+</header>
+<main>
+
+<h2>Overview</h2>
+<p>TrailGuard ("we", "us", "the app") is an off-road rider safety application for snowmobilers, ATV/UTV riders, and dirt bikers. We respect your privacy and are committed to protecting your personal data. This policy explains what information we collect, how we use it, and your rights.</p>
+
+<h2>1. Information We Collect</h2>
+<p><strong>Location Data</strong> — TrailGuard requests access to your device's GPS location to provide core safety features: ride tracking, crash detection, dead man's switch, group ride coordination, and SOS alerts. Location data is collected in the foreground and background during active rides. Background location is required for crash detection and dead man's switch to function when the app is not in the foreground.</p>
+
+<p><strong>Emergency Contacts</strong> — You may store up to 3 emergency contacts (name, phone number, relationship). This information is stored locally on your device and on our servers (via Supabase) to enable SOS notifications. Emergency contact information is only shared when an SOS event is triggered.</p>
+
+<p><strong>Emergency Info Card</strong> — You may store medical information (blood type, allergies, medical notes) for inclusion in SOS alerts. This data is stored locally and synced to our servers to be available to first responders in an emergency.</p>
+
+<p><strong>Motion &amp; Accelerometer Data</strong> — TrailGuard uses your device's accelerometer and motion sensors to detect crashes (sudden deceleration events). This data is processed on-device in real time and is not stored or transmitted.</p>
+
+<p><strong>Group Ride Data</strong> — When participating in a group ride, your GPS location is shared in real time with other group members via our servers. This sharing is active only while you are in an active group ride session and stops when you leave the group or end the ride.</p>
+
+<p><strong>Ride History</strong> — Your ride routes, duration, distance, and associated GPS tracks are stored locally and synced to our servers to provide ride history and statistics.</p>
+
+<p><strong>Trail Condition Reports</strong> — If you submit a trail condition report, it is stored on our servers and visible to other TrailGuard users. Reports include the trail location, condition type, and your rider display name.</p>
+
+<p><strong>Analytics</strong> — We may collect anonymous, aggregated usage data (e.g., feature usage counts, crash reports) to improve the app. This data cannot be used to identify you personally.</p>
+
+<h2>2. Information We Do Not Collect</h2>
+<ul>
+  <li>We do not access your contacts, photos, or microphone.</li>
+  <li>We do not collect your location when you are not actively using the app (no rides in progress).</li>
+  <li>We do not sell, rent, or share your personal data with third parties for marketing or advertising purposes.</li>
+  <li>We do not use your data for ad targeting or profiling.</li>
+</ul>
+
+<h2>3. How We Use Your Data</h2>
+<ul>
+  <li>To provide crash detection, dead man's switch, and SOS safety features.</li>
+  <li>To enable real-time group ride location sharing with your group members.</li>
+  <li>To store and display your ride history and statistics.</li>
+  <li>To deliver emergency notifications to your designated contacts.</li>
+  <li>To display community trail condition reports.</li>
+  <li>To improve app performance and fix bugs via anonymous analytics.</li>
+</ul>
+
+<h2>4. Data Storage &amp; Security</h2>
+<p>Data is stored locally on your device and synced to our servers hosted on Supabase (cloud infrastructure). All data is transmitted over encrypted connections (TLS). We retain your data only as long as your account is active or as needed to provide services. You can delete your account and all associated data at any time from the app settings.</p>
+
+<h2>5. Background Location Use</h2>
+<p>TrailGuard uses background location access during active rides for the following critical safety features:</p>
+<ul>
+  <li><strong>Crash Detection</strong> — Continuously monitors GPS and accelerometer to detect impact events even when the screen is off or the app is in the background.</li>
+  <li><strong>Dead Man's Switch</strong> — Monitors movement to detect if a rider has stopped moving for an extended period, triggering safety escalation.</li>
+  <li><strong>Group Ride Tracking</strong> — Shares your location with group members so they can monitor your position in real time.</li>
+</ul>
+<p>Background location is only active during rides you explicitly start. TrailGuard does not track your location outside of active ride sessions.</p>
+
+<h2>6. Your Rights (GDPR &amp; CCPA)</h2>
+<p>Depending on your jurisdiction, you may have the following rights:</p>
+<ul>
+  <li><strong>Access</strong> — Request a copy of the personal data we hold about you.</li>
+  <li><strong>Deletion</strong> — Request that we delete your personal data. You can also delete all local data by uninstalling the app.</li>
+  <li><strong>Correction</strong> — Request correction of inaccurate personal data.</li>
+  <li><strong>Portability</strong> — Request your data in a portable format.</li>
+  <li><strong>Opt-Out</strong> — Opt out of any data collection beyond what is required for core functionality.</li>
+  <li><strong>Non-Discrimination</strong> — We will not discriminate against you for exercising your privacy rights.</li>
+</ul>
+<p>To exercise any of these rights, contact us at <a href="mailto:privacy@trailguard.app">privacy@trailguard.app</a>.</p>
+
+<h2>7. Categories of Personal Information (CCPA)</h2>
+<ul>
+  <li><strong>Identifiers</strong> — Email address (only if you create an account).</li>
+  <li><strong>Geolocation data</strong> — GPS coordinates during active rides.</li>
+  <li><strong>Internet activity</strong> — Anonymous app usage analytics.</li>
+  <li><strong>Health information</strong> — Blood type, allergies, medical notes (only if you voluntarily provide them in your emergency info card).</li>
+</ul>
+<p>We do not sell personal information. We have not sold personal information in the preceding 12 months.</p>
+
+<h2>8. Children's Privacy</h2>
+<p>TrailGuard is not directed at children under 13. We do not knowingly collect personal information from children. If you believe a child has provided us with personal data, please contact us and we will delete it.</p>
+
+<h2>9. Third-Party Services</h2>
+<p>TrailGuard uses the following third-party services:</p>
+<ul>
+  <li><strong>Supabase</strong> — Cloud database and authentication. <a href="https://supabase.com/privacy">Supabase Privacy Policy</a></li>
+  <li><strong>Mapbox</strong> — Offline and online map rendering. <a href="https://www.mapbox.com/legal/privacy">Mapbox Privacy Policy</a></li>
+</ul>
+<p>We do not share personally identifiable information with these providers beyond what is necessary to operate the service.</p>
+
+<h2>10. Changes to This Policy</h2>
+<p>We may update this policy from time to time. Material changes will be communicated through the app or on our website. Continued use of the app after changes constitutes acceptance.</p>
+
+<h2>11. Contact Us</h2>
+<p>If you have questions about this privacy policy or your data, contact us at:<br>
+<a href="mailto:privacy@trailguard.app">privacy@trailguard.app</a></p>
+
+<div class="effective">Effective Date: March 17, 2026 &middot; TrailGuard &copy; 2026</div>
+</main>
+</body>
+</html>
