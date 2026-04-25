@@ -31,7 +31,7 @@ _(populate with current in-flight tasks)_
 ## Recently Completed
 
 <!-- BEGIN_AUTO:RECENTLY_COMPLETED -->
-_(no merged PRs found)_
+- **PR #1** — feat: cross-agent memory infra + auto-regen STATUS.md _(merged 2026-04-25 by @tyrlabshq)_
 <!-- END_AUTO:RECENTLY_COMPLETED -->
 
 ## Open PRs
