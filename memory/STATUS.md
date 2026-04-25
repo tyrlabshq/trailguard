@@ -31,6 +31,7 @@ _(populate with current in-flight tasks)_
 ## Recently Completed
 
 <!-- BEGIN_AUTO:RECENTLY_COMPLETED -->
+- **PR #2** — feat: add DECISIONS.md + LESSONS.md scaffolds _(merged 2026-04-25 by @tyrlabshq)_
 - **PR #1** — feat: cross-agent memory infra + auto-regen STATUS.md _(merged 2026-04-25 by @tyrlabshq)_
 <!-- END_AUTO:RECENTLY_COMPLETED -->
 
